@@ -1,0 +1,49 @@
+:host {
+  display: contents;
+}
+
+/* A realm-supplied document, so it can be any length. It scrolls rather than pushing the buttons
+   off the card. */
+.terms-text {
+  max-height: 18rem;
+  margin-bottom: var(--space-3);
+  padding: var(--space-3);
+  overflow-y: auto;
+  color: var(--text-secondary);
+  background: var(--surface-2);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+
+.terms-read {
+  margin: 0 0 var(--space-4);
+  text-align: center;
+}
+
+.terms-read a {
+  color: var(--accent-text);
+  font-weight: var(--weight-semibold);
+  text-underline-offset: var(--space-1);
+}
+
+.auth-form {
+  display: grid;
+  gap: var(--space-3);
+}
+
+button[libButton] {
+  width: 100%;
+}
+
+@media (min-width: 64rem) and (min-height: 48rem) {
+  .terms-text {
+    margin-bottom: var(--space-5);
+    padding: var(--space-4);
+  }
+
+  .auth-form {
+    gap: var(--space-4);
+  }
+}

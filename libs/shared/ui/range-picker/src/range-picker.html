@@ -1,0 +1,141 @@
+<div
+  class="range-picker"
+  role="group"
+  [attr.aria-label]="
+    ariaLabel() || (!ariaLabelledby() ? ('rangePicker.label' | uiCopy | transloco) : null)
+  "
+  [attr.aria-labelledby]="ariaLabelledby() || null"
+  [attr.aria-describedby]="describedBy()"
+>
+  <div
+    class="range-track"
+    [style.--range-start]="startRatio()"
+    [style.--range-end]="endRatio()"
+    (pointerdown)="onTrackPointerDown($event)"
+    (pointermove)="onTrackPointerMove($event)"
+    (pointerup)="onTrackPointerEnd($event)"
+    (pointercancel)="onTrackPointerEnd($event)"
+  >
+    <span class="range-track-fill" aria-hidden="true"></span>
+
+    <input
+      #startSlider
+      class="range-slider range-slider-start"
+      type="range"
+      [min]="domain().start"
+      [max]="domain().end"
+      [step]="safeStep()"
+      [value]="draft().start"
+      [disabled]="disabled()"
+      [attr.aria-label]="startAriaLabel() || ('rangePicker.minimum' | uiCopy | transloco)"
+      [attr.aria-valuetext]="formatted(draft().start)"
+      [attr.aria-describedby]="describedBy()"
+      [attr.aria-invalid]="invalid() ? true : null"
+      [attr.aria-readonly]="readonly() ? true : null"
+      (focus)="activeThumb.set('start')"
+      (pointerdown)="onThumbPointerDown('start', $event)"
+      (input)="onSliderInput('start', $event)"
+      (change)="onSliderChange()"
+      (keydown)="onSliderKeydown($event)"
+    />
+
+    <input
+      #endSlider
+      class="range-slider range-slider-end"
+      type="range"
+      [min]="domain().start"
+      [max]="domain().end"
+      [step]="safeStep()"
+      [value]="draft().end"
+      [disabled]="disabled()"
+      [attr.aria-label]="endAriaLabel() || ('rangePicker.maximum' | uiCopy | transloco)"
+      [attr.aria-valuetext]="formatted(draft().end)"
+      [attr.aria-describedby]="describedBy()"
+      [attr.aria-invalid]="invalid() ? true : null"
+      [attr.aria-readonly]="readonly() ? true : null"
+      (focus)="activeThumb.set('end')"
+      (pointerdown)="onThumbPointerDown('end', $event)"
+      (input)="onSliderInput('end', $event)"
+      (change)="onSliderChange()"
+      (keydown)="onSliderKeydown($event)"
+    />
+  </div>
+
+  <div class="range-fields">
+    <label #startFieldContainer class="range-field" [attr.for]="startInputId()">
+      <span [id]="startLabelId()" class="range-field-label">
+        {{ startLabel() || ('rangePicker.from' | uiCopy | transloco) }}
+      </span>
+      <lib-input-number
+        #startField
+        [value]="startFieldValue() ?? null"
+        [min]="domain().start"
+        [max]="draft().end"
+        [step]="safeStep()"
+        [commitOn]="fieldCommitOn()"
+        [mode]="mode()"
+        [currency]="currency()"
+        [locale]="locale()"
+        [useGrouping]="useGrouping()"
+        [minFractionDigits]="minFractionDigits()"
+        [maxFractionDigits]="maxFractionDigits()"
+        [prefix]="prefix()"
+        [suffix]="suffix()"
+        [valueFormatter]="valueFormatter()"
+        [size]="size()"
+        [disabled]="disabled()"
+        [readonly]="readonly()"
+        [invalid]="invalid()"
+        [required]="required()"
+        [inputId]="startInputId()"
+        [name]="name() ? name() + '.start' : ''"
+        [ariaLabelledby]="startLabelId()"
+        [ariaDescribedby]="describedBy() ?? ''"
+        (valueChange)="onFieldValue('start', $event ?? undefined)"
+        (touch)="onFieldTouch('start')"
+      />
+    </label>
+
+    <span class="range-separator" aria-hidden="true">–</span>
+
+    <label #endFieldContainer class="range-field" [attr.for]="endInputId()">
+      <span [id]="endLabelId()" class="range-field-label">
+        {{ endLabel() || ('rangePicker.to' | uiCopy | transloco) }}
+      </span>
+      <lib-input-number
+        #endField
+        [value]="endFieldValue() ?? null"
+        [min]="draft().start"
+        [max]="domain().end"
+        [step]="safeStep()"
+        [commitOn]="fieldCommitOn()"
+        [mode]="mode()"
+        [currency]="currency()"
+        [locale]="locale()"
+        [useGrouping]="useGrouping()"
+        [minFractionDigits]="minFractionDigits()"
+        [maxFractionDigits]="maxFractionDigits()"
+        [prefix]="prefix()"
+        [suffix]="suffix()"
+        [valueFormatter]="valueFormatter()"
+        [size]="size()"
+        [disabled]="disabled()"
+        [readonly]="readonly()"
+        [invalid]="invalid()"
+        [required]="required()"
+        [inputId]="endInputId()"
+        [name]="name() ? name() + '.end' : ''"
+        [ariaLabelledby]="endLabelId()"
+        [ariaDescribedby]="describedBy() ?? ''"
+        (valueChange)="onFieldValue('end', $event ?? undefined)"
+        (touch)="onFieldTouch('end')"
+      />
+    </label>
+  </div>
+</div>
+
+@if (showError()) {
+  <div [id]="errorId" class="range-error" role="alert">
+    {{ firstError()?.message || errorKey() | uiCopy | transloco: errorParams() }}
+  </div>
+}

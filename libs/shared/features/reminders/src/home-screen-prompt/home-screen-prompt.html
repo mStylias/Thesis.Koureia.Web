@@ -1,0 +1,27 @@
+<!-- Kept while the app runs, so closing plays the dialog's exit. -->
+@if (homeScreenApp()) {
+  <lib-dialog
+    size="sm"
+    position="bottom"
+    [(visible)]="visible"
+    [header]="'reminders.homeScreen.title' | transloco"
+  >
+    <p class="home-screen-line">{{ 'reminders.homeScreen.line' | transloco }}</p>
+
+    <ng-template libDialogFooter>
+      <button
+        libButton
+        type="button"
+        variant="text"
+        severity="secondary"
+        [disabled]="enabling()"
+        (click)="visible.set(false)"
+      >
+        {{ 'reminders.homeScreen.notNow' | transloco }}
+      </button>
+      <button libButton type="button" [loading]="enabling()" (click)="enable()">
+        {{ 'reminders.homeScreen.enable' | transloco }}
+      </button>
+    </ng-template>
+  </lib-dialog>
+}

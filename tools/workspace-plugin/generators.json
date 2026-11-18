@@ -1,0 +1,9 @@
+{
+  "generators": {
+    "library": {
+      "factory": "./src/library/library.cjs",
+      "schema": "./src/library/schema.json",
+      "description": "Creates a library in the workspace layout: src/ is the library root, the configs match the other libraries, and the import alias is registered."
+    }
+  }
+}

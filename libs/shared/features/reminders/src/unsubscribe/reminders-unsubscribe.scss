@@ -1,0 +1,56 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+.unsubscribe {
+  @include a.container;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: a.space(4);
+  max-width: 34rem;
+  padding-block: a.space(16);
+  text-align: center;
+}
+
+.unsubscribe__title {
+  @include a.t-h2;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.unsubscribe__address {
+  @include a.t-body-sm;
+  margin: 0;
+  color: var(--text-muted);
+  // The address is the one thing here a person checks character by character.
+  overflow-wrap: anywhere;
+}
+
+.unsubscribe__lead {
+  @include a.t-body;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.unsubscribe__text {
+  @include a.t-body-sm;
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.unsubscribe__error {
+  @include a.t-body-sm;
+  margin: 0;
+  color: var(--error-text);
+}
+
+.unsubscribe__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: a.space(2);
+  margin-block-start: a.space(2);
+}

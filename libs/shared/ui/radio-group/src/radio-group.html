@@ -1,0 +1,25 @@
+@for (option of options(); track option.value) {
+  <label
+    class="radio"
+    [class.radio-selected]="option.value === value()"
+    [attr.data-disabled]="disabled() || option.disabled ? '' : null"
+  >
+    <input
+      #radioInput
+      class="radio-input"
+      type="radio"
+      [name]="resolvedName()"
+      [checked]="option.value === value()"
+      [disabled]="disabled() || (option.disabled ?? false)"
+      [attr.aria-invalid]="invalid() ? true : null"
+      (change)="select(option)"
+    />
+    <span class="radio-control" aria-hidden="true">
+      <span class="radio-dot"></span>
+    </span>
+    <span class="radio-label">{{ option.label }}</span>
+    @if (option.description) {
+      <span class="radio-description">{{ option.description }}</span>
+    }
+  </label>
+}

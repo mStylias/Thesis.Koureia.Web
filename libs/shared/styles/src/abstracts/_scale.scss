@@ -1,0 +1,399 @@
+// Structural design tokens, brand-neutral: the spacing grid, type scale, radii, borders,
+// motion, breakpoints, layout measures, component geometry and z-index. Colors, type faces and
+// elevation tint are brand identity and live in `libs/themes/<brand>/`.
+//
+// The split is by how a token is consumed. `$breakpoints` must stay here because `@media`
+// reads it as a literal Sass value, a component stylesheet compiles without a theme, and
+// `var()` is illegal in a media query. `base/_emit.scss` emits everything else as a CSS custom
+// property, and a theme can override any of it at the emit call.
+//
+// Consume the emitted CSS vars or the `a.*` accessors, not these maps.
+
+// Spacing scale on a 4px grid. It uses rem so it follows the user font size.
+$spacing: (
+  1: 0.25rem,
+  // 4px
+  2: 0.5rem,
+  // 8px
+  3: 0.75rem,
+  // 12px
+  4: 1rem,
+  // 16px
+  5: 1.25rem,
+  // 20px
+  6: 1.5rem,
+  // 24px
+  8: 2rem,
+  // 32px
+  10: 2.5rem,
+  // 40px
+  12: 3rem,
+  // 48px
+  16: 4rem,
+  // 64px
+  20: 5rem, // 80px
+);
+
+// Breakpoints. They mirror the Tailwind v4 defaults, so a SCSS media query and a Tailwind
+// responsive variant always agree. The `respond()` mixin reads them.
+$breakpoints: (
+  sm: 640px,
+  md: 768px,
+  lg: 1024px,
+  xl: 1280px,
+  2xl: 1536px,
+);
+
+$container: (
+  max: 65rem,
+  // 1040px, the design's content column
+  gutter: 1rem, // horizontal page padding
+);
+
+// Dialog content measures. The component still clamps every size to the viewport.
+$dialog-size: (
+  sm: 24rem,
+  md: 32rem,
+  lg: 48rem,
+  xl: 64rem,
+);
+
+// Optional dialog height ceilings, for an auto-sizing preview surface or a compact dialog.
+$dialog-height: (
+  sm: 20rem,
+  md: 32rem,
+  lg: 44rem,
+);
+
+// Component dimensions. A named dimension belongs here when it sets a component's public
+// geometry. Intrinsic CSS mechanics, such as 0, 100%, viewport units, pixel alignment and
+// ratios, stay in the component.
+$component-size: (
+  autocomplete-min-width: 14rem,
+  autocomplete-panel-max-height: 16rem,
+  confirmation-dialog-width: 28rem,
+  // The grid's empty, no-results and error regions. Row height is not a token:
+  // the virtualizer computes its window from that number in TypeScript, so it
+  // is a component input rather than a value a stylesheet owns.
+  datagrid-state-min-height: 12rem,
+  // A tag in a grid cell. Short enough that a row of the default height keeps
+  // its vertical breathing room, which is what makes several tags read as one
+  // set rather than as a second line of content.
+  datagrid-tag-height: 1.375rem,
+  // One tab of the named-views strip, and the inline name editor that stands
+  // in a tab's place. Declared rather than left to the content, because the
+  // editor holds a field and two buttons where a tab holds a word: sized by
+  // their contents the two disagree, and the taller one grows the toolbar row
+  // every time a view is renamed.
+  saved-views-tab-height: 1.75rem,
+  // A contact action beside its value, such as Call and Email. One width, so a column of them
+  // lines up whatever each label says.
+  contact-action-min-width: 6.5rem,
+  // The one column of a management page of cards, such as My profile and My company. A readable
+  // line for their forms.
+  management-page-max-width: 45rem,
+  // The shop's logo beside its name, on My company and on the shop's page. The API stores it
+  // square.
+  company-logo-size: 4rem,
+  // The smallest photo tile on the My company page. The grid fits as many as the column holds.
+  company-photo-min-width: 10rem,
+  // The weekday name in a week of opening or working hours. The longest name fits.
+  week-day-name-min-width: 6.5rem,
+  // A time picker in a week of hours. The basis shows a whole time, and the cap keeps a range of
+  // two pickers on one line.
+  week-time-picker-basis: 8rem,
+  week-time-picker-max-width: 9.5rem,
+  // The dates column of a closures list. Most ranges fit, so the kinds line up.
+  closure-dates-min-width: 7rem,
+  drawer-sm-width: 18rem,
+  drawer-sm-height: 12rem,
+  drawer-md-width: 24rem,
+  drawer-md-height: 18rem,
+  drawer-lg-width: 34rem,
+  drawer-lg-height: 26rem,
+  // The wide-screen photo mosaic. Tall enough to read the main photo as the page's lead image,
+  // short enough to leave the title and the call to action above the fold.
+  gallery-mosaic-height: 26rem,
+  // The viewer's previous and next buttons. The WCAG target size, since they sit over a photo.
+  gallery-viewer-step-size: 2.75rem,
+  // A barber on a barbershop's home page: large enough to recognize a face, small enough to show
+  // a whole team in one row on a laptop.
+  barbershop-avatar-size: 5rem,
+  // A member's photo in the management photo dialog: large enough to judge the crop it got.
+  staff-avatar-xl-size: 10rem,
+  // The same barber in the booking flow, where the row is a choice and not a portrait.
+  barbershop-avatar-size-sm: 3rem,
+  // The one-shop map on a barbershop's home page. It answers "where is it", not "what is near".
+  barbershop-map-height: 22rem,
+  // The calendar's time grid. A row of the grid is one step of the time scale; an hour is
+  // never shorter than its own floor, so the 60-minute scale keeps a readable hour while the
+  // 5-minute scale grows to twelve rows of the slot floor.
+  calendar-slot-min-height: 1.5rem,
+  // What a tile keeps clear of the grid lines on every side. Neighbours sit twice this apart.
+  calendar-tile-inset: 0.125rem,
+  calendar-hour-min-height: 4rem,
+  // The hour labels down the left of the grid.
+  calendar-gutter-width: 3.5rem,
+  // A day or resource column keeps this width and the grid pans sideways below it.
+  calendar-column-min-width: 7rem,
+  // A month cell. Below the width, tiles become dots; the height decides how many tiles a
+  // cell shows before the "+N" chip.
+  calendar-cell-min-width: 6rem,
+  calendar-cell-min-height: 6rem,
+  // One month of the year view.
+  calendar-mini-month-min-width: 14rem,
+  // The list behind a "+N" chip: wide enough for a time, a name and a badge on one row.
+  calendar-more-list-width: 18rem,
+  // One event row in a month cell. Declared so the cell can count how many rows it holds.
+  calendar-month-tile-height: 1.375rem,
+  // The time column of the agenda: a start and an end in the mono face.
+  calendar-agenda-time-width: 7rem,
+  // The toolbar's date field: a `DD/MM/YYYY` value and the calendar toggle.
+  calendar-date-field-width: 9.5rem,
+  // The view switcher once its buttons fold into a select: the longest view name and the chevron.
+  calendar-view-select-width: 9rem,
+  // The overflow panel: a full-width row per folded control, with room for the compact views field.
+  calendar-overflow-width: 17rem,
+  // A floating action button is square. `sm` is a second action stacked over the main one.
+  fab-size-sm: 2.5rem,
+  fab-size-md: 3.5rem,
+  fab-size-lg: 6rem,
+  // A floating panel opens at this width. A resize stops at the two floors below them.
+  floating-panel-width: 20rem,
+  floating-panel-min-width: 15rem,
+  floating-panel-min-height: 12rem,
+  // The band along each edge that a pointer grabs to resize the panel. It straddles the border.
+  floating-panel-grip-size: 0.5rem,
+  input-number-min-width: 10rem,
+  // An OTP cell is square, so the width is also the height.
+  input-otp-cell-sm: 2.25rem,
+  input-otp-cell-md: 2.75rem,
+  input-otp-cell-lg: 3.25rem,
+  input-otp-caret-width: 2px,
+  // The splash that covers the first load of a client-rendered area. The mark is large enough
+  // to read as the brand and small enough to leave the screen calm; the indicator under it is a
+  // hairline sliver, not a progress bar.
+  loading-screen-logo-size: 4.5rem,
+  loading-screen-bar-width: 7.5rem,
+  loading-screen-bar-height: 0.1875rem,
+  menu-min-width: 13rem,
+  // A compact menu answers one control — a column's options, a filter's
+  // operation — so it is measured by its own labels, not by a command list.
+  menu-min-width-compact: 9rem,
+  // A numbered page link stays square, so a two-digit page does not move the strip.
+  paginator-link-size: 2.25rem,
+  paginator-select-width: 5rem,
+  paginator-jump-width: 4.5rem,
+  range-picker-track-height: 0.375rem,
+  range-picker-thumb-size: 1.25rem,
+  // The visible thumb stays compact. Its pointer target reaches the WCAG target size.
+  range-picker-hit-size: 2.75rem,
+  password-panel-min-width: 15rem,
+  password-strength-segment-height: 0.375rem,
+  popover-max-width: 22rem,
+  // Scrollbar track thickness. Wide enough to grab with a pointer, and the
+  // floor most platforms will honour without the thumb becoming a hairline.
+  scrollbar-size: 0.625rem,
+  select-min-width: 14rem,
+  select-panel-max-height: 16rem,
+  // A step's numbered marker. Square, so a two-digit step does not reflow the rail.
+  stepper-marker-size: 2rem,
+  stepper-marker-size-compact: 1.75rem,
+  stepper-progress-height: 0.25rem,
+  // The collapsed bottom sheet. Two lines of copy plus an avatar, which is the floor
+  // for a bar that must stay readable while the page scrolls under it. The step content
+  // reserves this much bottom padding, so the value is a contract, not decoration.
+  bottom-sheet-peek-height: 4.5rem,
+  bottom-sheet-avatar-size: 2.5rem,
+  // How far the expanded sheet may grow. Short of the viewport, so the backdrop stays
+  // visible and the sheet reads as a sheet rather than as a page.
+  bottom-sheet-max-height: 80dvh,
+  // The drag handle above the expanded content.
+  bottom-sheet-grip-width: 2.25rem,
+  bottom-sheet-grip-height: 0.25rem,
+  // The app shell's header row. `lib-topbar` and the `lib-sidebar` brand header both pin their
+  // outer height to this value, which makes their bottom hairlines meet as one unbroken rule.
+  // It holds a display-size page title and a default-height button without either bar growing,
+  // which is what a min-height would allow.
+  shell-header-height: 3.5rem,
+  sidebar-width: 16rem,
+  // Not a round number. The collapsed rail keeps its icons on the same 20px left inset they
+  // have when expanded, and this width centers a `--icon-size-md` icon on that inset.
+  sidebar-collapsed-width: 3.75rem,
+  tabs-scroll-control-size: 2rem,
+  tooltip-max-width: 20rem,
+);
+
+$radius: (
+  sm: 6px,
+  md: 10px,
+  lg: 14px,
+  xl: 20px,
+  pill: 999px,
+);
+
+$border-width: (
+  hairline: 1px,
+  strong: 1.5px,
+);
+
+// Semantic type scale. It uses rem for WCAG 1.4.4 text resize.
+$text: (
+  xs: 0.8125rem,
+  // 13px
+  sm: 0.9375rem,
+  // 15px
+  base: 1.0625rem,
+  // 17px
+  md: 1.1875rem,
+  // 19px
+  lg: 1.375rem,
+  // 22px
+  xl: 1.75rem,
+  // 28px
+  2xl: 2.25rem,
+  // 36px
+  3xl: 3rem,
+  // 48px
+  4xl: 4rem, // 64px
+);
+
+// Motion. UI motion stays under 300ms, an exit runs about 20% faster than its entrance, and only transform and opacity
+// animate.
+$duration: (
+  fast: 120ms,
+  base: 180ms,
+  slow: 260ms,
+  // The 300ms cap, for a large surface that travels far, such as a drawer.
+  slower: 300ms,
+  // One cycle of a looping progress indicator, which is a status display and
+  // not a transition, so the 300ms cap above does not apply to it. Slow enough
+  // to read as steady progress rather than a flicker.
+  indeterminate: 1400ms,
+  // One turn of a busy icon (`@ui/spin`). A status display too. It is also the shortest spin
+  // and the longest wait for the icon to come to rest after the work ends.
+  spin: 800ms,
+);
+
+// Two semantic defaults and the full weak-to-strong scale, so the choice of easing is a
+// lookup.
+//
+// CAUTION: Pick on travel distance, not only on category. The usual rule sends on-screen
+// movement to an in-out curve, but every in-out curve eases in, and a start ramp that is
+// invisible over 20px is obvious over 200px. The sidebar rail shipped on `standard` and read
+// as laggy at a measured 144Hz with no dropped frames: two frames after the click, only 2.8%
+// of its 196px had moved. What a user pressed must leave on the frame of the press. Past about
+// 100px of travel, prefer an `out-*` curve and measure the first-frame displacement.
+$easing: (
+  // On-screen movement and color changes, over short travel only.
+  standard: cubic-bezier(0.4, 0, 0.2, 1),
+  // An element that enters or leaves the screen, and anything the user started. It is the
+  // strongest of the out family: near-instant departure, long glide.
+  out: cubic-bezier(0.16, 1, 0.3, 1),
+  // Out family, weak to strong. Entrances, exits, and any direct response to a press.
+  out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94),
+  out-cubic: cubic-bezier(0.215, 0.61, 0.355, 1),
+  out-quart: cubic-bezier(0.165, 0.84, 0.44, 1),
+  out-quint: cubic-bezier(0.23, 1, 0.32, 1),
+  out-expo: cubic-bezier(0.19, 1, 0.22, 1),
+  out-circ: cubic-bezier(0.075, 0.82, 0.165, 1),
+  // In-out family, weak to strong. An on-screen element that moves or morphs without direct
+  // input, such as an indicator that repositions. Watch the start ramp over distance.
+  in-out-quad: cubic-bezier(0.455, 0.03, 0.515, 0.955),
+  in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1),
+  in-out-quart: cubic-bezier(0.77, 0, 0.175, 1),
+  in-out-quint: cubic-bezier(0.86, 0, 0.07, 1),
+  in-out-expo: cubic-bezier(1, 0, 0, 1),
+  in-out-circ: cubic-bezier(0.785, 0.135, 0.15, 0.86),
+  // Springs. A damped harmonic oscillator sampled into `linear()`, which the compositor runs
+  // like any other timing function. It gives spring feel with no JavaScript and no main-thread
+  // work. It cannot keep velocity through an interruption, because, like every CSS curve, it
+  // restarts from zero. Only gesture-driven motion, such as drag or swipe-to-dismiss, needs
+  // more than this.
+  //
+  // Pair a spring with `--dur-slow` or `--dur-slower`. A spring spends its tail settling, so a
+  // short duration wastes the shape.
+  //
+  // Critically damped: organic settle, no overshoot. Use it anywhere an `out-*` curve fits and
+  // the motion must feel physical.
+  spring:
+    linear(
+      0,
+      0.1036,
+      0.2959,
+      0.4845,
+      0.6387,
+      0.7542,
+      0.8363,
+      0.8928,
+      0.9307,
+      0.9556,
+      0.9719,
+      0.9823,
+      0.9889,
+      0.9931,
+      0.9957,
+      0.9974,
+      0.9984,
+      0.999,
+      0.9994,
+      0.9996,
+      1
+    ),
+  // Underdamped, ζ 0.7, with 4.6% overshoot. Keep it for drag-release and one-off playful
+  // motion. Bounce on routine UI reads as imprecise and becomes a nuisance with repetition.
+  spring-bounce:
+    linear(
+      0,
+      0.0998,
+      0.3099,
+      0.5369,
+      0.7316,
+      0.8757,
+      0.969,
+      1.0206,
+      1.0424,
+      1.0456,
+      1.039,
+      1.0288,
+      1.0186,
+      1.0103,
+      1.0043,
+      1.0006,
+      0.9987,
+      0.9979,
+      0.998,
+      0.9983,
+      0.9988,
+      0.9993,
+      0.9996,
+      0.9999,
+      1
+    ),
+);
+
+$opacity: (
+  disabled: 0.45, // a disabled control gets this opacity and loses its shadow
+);
+
+// Iconography. Lucide, with a stroke a little heavier than the default.
+$icon-stroke: 1.75;
+$icon-size: (
+  sm: 1.125rem,
+  // 18px
+  md: 1.25rem,
+  // 20px
+  lg: 1.5rem, // 24px
+);
+
+$z-index: (
+  base: 1,
+  sticky: 100,
+  skip-link: 101,
+  overlay: 200,
+  modal: 300,
+  toast: 400,
+  // Above every other layer: the splash covers a page that is not built yet, so nothing that
+  // page mounts may show through it.
+  splash: 500,
+);

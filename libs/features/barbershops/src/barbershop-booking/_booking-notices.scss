@@ -1,0 +1,19 @@
+@use 'abstracts' as a;
+
+// The entrance of the notices around the booking action. Two components render them: the confirm
+// step on a wide screen, and the page's sheet on a narrow one. Emulated encapsulation keeps a
+// parent's rules off a child's elements, so each component includes this mixin.
+@mixin booking-notices {
+  // Each notice arrives between the customer and the action they reached for, so it settles onto
+  // the page. It runs on the first paint too: a repair notice is often why the redirect came here.
+  .booking-notice-enter {
+    animation: booking-notice-enter var(--dur-base) var(--ease-out);
+  }
+
+  @keyframes booking-notice-enter {
+    from {
+      opacity: 0;
+      transform: translateY(calc(-1 * #{a.space(2)}));
+    }
+  }
+}

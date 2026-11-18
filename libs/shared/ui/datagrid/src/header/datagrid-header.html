@@ -1,0 +1,181 @@
+<!-- A load that keeps its rows reports itself here, on the boundary the new
+     rows will arrive below. Absolutely positioned, so it claims none of the
+     header's own grid tracks. -->
+@if (loading()) {
+  <div
+    class="dg-header-loading"
+    aria-hidden="true"
+    animate.enter="dg-header-loading-enter"
+    animate.leave="dg-header-loading-leave"
+  ></div>
+}
+
+@for (row of renderRows(); track row.ariaRowIndex) {
+  <!-- One grid row per header row. The rows are `display: contents`, so every
+       cell is placed in the header's own grid — which is what lets a column
+       with no band above it reach the full height of a banded header. -->
+  <div class="dg-header-row" role="row" [attr.aria-rowindex]="row.ariaRowIndex">
+    @for (entry of row.cells; track entry.kind + entry.colIndex) {
+      @switch (entry.kind) {
+        @case ('band') {
+          @let band = entry.band;
+          <!-- A band names its columns and does nothing else: it does not sort,
+               filter or resize, and it carries no menu. Dragging it moves every
+               column under it. -->
+          <div
+            class="dg-header-cell dg-band-cell"
+            role="columnheader"
+            data-header-focus
+            data-band
+            [attr.aria-colindex]="band.colIndex"
+            [attr.aria-colspan]="band.colSpan"
+            [attr.data-column]="band.bandId"
+            [attr.data-pinned]="band.pinned || null"
+            [attr.data-edge]="band.edge ? '' : null"
+            [attr.data-dragging]="dragging() === band.bandId ? '' : null"
+            [attr.tabindex]="isRoving(band.bandId) ? 0 : -1"
+            [style.grid-column]="band.colIndex + ' / span ' + band.colSpan"
+            [style.grid-row]="band.row + 1"
+            [style.left.px]="band.insetStart"
+            [style.right.px]="band.insetEnd"
+            (keydown)="onBandKeydown(band, $event)"
+            (pointerdown)="onBandPointerdown(band, $event)"
+          >
+            @if (band.template) {
+              <ng-container
+                [ngTemplateOutlet]="band.template"
+                [ngTemplateOutletContext]="band.context"
+              />
+            } @else if (band.component; as renderer) {
+              <ng-container
+                [ngComponentOutlet]="renderer.type"
+                [ngComponentOutletInputs]="renderer.inputs"
+              />
+            } @else {
+              <span class="dg-header-caption">{{ band.caption }}</span>
+            }
+          </div>
+        }
+        @default {
+          @let cell = entry.column;
+          <div
+            class="dg-header-cell"
+            role="columnheader"
+            data-header-focus
+            [attr.aria-colindex]="cell.colIndex"
+            [attr.aria-rowspan]="cell.rowSpan > 1 ? cell.rowSpan : null"
+            [attr.aria-sort]="ariaSort(cell)"
+            [attr.aria-label]="cell.labelKey ? (cell.labelKey | uiCopy | transloco) : null"
+            [attr.data-column]="cell.columnId"
+            [attr.data-kind]="cell.kind === 'data' ? null : cell.kind"
+            [attr.data-pinned]="cell.pinned || null"
+            [attr.data-edge]="cell.edge ? '' : null"
+            [attr.data-sortable]="cell.sortable ? '' : null"
+            [attr.data-sorted]="cell.sort"
+            [attr.data-filtered]="cell.filtered ? '' : null"
+            [attr.data-dragging]="dragging() === cell.columnId ? '' : null"
+            [attr.data-resizing]="resizing() === cell.columnId ? '' : null"
+            [attr.tabindex]="isRoving(cell.columnId) ? 0 : -1"
+            [style.grid-column]="cell.colIndex"
+            [style.grid-row]="cell.row + 1 + ' / span ' + cell.rowSpan"
+            [style.--dg-header-rowspan]="cell.rowSpan"
+            [style.left.px]="cell.insetStart"
+            [style.right.px]="cell.insetEnd"
+            (click)="onCellClick(cell, $event)"
+            (contextmenu)="onCellContextmenu(cell, $event)"
+            (keydown)="onCellKeydown(cell, $event)"
+            (pointerdown)="onCellPointerdown(cell, $event)"
+          >
+            @switch (cell.kind) {
+              @case ('selection') {
+                <!-- The checkbox is drawn, not tabbed to: the columnheader owns
+                     the roving tab stop and forwards Space, so the cell stays a
+                     single interactive element. -->
+                <lib-checkbox
+                  size="sm"
+                  tabIndex="-1"
+                  [value]="cell.selectAll === 'all'"
+                  [indeterminate]="cell.selectAll === 'some'"
+                  [disabled]="!selectable()"
+                  [ariaLabel]="'datagrid.selection.selectAll' | uiCopy | transloco"
+                  (valueChange)="onSelectAll($event)"
+                />
+              }
+              @case ('rowNumber') {
+                <!-- Decorative: the cell carries the name, so the glyph must not
+                     be read out after it. -->
+                <span class="dg-header-caption" aria-hidden="true">#</span>
+              }
+              @case ('detailToggle') {
+                <!-- The expander column draws nothing in the header. Its name is
+                     on the cell, which is what the roving tab stop reaches. -->
+              }
+              @default {
+                @if (cell.template) {
+                  <ng-container
+                    [ngTemplateOutlet]="cell.template"
+                    [ngTemplateOutletContext]="cell.context"
+                  />
+                } @else {
+                  @if (cell.component; as renderer) {
+                    <ng-container
+                      [ngComponentOutlet]="renderer.type"
+                      [ngComponentOutletInputs]="renderer.inputs"
+                    />
+                  } @else {
+                    <span class="dg-header-caption">{{ cell.caption }}</span>
+                  }
+                }
+                @if (cell.sort) {
+                  <!-- One arrow that rotates rather than two that swap: a swap
+                       has no shared element to carry the change, so the
+                       direction flip can only pop. -->
+                  <span class="dg-sort" aria-hidden="true" animate.enter="dg-sort-enter">
+                    <svg lucideArrowUp class="dg-sort-icon"></svg>
+                    @if (cell.sortOrdinal) {
+                      <span class="dg-sort-ordinal">{{ cell.sortOrdinal }}</span>
+                    }
+                  </span>
+                }
+                <!-- Pointer-only affordance. A focusable control here would nest
+                     an interactive element inside the columnheader, which §16.5
+                     forbids; the keyboard reaches it through Alt+Down and
+                     modifier-arrows. The column menu has no icon of its own:
+                     right-click opens it. -->
+                @if (cell.filterable) {
+                  <span class="dg-header-filter" data-header-filter aria-hidden="true">
+                    <svg lucideFunnel></svg>
+                  </span>
+                }
+              }
+            }
+            @if (cell.resizable) {
+              <span
+                class="dg-resize-handle"
+                data-resize-handle
+                aria-hidden="true"
+                (pointerdown)="onHandlePointerdown(cell, $event)"
+                (pointermove)="onHandlePointermove($event)"
+                (pointerup)="onHandlePointerup($event)"
+                (pointercancel)="onHandlePointerup($event)"
+              ></span>
+            }
+          </div>
+        }
+      }
+    }
+  </div>
+}
+
+<!-- Presentational: an overlay host is not a row, and a rowgroup may only
+     contain rows. Its panel portals to the body with its own semantics. The
+     context-menu host serves both openings: anchored to the cell for the
+     trigger and at the pointer for a right-click. -->
+<!-- Compact: the menu belongs to one column header, not to the page. -->
+<lib-context-menu
+  #columnMenu
+  role="presentation"
+  density="compact"
+  [items]="menuItems()"
+  (closed)="onMenuClosed()"
+/>

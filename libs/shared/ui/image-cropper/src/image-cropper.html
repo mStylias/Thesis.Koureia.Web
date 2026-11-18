@@ -1,0 +1,54 @@
+<div
+  #area
+  class="cropper-area"
+  role="group"
+  tabindex="0"
+  [attr.aria-label]="ariaLabel() || ('imageCropper.area' | uiCopy | transloco)"
+  [attr.aria-describedby]="hintId"
+  [attr.data-ready]="ready() ? '' : null"
+  (pointerdown)="onPointerDown($event)"
+  (pointermove)="onPointerMove($event)"
+  (pointerup)="onPointerUp($event)"
+  (pointercancel)="onPointerUp($event)"
+  (keydown)="onKeydown($event)"
+>
+  @if (url(); as src) {
+    @let box = layout();
+    <img
+      #image
+      class="cropper-image"
+      alt=""
+      draggable="false"
+      [src]="src"
+      [style.width.%]="box?.width ?? 100"
+      [style.height.%]="box?.height ?? 100"
+      [style.left.%]="box?.left ?? 0"
+      [style.top.%]="box?.top ?? 0"
+      (load)="onLoad($event)"
+      (error)="onError()"
+    />
+  }
+  <span class="cropper-mask" aria-hidden="true"></span>
+</div>
+
+@if (failed()) {
+  <p class="cropper-error" role="alert">{{ 'imageCropper.loadFailed' | uiCopy | transloco }}</p>
+}
+
+<p class="cropper-hint" [id]="hintId">{{ hint() || ('imageCropper.hint' | uiCopy | transloco) }}</p>
+
+<div class="cropper-zoom">
+  <svg lucideZoomOut aria-hidden="true"></svg>
+  <input
+    class="cropper-slider"
+    type="range"
+    min="1"
+    step="0.01"
+    [max]="safeMaxZoom()"
+    [value]="zoom()"
+    [disabled]="!ready()"
+    [attr.aria-label]="zoomAriaLabel() || ('imageCropper.zoom' | uiCopy | transloco)"
+    (input)="onZoomInput($event)"
+  />
+  <svg lucideZoomIn aria-hidden="true"></svg>
+</div>

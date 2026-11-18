@@ -1,0 +1,40 @@
+@if (chips().length === 0) {
+  <p class="dg-group-hint">{{ 'datagrid.group.hint' | uiCopy | transloco }}</p>
+} @else {
+  <ul class="dg-group-chips" [attr.aria-label]="'datagrid.group.panel' | uiCopy | transloco">
+    @for (chip of chips(); track chip.columnId) {
+      <li class="dg-group-chip">
+        <!-- The direction toggle keeps one name and reports state through
+             aria-pressed, so focus does not re-announce a renamed control. -->
+        <button
+          type="button"
+          class="dg-chip-direction"
+          [attr.aria-pressed]="chip.desc"
+          [attr.aria-label]="
+            'datagrid.group.direction'
+              | uiCopy
+              | transloco: { column: chip.caption, position: chip.position }
+          "
+          (keydown)="onChipKeydown(chip, $event)"
+          (click)="directionToggled.emit(chip.columnId)"
+        >
+          <span class="dg-chip-position" aria-hidden="true">{{ chip.position }}</span>
+          <span class="dg-chip-caption">{{ chip.caption }}</span>
+          @if (chip.desc) {
+            <svg lucideArrowDown class="dg-chip-icon" aria-hidden="true"></svg>
+          } @else {
+            <svg lucideArrowUp class="dg-chip-icon" aria-hidden="true"></svg>
+          }
+        </button>
+        <button
+          type="button"
+          class="dg-chip-remove"
+          [attr.aria-label]="'datagrid.group.remove' | uiCopy | transloco: { column: chip.caption }"
+          (click)="removed.emit(chip.columnId)"
+        >
+          <svg lucideX class="dg-chip-icon" aria-hidden="true"></svg>
+        </button>
+      </li>
+    }
+  </ul>
+}

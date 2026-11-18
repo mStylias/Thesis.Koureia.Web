@@ -1,0 +1,365 @@
+@use 'abstracts' as a;
+@use 'booking-notices' as notices;
+
+@include notices.booking-notices;
+
+:host {
+  // The wide-screen footer bar's floor. It grows past this when the choices wrap, and the
+  // page does not have to know: the bar is in flow.
+  --booking-bar-height: 6rem;
+  // The sheet's actions row. The sheet reads it to know how much of itself to leave on
+  // screen, and the page below reserves the same band.
+  --bottom-sheet-actions-height: 4.25rem;
+
+  // A column with the bar at its end, so the bar can be sticky rather than fixed and takes
+  // its own space out of the page. Fixed, it had to be paired with a padding reservation
+  // that guessed its height — and the bar wraps, so the guess was always going to be wrong.
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--bg);
+}
+
+.booking {
+  @include a.container;
+  flex: 1 1 auto;
+  padding-block: a.space(6) a.space(10);
+
+  // The collapsed sheet is fixed over the page, so the content reserves its whole visible
+  // band — the bar and the actions row under it — or the sheet covers the end of the step.
+  padding-block-end: calc(
+    var(--bottom-sheet-peek-height) + var(--bottom-sheet-actions-height) + #{a.space(10)}
+  );
+
+  @include a.respond(lg) {
+    // Nothing to reserve: the bar is in flow below this.
+    padding-block-end: a.space(10);
+  }
+}
+
+.booking--state {
+  display: grid;
+  place-items: center;
+  min-block-size: 50dvh;
+}
+
+// The refusal banner, kept to a readable measure in the middle of the page.
+.booking-shop-refusal {
+  max-inline-size: 36rem;
+}
+
+.booking__stepper {
+  margin-block-end: a.space(8);
+}
+
+.booking__layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: a.space(8);
+}
+
+// Positioned for the back button, which sits at its top-right rather than above the title:
+// the title is the first thing on the screen and must not be pushed down by a control.
+.booking__step {
+  position: relative;
+  min-inline-size: 0;
+}
+
+// The back control. In the sheet's bar below `lg`, beside the step's title above it — never
+// both, so the two are never announced twice.
+.booking__back {
+  --btn-pad-x: #{a.space(2)};
+  --btn-pad-y: #{a.space(2)};
+}
+
+.booking__back--page {
+  display: none;
+
+  @include a.respond(lg) {
+    display: inline-flex;
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    z-index: a.z(base);
+  }
+}
+
+.booking__notice {
+  margin-block-end: a.space(5);
+
+  // Room for the back button, which is out of flow. A margin, not padding: the box itself must
+  // end before the button. The button's width, then a gap.
+  @include a.respond(lg) {
+    margin-inline-end: calc(
+      var(--icon-size-lg) + 2 * #{a.space(2)} + 2 * var(--border-width-hairline) + #{a.space(3)}
+    );
+  }
+}
+
+// The step swaps in place, so it arrives from the side the customer moved toward. The travel
+// is one gutter wide: the step fills the content column, and anything further would reach past
+// the page's padding and give a phone a horizontal scrollbar.
+.step-enter {
+  animation: step-enter var(--dur-base) var(--ease-out);
+}
+
+.step-enter--back {
+  animation-name: step-enter-back;
+}
+
+@keyframes step-enter {
+  from {
+    opacity: 0;
+    transform: translateX(a.space(3));
+  }
+}
+
+@keyframes step-enter-back {
+  from {
+    opacity: 0;
+    transform: translateX(calc(-1 * #{a.space(3)}));
+  }
+}
+
+.booking__advance {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: a.space(3);
+
+  // At the end of the bar, sized to its buttons — the slack belongs to the choices beside them.
+  @include a.respond(lg) {
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+  }
+}
+
+// The sheet's copy of the reset, after everything it would undo and before the amount. No
+// rule of its own: the total below already draws one, and two hairlines a line apart read as
+// a mistake.
+.booking__sheet-reset {
+  margin-block-start: a.space(4);
+
+  // Flush with the labels above it. A text button's own inline padding would indent it out
+  // of the column every other line in the panel starts on.
+  .booking__reset {
+    --btn-pad-x: 0;
+  }
+}
+
+// The wide-screen surface: a bar across the foot of the viewport, always open. It replaces
+// the sheet rather than joining it, so exactly one of the two is ever on screen.
+.booking__bar {
+  display: none;
+
+  @include a.respond(lg) {
+    display: block;
+    position: sticky;
+    inset-block-end: 0;
+    z-index: a.z(sticky);
+    background: var(--surface);
+    border-block-start: var(--border-width-hairline) solid var(--border);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+.booking__bar-inner {
+  @include a.container;
+  display: flex;
+  align-items: center;
+  gap: a.space(4);
+  min-block-size: var(--booking-bar-height);
+  padding-block: a.space(3);
+
+  // Wider than the content column above it. The choices read across one line, and at the
+  // column's width every one of them is an ellipsis.
+  @include a.respond(xl) {
+    max-inline-size: 90rem;
+  }
+}
+
+.booking__bar-summary {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+// One surface or the other, never both.
+.booking__sheet {
+  @include a.respond(lg) {
+    display: none;
+  }
+}
+
+.peek {
+  display: flex;
+  align-items: center;
+  gap: a.space(3);
+  min-inline-size: 0;
+}
+
+.peek__logo {
+  flex: 0 0 auto;
+  inline-size: var(--bottom-sheet-avatar-size);
+  block-size: var(--bottom-sheet-avatar-size);
+  border-radius: a.radius(pill);
+  object-fit: cover;
+  background: var(--surface-2);
+}
+
+.peek__logo--empty {
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+}
+
+.peek__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.peek__name {
+  @include a.t-body;
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Truncated in the middle, not at the end: the newest choice is the one the customer just made
+// and wants to see confirmed, and it is the one an end ellipsis would eat. Two elements rather
+// than `direction: rtl`, which reorders the separators of a left-to-right line.
+.peek__choices {
+  display: flex;
+  min-inline-size: 0;
+  // Clipped here as well as on the head: the tail does not shrink, and without this it runs
+  // out of the text column and under the total.
+  overflow: hidden;
+}
+
+.peek__choices-head {
+  @include a.t-caption;
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.peek__choices-tail {
+  @include a.t-caption;
+  flex: 0 0 auto;
+  // The cap the head cannot give: a tail wider than the line still stops at its edge.
+  max-inline-size: 100%;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// The sheet's own actions row: the one button that moves the flow on, and nothing else. It is
+// on screen in both states, so the flow advances without the sheet ever being expanded.
+.booking__sheet-actions {
+  display: flex;
+  align-items: center;
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  // One line, always. The row is a declared height the sheet reads, so a wrap here would put
+  // the button behind the fold.
+  .booking__advance {
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+    min-inline-size: 0;
+  }
+
+  // The whole row. This is the only forward action on the screen, and at anything less than
+  // full width its words wrap.
+  .booking__continue,
+  .booking__commit {
+    inline-size: 100%;
+  }
+}
+
+// What the choices add up to, under them and above the button it is the price of.
+.booking__sheet-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: a.space(4);
+  margin-block-start: a.space(5);
+  padding-block-start: a.space(4);
+  border-block-start: var(--border-width-hairline) solid var(--border);
+}
+
+.booking__sheet-total-label {
+  @include a.t-caption;
+  color: var(--text-muted);
+}
+
+.booking__sheet-total-value {
+  @include a.t-title;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+// `από 25€`: a floor while the barbers disagree about the price and none has been chosen.
+.booking__sheet-from {
+  @include a.t-caption;
+  font-family: var(--font-sans);
+  color: var(--text-muted);
+}
+
+// The confirm step's fields, in the panel because below `lg` the step has no body of its own.
+.booking__sheet-fields {
+  display: block;
+  margin-block-start: a.space(6);
+}
+
+.booking__sheet-notice {
+  margin-block-start: a.space(5);
+}
+
+// The pinned sheet is the whole confirm screen, so it is allowed the height the fields need.
+// Short of the viewport still, or it stops reading as a sheet.
+:host([data-pinned]) .booking__sheet {
+  --bottom-sheet-max-height: 92dvh;
+}
+
+// The sheet's bar line, rewritten on every choice. Short and small: it sits a thumb's width
+// from the button the customer is reaching for.
+.peek-line-enter {
+  animation: peek-line-enter var(--dur-fast) var(--ease-out);
+}
+
+@keyframes peek-line-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.125rem);
+  }
+}
+
+// The amount settles onto its line rather than being swapped under the eye. The box is
+// declared on the element, not on the animation: the animation class is added later, and on
+// the first replay it would relayout the line under the eye it is trying to catch.
+.booking__sheet-amount {
+  display: inline-block;
+}
+
+.booking-total-enter {
+  animation: booking-total-enter var(--dur-base) var(--ease-out);
+}
+
+@keyframes booking-total-enter {
+  from {
+    opacity: 0.4;
+    transform: scale(1.08);
+  }
+}

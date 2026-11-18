@@ -1,0 +1,31 @@
+{
+  // The editor must match the command line. Formatting runs the project's own oxfmt with
+  // .oxfmtrc.json, and TypeScript runs the project's own TypeScript 7.
+  "editor.defaultFormatter": "oxc.oxc-vscode",
+  "editor.formatOnSave": true,
+  "[typescript]": { "editor.defaultFormatter": "oxc.oxc-vscode" },
+  "[javascript]": { "editor.defaultFormatter": "oxc.oxc-vscode" },
+  "[html]": { "editor.defaultFormatter": "oxc.oxc-vscode" },
+  "[scss]": { "editor.defaultFormatter": "oxc.oxc-vscode" },
+  "[css]": { "editor.defaultFormatter": "oxc.oxc-vscode" },
+  "[json]": { "editor.defaultFormatter": "oxc.oxc-vscode" },
+  "[jsonc]": { "editor.defaultFormatter": "oxc.oxc-vscode" },
+  "[markdown]": { "editor.defaultFormatter": "oxc.oxc-vscode" },
+  "[yaml]": { "editor.defaultFormatter": "oxc.oxc-vscode" },
+  "files.eol": "\n",
+  "prettier.enable": false,
+
+  // Linting runs the project's own oxlint (.oxlintrc.json) and, for templates only, eslint
+  // (eslint.config.mjs). The same two run in `pnpm lint`.
+  "oxc.typeAware": true,
+  "eslint.validate": ["html", "typescript"],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.oxc": "explicit",
+    "source.fixAll.eslint": "explicit"
+  },
+
+  // The Angular extension asks to load the compiler from js/ts.tsdk.path. Choose Disallow: the
+  // Angular language service needs TypeScript 6, and this path is TypeScript 7.
+  "js/ts.experimental.useTsgo": true,
+  "js/ts.tsdk.path": "./node_modules/@typescript/native"
+}

@@ -1,0 +1,178 @@
+<article
+  #card
+  libCard
+  class="chart-card"
+  tabindex="-1"
+  [attr.aria-labelledby]="headingId"
+  [attr.aria-busy]="loading() || null"
+>
+  @if (reloading()) {
+    <lib-progress-bar
+      class="chart-card-progress"
+      mode="indeterminate"
+      size="sm"
+      [ariaLabel]="'managementDashboard.card.reloading' | transloco"
+    />
+  }
+
+  <div libCardBody class="chart-card-body">
+    <header class="chart-card-head">
+      <h2 libCardTitle class="chart-card-title" [id]="headingId">{{ heading() }}</h2>
+      @if (note()) {
+        <p class="chart-card-note">{{ note() }}</p>
+      }
+
+      @if (state() === 'ready' && legend().length > 1) {
+        <div
+          class="chart-legend"
+          role="group"
+          [class.is-dim]="reloading()"
+          [attr.aria-label]="'managementDashboard.card.legend' | transloco"
+        >
+          @for (item of legend(); track item.name) {
+            <button
+              type="button"
+              class="chart-legend-item"
+              [attr.aria-pressed]="!hidden().has(item.name)"
+              (click)="toggle(item.name)"
+            >
+              <svg
+                class="chart-legend-marker"
+                aria-hidden="true"
+                [attr.viewBox]="marker.viewBox"
+                [style.--legend-color]="item.color"
+                [style.opacity]="item.opacity"
+              >
+                <line
+                  x1="0"
+                  [attr.y1]="marker.y"
+                  [attr.x2]="marker.x2"
+                  [attr.y2]="marker.y"
+                  [attr.stroke-width]="marker.strokeWidth"
+                  [attr.stroke-dasharray]="item.dashed ? marker.dash : null"
+                />
+              </svg>
+              {{ item.name }}
+            </button>
+          }
+        </div>
+      } @else if (state() === 'skeleton' && legendStubs().length > 0) {
+        <div class="chart-legend is-skeleton" aria-hidden="true">
+          @for (stub of legendStubs(); track stub) {
+            <span class="chart-legend-item">
+              <span class="chart-legend-marker stub"></span>
+              <span class="chart-legend-name stub"></span>
+            </span>
+          }
+        </div>
+      } @else if (legendStubs().length > 0) {
+        <!-- The data left one entry or none. The row stays, so the header keeps its height. -->
+        <div class="chart-legend is-reserved" aria-hidden="true"></div>
+      }
+    </header>
+
+    <div class="chart-card-frame" [class.is-dim]="reloading()">
+      @switch (state()) {
+        @case ('skeleton') {
+          @if (chartSkeleton(); as kind) {
+            <lib-chart-skeleton
+              class="chart-card-skeleton"
+              [kind]="kind"
+              [count]="skeleton().count"
+              [height]="height()"
+            />
+          } @else {
+            <!-- The rows of the loaded table, so nothing moves when it arrives. -->
+            <table class="chart-card-table" role="presentation" aria-hidden="true">
+              <tbody>
+                <tr>
+                  <td><span class="stub is-head"></span></td>
+                  <td><span class="stub is-head"></span></td>
+                  <td><span class="stub is-head"></span></td>
+                </tr>
+                @for (row of tableStubs(); track row) {
+                  <tr>
+                    <td><span class="stub is-name"></span></td>
+                    <td><span class="stub is-number"></span></td>
+                    <td><span class="stub is-number"></span></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        }
+        @case ('failed') {
+          <div class="chart-card-message" [style.min-height]="height()">
+            <lib-banner class="chart-card-failed" tone="error">
+              {{ 'managementDashboard.card.failed' | transloco }}
+              <button
+                libButton
+                libBannerAction
+                type="button"
+                variant="outlined"
+                size="sm"
+                (click)="onRetry()"
+              >
+                {{ 'managementDashboard.card.retry' | transloco }}
+              </button>
+            </lib-banner>
+          </div>
+        }
+        @case ('empty') {
+          <div class="chart-card-message" [style.min-height]="height()">
+            <p class="chart-card-empty">{{ 'managementDashboard.card.empty' | transloco }}</p>
+          </div>
+        }
+        @default {
+          @if (shownOption(); as shown) {
+            <!-- A chart off screen waits for the viewport. The skeleton covers it until it draws. -->
+            <div class="chart-card-plot">
+              @defer (on viewport) {
+                <lib-chart
+                  [option]="shown"
+                  [ariaLabel]="heading()"
+                  [height]="height()"
+                  (chartClick)="chartClick.emit($event)"
+                />
+                <lib-chart-skeleton
+                  class="chart-card-cover"
+                  height="100%"
+                  [kind]="chartSkeleton() ?? 'bars'"
+                  [count]="skeleton().count"
+                />
+              } @placeholder {
+                <lib-chart-skeleton
+                  class="chart-card-skeleton"
+                  [kind]="chartSkeleton() ?? 'bars'"
+                  [count]="skeleton().count"
+                  [height]="height()"
+                />
+              }
+            </div>
+          } @else {
+            <ng-content />
+          }
+
+          @if (table() && context(); as ctx) {
+            @if (set(); as values) {
+              <lib-series-table
+                [set]="values"
+                [caption]="heading()"
+                [context]="ctx"
+                [labels]="labels()"
+                [seriesName]="seriesName()"
+              />
+            }
+          }
+        }
+      }
+    </div>
+  </div>
+
+  <!-- One card per grid speaks, because the cards of a grid share one read. -->
+  <p class="chart-card-live" role="status">
+    @if (announced()) {
+      {{ 'managementDashboard.card.failed' | transloco }}
+    }
+  </p>
+</article>

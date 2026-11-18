@@ -1,0 +1,50 @@
+<div class="tabs-header">
+  @if (scrollable() && overflowing()) {
+    <!-- Pointer-only affordance: keyboard users move with the arrow keys,
+         which scrolls the focused tab into view automatically. Hidden from
+         assistive tech to avoid announcing a redundant control — so the
+         label is a tooltip, not an `aria-label` the a11y tree
+         would never reach. -->
+    <button
+      type="button"
+      class="tabs-scroll tabs-scroll--start"
+      tabindex="-1"
+      aria-hidden="true"
+      [disabled]="!canScrollStart()"
+      [libTooltip]="scrollPrevAriaLabel() || ('tabs.scrollPrevLabel' | uiCopy | transloco)"
+      (click)="scrollByStep(-1)"
+    >
+      @if (vertical()) {
+        <svg lucideChevronUp></svg>
+      } @else {
+        <svg lucideChevronLeft></svg>
+      }
+    </button>
+  }
+
+  <div #viewport class="tabs-viewport" (scroll)="onScroll()">
+    <ng-content select="lib-tab-list" />
+  </div>
+
+  @if (scrollable() && overflowing()) {
+    <button
+      type="button"
+      class="tabs-scroll tabs-scroll--end"
+      tabindex="-1"
+      aria-hidden="true"
+      [disabled]="!canScrollEnd()"
+      [libTooltip]="scrollNextAriaLabel() || ('tabs.scrollNextLabel' | uiCopy | transloco)"
+      (click)="scrollByStep(1)"
+    >
+      @if (vertical()) {
+        <svg lucideChevronDown></svg>
+      } @else {
+        <svg lucideChevronRight></svg>
+      }
+    </button>
+  }
+</div>
+
+<div class="tabs-panels">
+  <ng-content select="lib-tab-panel" />
+</div>

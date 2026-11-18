@@ -1,0 +1,68 @@
+@use 'abstracts' as a;
+
+:host {
+  @include a.t-body-sm;
+  display: flex;
+  align-items: flex-start;
+  gap: a.space(3);
+  padding: a.space(3) a.space(4);
+  color: var(--text-primary);
+  border: var(--border-width-hairline) solid var(--banner-edge);
+  border-radius: a.radius(md);
+  background: var(--banner-bg);
+}
+
+@each $tone in (info, success, warning, error) {
+  :host([data-tone='#{$tone}']) {
+    --banner-bg: var(--#{$tone}-bg);
+    --banner-edge: var(--#{$tone});
+    --banner-icon: var(--#{$tone}-text);
+  }
+}
+
+// One line high, so the icon centers on the first line of a long message.
+.banner-icon {
+  flex: 0 0 auto;
+  inline-size: var(--icon-size-sm);
+  block-size: var(--icon-size-sm);
+  margin-block: calc((1lh - var(--icon-size-sm)) / 2);
+  stroke-width: var(--icon-stroke);
+  color: var(--banner-icon);
+}
+
+// Only the message and the actions wrap. The icon stays beside the message at any width.
+.banner-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: a.space(2) a.space(3);
+  min-inline-size: 0;
+}
+
+// The basis is the width under which the actions wrap to their own line.
+// The message can be text a user typed, so a long word breaks rather than overflows.
+.banner-content {
+  flex: 1 1 16rem;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.banner-heading {
+  margin: 0 0 a.space(1);
+  font-weight: var(--weight-bold);
+}
+
+.banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: a.space(2);
+  // A button is taller than a line of text. It overhangs into the padding, so it centers on the first line.
+  margin-block: calc(-1 * #{a.space(1)});
+  margin-inline-start: auto;
+
+  &:empty {
+    display: none;
+  }
+}

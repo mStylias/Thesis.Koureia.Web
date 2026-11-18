@@ -1,0 +1,30 @@
+// Token accessor functions: validated lookups into the token maps. Each returns the CSS custom
+// property, which keeps the value theme-aware at runtime. The map lookup only validates the key
+// at compile time.
+@use 'sass:map';
+@use 'scale';
+
+@function space($step) {
+  @if not map.has-key(scale.$spacing, $step) {
+    @error 'Unknown spacing step `#{$step}`. Valid: #{map.keys(scale.$spacing)}.';
+  }
+  @return var(--space-#{$step});
+}
+
+@function radius($size) {
+  @if not map.has-key(scale.$radius, $size) {
+    @error 'Unknown radius `#{$size}`. Valid: #{map.keys(scale.$radius)}.';
+  }
+  @return var(--radius-#{$size});
+}
+
+@function z($layer) {
+  @if not map.has-key(scale.$z-index, $layer) {
+    @error 'Unknown z-index layer `#{$layer}`. Valid: #{map.keys(scale.$z-index)}.';
+  }
+  @return var(--z-#{$layer});
+}
+
+// The `$brand` and `$neutral` ramps have no accessors. Their only use is to reach past the
+// semantic layer, which a component must not do. For a color that is missing, add a semantic
+// token or a surface context.

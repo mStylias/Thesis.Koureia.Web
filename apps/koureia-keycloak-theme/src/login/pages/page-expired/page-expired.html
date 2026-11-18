@@ -1,0 +1,14 @@
+<kc-auth-frame
+  [title]="i18n.msgStr('pageExpiredTitle')"
+  [description]="i18n.msgStr('pageExpiredDescription')"
+>
+  <div class="expired-actions">
+    <a libButton size="lg" [href]="kcContext.url.loginRestartFlowUrl">
+      {{ i18n.msgStr('pageExpiredRestart') }}
+    </a>
+
+    <a libButton variant="text" severity="secondary" [href]="kcContext.url.loginAction">
+      {{ i18n.msgStr('pageExpiredContinue') }}
+    </a>
+  </div>
+</kc-auth-frame>

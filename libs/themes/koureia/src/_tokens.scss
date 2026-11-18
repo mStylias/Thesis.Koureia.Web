@@ -1,0 +1,133 @@
+// The Koureia brand tokens: hues, type faces, typographic character and elevation tint. The
+// structure these values hang on, which is the spacing grid, type scale, radii, motion,
+// breakpoints and component geometry, is in the brand-neutral core at
+// `libs/shared/styles/src/abstracts/_scale.scss`.
+//
+// The identity is copper on warm neutrals.
+//
+// `_root.scss` emits these maps as CSS custom properties through the core's
+// `base/_emit.scss`. Consume the CSS vars, never these maps.
+$font-display: ('Alegreya', Georgia, 'Times New Roman', serif);
+$font-sans: ('Alegreya Sans', system-ui, -apple-system, 'Segoe UI', sans-serif);
+$font-mono: ('JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace);
+
+// The brand ramp, copper.
+$brand: (
+  50: #fbf1e8,
+  100: #f5dfc9,
+  200: #eac49e,
+  300: #dca26c,
+  400: #b87333,
+  500: #9e5f28,
+  // The primary accent. AA with white text.
+  600: #834e1f,
+  700: #663b16,
+  800: #4d2b0e,
+);
+
+// The neutral ramp, warm ink. 50, 100 and 500 are set by the light theme. See `_light.scss`.
+$neutral: (
+  50: #f2ece1,
+  100: #eae4d7,
+  200: #dfd7c9,
+  300: #c2b8a9,
+  400: #9c9082,
+  500: #6f6355,
+  600: #5a4f43,
+  700: #3d352c,
+  800: #2a241e,
+  900: #1c1814,
+);
+$paper: #fbf8f2;
+
+// The semantic hues, warm-muted and never neon. The hover and active steps are one and two
+// steps darker, for an interactive surface such as a filled button.
+$semantic: (
+  success: #4f7a52,
+  success-hover: #446a47,
+  success-active: #395c3c,
+  success-bg: #e8f0e6,
+  // Ochre, not amber: dark enough to take white text under WCAG AA, and yellow enough to stay
+  // clear of the copper accent.
+  warning: #8a6818,
+  warning-hover: #7a5b14,
+  warning-active: #6c5011,
+  warning-bg: #f7ecd6,
+  error: #b23b36,
+  error-hover: #9c322e,
+  error-active: #852a26,
+  error-bg: #f6e4e2,
+  info: #46708c,
+  info-hover: #3b607a,
+  info-active: #315268,
+  info-bg: #e4ecf1,
+);
+
+// Six categorical swatches, for things that must be told apart and are none of the semantic
+// states: the resources of a calendar, the series of a chart. Validated with the dataviz
+// palette checks against `--surface` in each theme: every pair is distinct under normal and
+// under deuteranopic and protanopic vision, and every swatch clears 3:1 on its surface, so a
+// swatch can carry a hairline or a time on its own. The hues keep clear of the copper accent
+// and of the four semantic hues, so no swatch can pass for a state.
+//
+// A swatch is never the only signal: whatever it colours also carries a label.
+$swatch: (
+  1: #be9a2a,
+  2: #436416,
+  3: #30b4ad,
+  4: #29559f,
+  5: #a474c7,
+  6: #8a3362,
+);
+
+// The same six, re-stepped for the espresso surfaces: the dark ones lighten, the light ones
+// deepen, so each keeps 3:1 against `--surface` and its neighbours stay apart. Same hue per
+// slot, so a swatch reads as the same swatch in both themes.
+$swatch-dark: (
+  1: #b18334,
+  2: #5b7415,
+  3: #12a7a7,
+  4: #2d74ca,
+  5: #a17adf,
+  6: #b54879,
+);
+
+// Typographic character. The sizes are structural and live in the core scale. How tightly the
+// brand sets them is identity.
+$leading: (
+  tight: 1.12,
+  snug: 1.3,
+  normal: 1.55,
+);
+
+$weight: (
+  regular: 400,
+  medium: 500,
+  bold: 700,
+  'black': 800,
+);
+
+$tracking: (
+  tight: -0.01em,
+  wide: 0.08em,
+);
+
+// Elevation: warm-tinted and soft, an rgba of the ink and not black.
+$shadow: (
+  sm: (
+    0 1px 2px rgba(28, 24, 20, 0.06),
+    0 1px 1px rgba(28, 24, 20, 0.04),
+  ),
+  md: (
+    0 4px 12px rgba(28, 24, 20, 0.08),
+    0 1px 3px rgba(28, 24, 20, 0.05),
+  ),
+  lg: (
+    0 12px 32px rgba(28, 24, 20, 0.12),
+    0 4px 8px rgba(28, 24, 20, 0.06),
+  ),
+  // The CTA glow. It carries the brand hue, which is why the role has this name.
+  'accent': (
+    0 6px 20px rgba(158, 95, 40, 0.3),
+  ),
+);

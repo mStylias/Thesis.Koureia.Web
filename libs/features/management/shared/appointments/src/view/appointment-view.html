@@ -1,0 +1,250 @@
+@let viewed = appointment();
+
+<div class="appointment-view">
+  <section class="view-section">
+    <dl class="view-grid">
+      <div class="view-row">
+        <dt class="view-caption">{{ 'managementAppointments.view.status' | transloco }}</dt>
+        <dd class="view-value">
+          <span class="view-badge" [attr.data-tone]="tone()">{{ statusKey() | transloco }}</span>
+        </dd>
+      </div>
+
+      <div class="view-row">
+        <dt class="view-caption">{{ 'managementAppointments.view.when' | transloco }}</dt>
+        <dd class="view-value">
+          {{ date() }} ·
+          <strong class="view-time">{{ viewed.localStartTime }}–{{ viewed.localEndTime }}</strong>
+          <span class="view-meta">
+            · {{ 'managementAppointments.view.minutes' | transloco: { count: length() } }}
+            @if (viewed.durationOverridden) {
+              · {{ 'managementAppointments.view.customLength' | transloco }}
+            }
+          </span>
+        </dd>
+      </div>
+
+      <div class="view-row">
+        <dt class="view-caption">{{ 'managementAppointments.view.barber' | transloco }}</dt>
+        <dd class="view-value view-barber">
+          @if (swatch(); as colour) {
+            <span class="view-swatch" aria-hidden="true" [style.background]="colour"></span>
+          }
+          {{ viewed.staffDisplayName }}
+          @if (inactive()) {
+            <span class="view-meta"
+              >· {{ 'managementAppointments.view.inactive' | transloco }}</span
+            >
+          }
+        </dd>
+      </div>
+
+      <div class="view-row">
+        <dt class="view-caption">{{ 'managementAppointments.view.customer' | transloco }}</dt>
+        <dd class="view-value view-customer">
+          <p class="view-customer-name">
+            {{ viewed.customerDisplayName }}
+            @if (!viewed.customerHasAccount) {
+              <span class="view-pill">{{ 'managementAppointments.view.walkIn' | transloco }}</span>
+            }
+          </p>
+          @if (viewed.customerPhoneNumber; as phone) {
+            <div class="view-contact">
+              <span class="view-contact-value">{{ phone }}</span>
+              <span class="view-contact-actions">
+                <a
+                  libButton
+                  severity="secondary"
+                  variant="outlined"
+                  size="sm"
+                  [href]="phoneHref()"
+                  [attr.aria-label]="
+                    'managementAppointments.view.call'
+                      | transloco: { name: viewed.customerDisplayName }
+                  "
+                >
+                  <svg lucidePhone libButtonIcon aria-hidden="true"></svg>
+                  {{ 'managementAppointments.view.callShort' | transloco }}
+                </a>
+                <lib-copy-button
+                  [value]="phone"
+                  [label]="'managementAppointments.view.copyPhone' | transloco"
+                />
+              </span>
+            </div>
+          }
+          @if (viewed.customerEmail; as email) {
+            <div class="view-contact">
+              <a
+                class="view-contact-value view-contact-link"
+                [href]="'mailto:' + email"
+                showOnEllipsis
+                [libTooltip]="email"
+                >{{ email }}</a
+              >
+              <span class="view-contact-actions">
+                <lib-copy-button
+                  [value]="email"
+                  [label]="'managementAppointments.view.copyEmail' | transloco"
+                />
+              </span>
+            </div>
+          }
+          <!-- The shop's facts about the customer. Every reader of the appointment sees them. -->
+          @if (viewed.customerBlock; as block) {
+            <lib-banner tone="error" role="note">
+              {{ 'managementAppointments.view.blocked' | transloco: { reason: block.reason } }}
+            </lib-banner>
+          }
+          @if (viewed.customerNoShowCount > 0) {
+            <p class="view-no-shows" [attr.data-tone]="noShowWarning() ? 'warning' : null">
+              {{
+                viewed.customerNoShowCount === 1
+                  ? ('managementAppointments.view.noShowsOnce' | transloco)
+                  : ('managementAppointments.view.noShows'
+                    | transloco: { count: viewed.customerNoShowCount })
+              }}
+            </p>
+          }
+          @if (preferredBarber(); as preferred) {
+            <p class="view-meta view-preferred">
+              {{ 'managementAppointments.view.preferredBarber' | transloco }}:
+              {{ preferred.name }}
+              @if (!preferred.isActive) {
+                · {{ 'managementAppointments.view.inactive' | transloco }}
+              }
+            </p>
+          }
+        </dd>
+      </div>
+
+      <div class="view-row">
+        <dt class="view-caption">
+          {{
+            (viewed.services.length === 1
+              ? 'managementAppointments.view.service'
+              : 'managementAppointments.view.services'
+            ) | transloco
+          }}
+        </dt>
+        <dd class="view-value">
+          <ul class="view-lines">
+            @for (service of viewed.services; track $index) {
+              <li class="view-line">
+                <span>{{ service.name }}</span>
+                <span class="view-meta">
+                  {{
+                    'managementAppointments.view.minutes'
+                      | transloco: { count: service.durationMinutes }
+                  }}
+                </span>
+                <span class="view-amount">{{ money(service.price) }}</span>
+              </li>
+            }
+            <!-- One service is its own total. -->
+            @if (viewed.services.length > 1) {
+              <li class="view-line view-total">
+                <span>{{ 'managementAppointments.view.total' | transloco }}</span>
+                <span class="view-meta">
+                  {{ 'managementAppointments.view.minutes' | transloco: { count: minutes() } }}
+                </span>
+                <span class="view-amount">{{ money(viewed.totalPrice) }}</span>
+              </li>
+            }
+          </ul>
+        </dd>
+      </div>
+    </dl>
+  </section>
+
+  <!-- An empty block is left out, never shown blank. -->
+  @if (viewed.status === 'cancelled' && (viewed.cancelledAt || viewed.cancellationReason)) {
+    <section class="view-section" aria-labelledby="appointment-view-cancellation">
+      <h3 class="view-heading" id="appointment-view-cancellation">
+        {{ 'managementAppointments.view.cancellation' | transloco }}
+      </h3>
+      <lib-banner class="view-cancellation" tone="error">
+        @if (viewed.cancelledAt; as at) {
+          <p>
+            @if (viewed.cancelledByDisplayName; as name) {
+              {{
+                'managementAppointments.view.cancelledBy' | transloco: { when: instant(at), name }
+              }}
+            } @else {
+              {{ 'managementAppointments.view.cancelledAt' | transloco: { when: instant(at) } }}
+            }
+          </p>
+        }
+        @if (viewed.cancellationReason; as reason) {
+          <p class="view-note">
+            {{ 'managementAppointments.view.reason' | transloco: { reason } }}
+          </p>
+        }
+      </lib-banner>
+    </section>
+  }
+
+  @if (viewed.customerNote; as note) {
+    <section class="view-section" aria-labelledby="appointment-view-shop-note">
+      <h3 class="view-heading" id="appointment-view-shop-note">
+        {{ 'managementAppointments.view.shopNote' | transloco }}
+        <span class="view-hint">{{ 'managementAppointments.view.shopNoteHint' | transloco }}</span>
+      </h3>
+      <lib-banner class="view-note">{{ note }}</lib-banner>
+    </section>
+  }
+
+  @if (viewed.notes; as note) {
+    <section class="view-section" aria-labelledby="appointment-view-customer-note">
+      <h3 class="view-heading" id="appointment-view-customer-note">
+        {{ 'managementAppointments.view.customerNote' | transloco }}
+      </h3>
+      <lib-banner class="view-note">{{ note }}</lib-banner>
+    </section>
+  }
+
+  @if (viewed.internalNotes; as note) {
+    <section class="view-section" aria-labelledby="appointment-view-internal-note">
+      <h3 class="view-heading" id="appointment-view-internal-note">
+        {{ 'managementAppointments.view.internalNote' | transloco }}
+        <span class="view-hint">{{
+          'managementAppointments.view.internalNoteHint' | transloco
+        }}</span>
+      </h3>
+      <lib-banner class="view-note" tone="warning">{{ note }}</lib-banner>
+    </section>
+  }
+
+  <lib-customer-history
+    [customerId]="viewed.customerId"
+    [excludeId]="viewed.id"
+    [language]="language()"
+    [timezone]="timezone()"
+    [viewAll]="customerLink()"
+    (openAppointment)="openAppointment.emit($event)"
+  />
+
+  <footer class="view-section view-audit">
+    <p>
+      @if (viewed.source === 'online') {
+        {{
+          'managementAppointments.view.bookedOnline'
+            | transloco: { when: instant(viewed.createdAt) }
+        }}
+      } @else {
+        {{
+          'managementAppointments.view.bookedBy'
+            | transloco: { name: viewed.createdByDisplayName, when: instant(viewed.createdAt) }
+        }}
+      }
+    </p>
+    @if (viewed.updatedAt && viewed.modifiedByDisplayName) {
+      <p>
+        {{
+          'managementAppointments.view.changedBy'
+            | transloco: { name: viewed.modifiedByDisplayName, when: instant(viewed.updatedAt) }
+        }}
+      </p>
+    }
+  </footer>
+</div>

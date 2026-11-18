@@ -1,0 +1,14 @@
+@use 'abstracts' as a;
+
+.form-errors {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(1);
+}
+
+.form-errors-message {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  color: var(--error-text);
+}

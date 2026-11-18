@@ -1,0 +1,368 @@
+:host {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  font-family: var(--font-sans);
+}
+
+:host([data-disabled]) {
+  opacity: var(--opacity-disabled);
+}
+
+.time-field {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  padding-inline: var(--time-pad-x);
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border-strong);
+  border-radius: var(--radius-md);
+  transition:
+    border-color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard);
+
+  &:hover:not(:has(.time-input:disabled)) {
+    border-color: var(--accent);
+  }
+
+  &:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 var(--border-width-hairline) var(--accent);
+  }
+}
+
+:host([data-invalid]) .time-field {
+  border-color: var(--error);
+
+  &:focus-within {
+    border-color: var(--error);
+    box-shadow: 0 0 0 var(--border-width-hairline) var(--error);
+  }
+}
+
+:host([data-size='sm']) {
+  --time-pad-y: var(--space-1);
+  --time-pad-x: var(--space-2);
+  --time-text: var(--text-sm);
+}
+
+:host([data-size='md']) {
+  --time-pad-y: var(--space-2);
+  --time-pad-x: var(--space-3);
+  --time-text: var(--text-base);
+}
+
+:host([data-size='lg']) {
+  --time-pad-y: var(--space-3);
+  --time-pad-x: var(--space-4);
+  --time-text: var(--text-lg);
+}
+
+.time-input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--field-pad-top, var(--time-pad-y)) var(--space-2) var(--time-pad-y);
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--time-text);
+  line-height: var(--leading-snug);
+  font-variant-numeric: tabular-nums;
+
+  &::placeholder {
+    color: var(--text-muted);
+    font-family: var(--font-sans);
+  }
+
+  // The field wrapper owns the focus treatment through :focus-within.
+  // Suppress the global input ring so it does not draw internal vertical
+  // edges beside the clock icon and dropdown affordance.
+  &:focus-visible {
+    box-shadow: none;
+  }
+}
+
+.time-leading-icon,
+.time-icon-button svg {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  stroke-width: var(--icon-stroke);
+}
+
+.time-leading-icon {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+}
+
+.time-icon-button {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: var(--space-1);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-standard);
+
+  &:hover:not(:disabled) {
+    color: var(--text-primary);
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.time-toggle svg {
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+
+.time-field:has(.time-input[aria-expanded='true']) .time-toggle svg {
+  transform: rotate(180deg);
+}
+
+// The CDK pane is a flex container, so a block child shrinks to its content
+// and `cdkConnectedOverlayMatchWidth` alone leaves the panel narrower than the field.
+.time-panel {
+  box-sizing: border-box;
+  min-width: 100%;
+  max-height: calc(var(--space-20) * 3);
+  overflow-y: auto;
+  padding: var(--space-1);
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  transform-origin: top center;
+}
+
+.time-panel-enter {
+  animation: time-panel-in var(--dur-fast) var(--ease-out);
+}
+
+// The inline grid is rebuilt whenever what it offers changes, so the new slots arrive rather
+// than replace the old ones where they stood.
+//
+// Ungated, unlike most `animate.enter` in this workspace. A grid arriving is an entrance
+// whether it is the first one or the twentieth, and the usual gate cannot work here anyway: a
+// consumer that swaps `validTimes` behind an `@if` destroys the picker and builds a new one,
+// so every instance would think itself the first paint.
+//
+// `backwards` is what makes the stagger work: without it a delayed tile paints at its settled
+// state until its delay elapses, and the effect inverts into a flicker.
+.time-tile-enter {
+  animation: time-tile-in var(--dur-base) var(--ease-out) var(--time-tile-delay, 0ms) backwards;
+}
+
+@keyframes time-tile-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-1)) scale(0.96);
+  }
+}
+
+@keyframes time-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--space-1))) scale(0.97);
+  }
+}
+
+.time-list,
+.time-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  outline: 0;
+}
+
+:host([data-mode='clock']) .time-grid {
+  max-height: calc(var(--space-20) * 2);
+  overflow-y: auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: var(--space-3);
+  padding-right: var(--space-1);
+}
+
+.time-clock {
+  position: relative;
+  width: calc(var(--space-20) * 2);
+  aspect-ratio: 1;
+  margin-inline: auto;
+  background: var(--surface-2);
+  border: var(--border-width-hairline) solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  box-shadow: inset 0 0 0 var(--space-1) var(--surface);
+  color: var(--text-secondary);
+  font-family: var(--font-display);
+}
+
+.time-clock-mark {
+  position: absolute;
+  font-size: var(--text-sm);
+  line-height: 1;
+  translate: -50% -50%;
+}
+
+.time-clock + .time-field {
+  margin-top: var(--space-3);
+}
+
+.time-clock-hand {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  width: var(--border-width-strong);
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  transform-origin: 50% 100%;
+  transition: rotate var(--dur-base) var(--ease-out);
+}
+
+.time-clock-hour {
+  height: 27%;
+}
+.time-clock-minute {
+  height: 36%;
+  width: var(--border-width-hairline);
+}
+
+.time-clock-pin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--space-2);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+}
+
+.time-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.time-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--space-20), 1fr));
+  gap: var(--space-2);
+}
+
+.time-option {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--time-text);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+
+  &:hover:not([aria-disabled='true']) {
+    background: var(--surface-2);
+  }
+
+  // Only once the keyboard moved through the dropdown: `ngListbox` always marks one option.
+  .time-list[data-navigated] &[data-active='true'],
+  &.time-tile:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--focus-ring);
+  }
+
+  &[aria-selected='true'] {
+    background: var(--accent-subtle);
+    color: var(--accent-text);
+    font-weight: var(--weight-bold);
+  }
+
+  &[aria-disabled='true'] {
+    opacity: var(--opacity-disabled);
+    cursor: default;
+    text-decoration: line-through;
+  }
+}
+
+.time-tile {
+  text-align: center;
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border);
+}
+
+.time-empty,
+.time-inline-empty {
+  padding: var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.time-error {
+  margin-top: var(--space-1);
+  color: var(--error-text);
+  font-size: var(--text-sm);
+}
+
+// ---- Forced colors ----
+// Selection and unavailability ride on background and opacity, which a
+// forced palette overrides; the line-through and aria-selected survive, but
+// the highlight has to be restated in system colours.
+
+@media (forced-colors: active) {
+  .time-field {
+    border-color: CanvasText;
+  }
+
+  .time-field:focus-within {
+    outline: 2px solid Highlight;
+  }
+
+  .time-panel,
+  .time-tile {
+    border-color: CanvasText;
+  }
+
+  .time-option[aria-selected='true'] {
+    background: Highlight;
+    color: HighlightText;
+    forced-color-adjust: none;
+  }
+
+  .time-list[data-navigated] .time-option[data-active='true'],
+  .time-tile:focus-visible {
+    outline: 2px solid CanvasText;
+    outline-offset: -2px;
+  }
+
+  .time-option[aria-disabled='true'] {
+    color: GrayText;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .time-panel-enter {
+    animation: none;
+  }
+
+  // The base layer zeroes every animation's duration, but not its delay — a staggered tile
+  // would still sit invisible behind `backwards` for its whole delay. Only turning the
+  // animation off clears both.
+  .time-tile-enter {
+    animation: none;
+  }
+
+  .time-field,
+  .time-icon-button,
+  .time-toggle svg,
+  .time-option,
+  .time-clock-hand {
+    transition: none;
+  }
+}

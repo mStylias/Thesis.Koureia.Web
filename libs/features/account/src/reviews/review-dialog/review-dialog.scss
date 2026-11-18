@@ -1,0 +1,19 @@
+@use 'abstracts' as a;
+
+.review-form {
+  display: grid;
+  gap: a.space(4);
+}
+
+.review-context {
+  @include a.t-body-sm;
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.review-count {
+  @include a.t-caption;
+  justify-self: end;
+  margin-block-start: calc(-1 * #{a.space(2)});
+  color: var(--text-muted);
+}

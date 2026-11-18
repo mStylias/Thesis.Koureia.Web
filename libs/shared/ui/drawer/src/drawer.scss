@@ -1,0 +1,323 @@
+// Consumes the design-system CSS custom properties emitted by the
+// shared @ui styles. Keyboard focus comes from
+// the global `:focus-visible` rule; reduced motion is handled by the
+// base layer. Modal drawers render in the browser top layer; non-modal
+// ones fall back to the overlay layer.
+
+.drawer {
+  position: fixed;
+  z-index: var(--z-overlay);
+  margin: 0;
+  padding: 0;
+  max-width: 100vw;
+  max-height: 100dvh;
+  // A panel set into a page rather than over it can frame itself like the
+  // page's own surfaces: a border on every side, a radius and no elevation.
+  border: var(--drawer-frame-border-width, 0px) solid var(--border);
+  border-radius: var(--drawer-radius, 0);
+  background: var(--surface);
+  color: var(--text-primary);
+  box-shadow: var(--drawer-shadow, var(--shadow-lg));
+  font-family: var(--font-sans);
+
+  opacity: 0;
+  transform: var(--drawer-closed-transform, none);
+  transition:
+    opacity var(--dur-slower) var(--ease-out),
+    transform var(--dur-slower) var(--ease-out);
+
+  &::backdrop {
+    background: var(--scrim);
+    opacity: 0;
+    transition: opacity var(--dur-slower) var(--ease-out);
+  }
+
+  // Keeps the focus trap and mask-click behavior, drops the dimming.
+  &[data-no-backdrop]::backdrop {
+    background: transparent;
+  }
+
+  &[open] {
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+    transform: none;
+
+    &::backdrop {
+      opacity: 1;
+    }
+
+    @starting-style {
+      opacity: 0;
+      transform: var(--drawer-closed-transform, none);
+
+      &::backdrop {
+        opacity: 0;
+      }
+    }
+  }
+
+  // The component keeps the dialog open while this runs, then close()s.
+  // Exits run faster than entrances; panel and backdrop move as a
+  // unit, so they share the timing.
+  &[data-closing] {
+    opacity: 0;
+    transform: var(--drawer-closed-transform, none);
+    transition-duration: var(--dur-slow);
+
+    &::backdrop {
+      opacity: 0;
+      transition-duration: var(--dur-slow);
+    }
+  }
+}
+
+// ---- Sizes → private properties ----
+// Width applies to left/right drawers, height to top/bottom ones.
+
+.drawer[data-size='sm'] {
+  --drawer-width: var(--drawer-sm-width);
+  --drawer-height: var(--drawer-sm-height);
+}
+
+.drawer[data-size='md'] {
+  --drawer-width: var(--drawer-md-width);
+  --drawer-height: var(--drawer-md-height);
+}
+
+.drawer[data-size='lg'] {
+  --drawer-width: var(--drawer-lg-width);
+  --drawer-height: var(--drawer-lg-height);
+}
+
+// ---- Positions ----
+//
+// A side panel leaves a strip of the page uncovered, which is what a
+// pointer has to dismiss it with. An app shell that keeps its own
+// header visible instead overrides the two properties below:
+// `--drawer-inset-top` starts the panel under that header,
+// `--drawer-max-width` lets it take the whole width once it does, and
+// `--drawer-edge-border-width` drops the leading hairline, which has no
+// page left to divide the panel from. Set them on `lib-drawer` or any
+// ancestor.
+
+.drawer[data-position='left'] {
+  inset: var(--drawer-inset-top, 0px) auto 0 0;
+  width: min(var(--drawer-width), var(--drawer-max-width, calc(100vw - var(--space-10))));
+  height: calc(100dvh - var(--drawer-inset-top, 0px));
+  border-right: var(--drawer-edge-border-width, var(--border-width-hairline)) solid var(--border);
+  --drawer-closed-transform: translateX(-100%);
+}
+
+.drawer[data-position='right'] {
+  inset: var(--drawer-inset-top, 0px) 0 0 auto;
+  width: min(var(--drawer-width), var(--drawer-max-width, calc(100vw - var(--space-10))));
+  height: calc(100dvh - var(--drawer-inset-top, 0px));
+  border-left: var(--drawer-edge-border-width, var(--border-width-hairline)) solid var(--border);
+  --drawer-closed-transform: translateX(100%);
+}
+
+.drawer[data-position='top'] {
+  inset: 0 0 auto 0;
+  width: 100vw;
+  height: min(var(--drawer-height), calc(100dvh - var(--space-10)));
+  border-bottom: var(--border-width-hairline) solid var(--border);
+  --drawer-closed-transform: translateY(-100%);
+}
+
+.drawer[data-position='bottom'] {
+  inset: auto 0 0 0;
+  width: 100vw;
+  height: min(var(--drawer-height), calc(100dvh - var(--space-10)));
+  border-top: var(--border-width-hairline) solid var(--border);
+  --drawer-closed-transform: translateY(100%);
+}
+
+// Full screen fades in with a gentle rise instead of sliding.
+.drawer[data-position='full'] {
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  --drawer-closed-transform: translateY(var(--space-4));
+}
+
+// ---- Push mode ----
+// The drawer sits in normal flow inside the consumer's flex/grid
+// container and animates its size, so the sibling content reflows.
+// `full` stays overlay-only, hence the :not() guard.
+//
+// Animating width/height triggers layout — the documented exception:
+// reflowing the siblings is the entire point of push mode, so a
+// transform cannot express it. Keep push drawers off high-frequency
+// paths.
+
+.drawer[data-mode='push']:not([data-position='full']) {
+  position: static;
+  z-index: auto;
+  overflow: hidden;
+  --drawer-closed-transform: none;
+  transition:
+    opacity var(--dur-slower) var(--ease-out),
+    width var(--dur-slower) var(--ease-out),
+    height var(--dur-slower) var(--ease-out);
+}
+
+.drawer[data-mode='push'][data-position='left'],
+.drawer[data-mode='push'][data-position='right'] {
+  height: 100%;
+
+  // Pin the content at its final width while the panel animates, so
+  // the text is clipped instead of re-wrapping on every frame.
+  > * {
+    box-sizing: border-box;
+    width: min(var(--drawer-width), calc(100vw - var(--space-10)));
+    flex-shrink: 0;
+  }
+
+  &[data-closing] {
+    width: 0;
+  }
+
+  &[open] {
+    @starting-style {
+      width: 0;
+    }
+  }
+}
+
+.drawer[data-mode='push'][data-position='top'],
+.drawer[data-mode='push'][data-position='bottom'] {
+  width: 100%;
+
+  &[data-closing] {
+    height: 0;
+  }
+
+  &[open] {
+    @starting-style {
+      height: 0;
+    }
+  }
+}
+
+// ---- Parts ----
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-shrink: 0;
+  padding: var(--space-4) var(--space-6);
+  border-bottom: var(--border-width-hairline) solid var(--border);
+}
+
+.drawer-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.drawer-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  overflow-wrap: anywhere;
+}
+
+.drawer-close {
+  flex-shrink: 0;
+  margin-left: auto;
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+  }
+}
+
+.drawer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+  padding: var(--space-3) var(--space-6);
+  border-bottom: var(--border-width-hairline) solid var(--border);
+}
+
+.drawer-content {
+  flex: 1;
+  min-height: 0;
+  // Content never scrolls sideways. Content wider than the panel is a layout bug of the consumer.
+  overflow-x: hidden;
+  overflow-y: auto;
+  // `--drawer-content-padding: 0` for a panel whose content is edge to edge, such as a map or
+  // a full-bleed image, while the header chrome stays.
+  padding: var(--drawer-content-padding, var(--space-6));
+}
+
+// Headless: no header chrome, the projected content owns the panel.
+.drawer:not(:has(.drawer-header)) .drawer-content {
+  padding: 0;
+}
+
+.drawer-footer {
+  flex-shrink: 0;
+  padding: var(--space-4) var(--space-6);
+  border-top: var(--border-width-hairline) solid var(--border);
+}
+
+// A panel that took another's place. The frame and the × stay put. Content one level deeper fades
+// in from the right, content one level back from the left, so the reader knows which way they
+// went. Sideways only, so nothing reads as a new panel. The toolbar's buttons drift in one by one
+// from script, so a button that did not change stays still.
+.drawer:is([data-swap='forward'], [data-swap='back']) {
+  // The drift starts outside the panel's edge.
+  overflow: clip;
+
+  :is(.drawer-heading, .drawer-content, .drawer-footer) {
+    animation: drawer-swap-sideways var(--dur-slow) var(--ease-out);
+  }
+}
+
+.drawer[data-swap='forward'] {
+  --drawer-swap-from: var(--space-3);
+}
+
+.drawer[data-swap='back'] {
+  --drawer-swap-from: calc(var(--space-3) * -1);
+}
+
+@keyframes drawer-swap-sideways {
+  from {
+    opacity: 0;
+    transform: translateX(var(--drawer-swap-from));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer[data-swap] :is(.drawer-heading, .drawer-content, .drawer-footer) {
+    animation: none;
+  }
+}
+
+// A push drawer open on its first render appears open: it is part of the page,
+// and animating its size on load slides the sibling content across. Later in
+// the file than the push rules, which match with the same specificity.
+.drawer[data-mode][data-instant] {
+  transition: none;
+}
+
+// A forced palette drops the scrim and the panel's shadow, and repaints
+// the surface in the same Canvas as the page behind it — the drawer's
+// one edge border is not enough to bound it, and `full`/`push` drawers
+// carry no edge border at all. Outline the whole panel instead.
+@media (forced-colors: active) {
+  .drawer {
+    border: var(--border-width-hairline) solid CanvasText;
+  }
+}

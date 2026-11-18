@@ -1,0 +1,19 @@
+import { Component } from '@angular/core';
+
+/**
+ * What the component shows, in one sentence.
+ *
+ * ```ts
+ * import { <%= className %> } from '<%= alias %>';
+ * ```
+ *
+ * ```html
+ * <<%= selector %> />
+ * ```
+ */
+@Component({
+  selector: '<%= selector %>',
+  templateUrl: './<%= fileName %>.html',
+  styleUrl: './<%= fileName %>.scss',
+})
+export class <%= className %> {}

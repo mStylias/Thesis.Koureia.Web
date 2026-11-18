@@ -1,0 +1,8 @@
+@if (messages().length > 0) {
+  <!-- One region rather than one per message, so a refusal with three reasons is announced once. -->
+  <div class="form-errors" role="alert">
+    @for (message of messages(); track $index) {
+      <p class="form-errors-message">{{ message.message | uiCopy | transloco }}</p>
+    }
+  </div>
+}

@@ -1,0 +1,21 @@
+// The brand-neutral design system core, in the 7-1 pattern.
+//
+//   abstracts/   Sass-only structure, functions and mixins. No CSS output.
+//   vendors/     Third-party styles.
+//   base/        Element defaults, type classes and the token-emission mixins.
+//   layout/      Structural chrome. Empty.
+//   components/  Global component styles, the rules that must escape Angular's emulated
+//                encapsulation.
+//   pages/       Page-specific styles. Empty.
+//
+// This file holds no color values. A theme package, `libs/themes/<brand>/`, emits the tokens
+// and defines the semantic aliases. The theme is also the entry point an app builds against,
+// and it `@use`s this file.
+//
+// Tailwind is wired separately in `tailwind.css` and reads the theme's custom properties
+// through `@theme inline`.
+@use 'vendors';
+@use 'base';
+@use 'layout';
+@use 'components';
+@use 'pages';

@@ -1,0 +1,78 @@
+@if (state$ | async; as state) {
+  @let groups = fieldGroups(state.formFieldStates);
+
+  @if (groups.nameFields.length > 0) {
+    <div class="name-row">
+      @for (field of groups.nameFields; track field.attribute.name) {
+        <ng-container *ngTemplateOutlet="fieldRow; context: { $implicit: field }" />
+      }
+    </div>
+  }
+
+  @for (field of groups.otherFields; track field.attribute.name) {
+    @if (isHidden(field)) {
+      <input type="hidden" [name]="field.attribute.name" [value]="value(field)" />
+    } @else {
+      <ng-container *ngTemplateOutlet="fieldRow; context: { $implicit: field }" />
+    }
+  }
+}
+
+<ng-template #fieldRow let-field>
+  @let errors = showErrors() ? field.displayableErrors : [];
+  <div class="field">
+    <label [for]="field.attribute.name">
+      {{ i18n.advancedMsgStr(field.attribute.displayName ?? field.attribute.name) }}
+      @if (field.attribute.required) {
+        <span aria-hidden="true">*</span>
+      }
+    </label>
+
+    @if (isPassword(field)) {
+      <lib-password-input
+        [inputId]="field.attribute.name"
+        [name]="field.attribute.name"
+        autocomplete="new-password"
+        feedback="side"
+        [rules]="passwordRules"
+        [required]="field.attribute.required"
+        [invalid]="errors.length > 0"
+        [ariaDescribedby]="errors.length ? errorId(field) : ''"
+        [value]="value(field)"
+        (valueChange)="update(field, $event)"
+        (touch)="blur(field)"
+      />
+    } @else if (isSimpleInput(field)) {
+      <input
+        libInputText
+        [id]="field.attribute.name"
+        [name]="field.attribute.name"
+        [type]="inputType(field)"
+        [autocomplete]="field.attribute.autocomplete ?? null"
+        [attr.maxlength]="maxLength(field)"
+        [value]="value(field)"
+        [invalid]="errors.length > 0"
+        [attr.aria-required]="field.attribute.required ? true : null"
+        [attr.aria-describedby]="errors.length ? errorId(field) : null"
+        (input)="updateFromInput(field, $event)"
+        (blur)="blur(field)"
+      />
+    } @else {
+      <kc-input-field-by-type
+        [attribute]="field.attribute"
+        [valueOrValues]="field.valueOrValues"
+        [displayableErrors]="errors"
+        (dispatchFormAction)="dispatch($event)"
+      />
+    }
+
+    @if (errors.at(0); as error) {
+      <p
+        class="field-error"
+        [id]="errorId(field)"
+        aria-live="polite"
+        [innerHTML]="error.errorMessage"
+      ></p>
+    }
+  </div>
+</ng-template>

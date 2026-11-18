@@ -1,0 +1,24 @@
+<div class="location">
+  <div class="location__card">
+    <p class="location__label">{{ 'barbershops.home.location.address' | transloco }}</p>
+    <address class="location__address">
+      <svg lucideMapPin aria-hidden="true"></svg>
+      <span>
+        <span class="location__street">{{ shop().street }}</span
+        ><br />
+        {{ shop().postalCode }} {{ shop().city }}
+      </span>
+    </address>
+
+    <lib-shop-map-links
+      class="location__links"
+      [latitude]="shop().latitude"
+      [longitude]="shop().longitude"
+    />
+
+    <!-- The page's call to action, last in the card. -->
+    <ng-content />
+  </div>
+
+  <lib-shop-map class="location__map" [shop]="pin()" />
+</div>

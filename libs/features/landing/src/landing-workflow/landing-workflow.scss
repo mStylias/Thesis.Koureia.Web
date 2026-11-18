@@ -1,0 +1,98 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+.workflow {
+  padding-block: var(--space-16);
+}
+
+.workflow-inner {
+  @include a.container;
+}
+
+.section-heading {
+  max-width: 40rem;
+  margin-inline: auto;
+  text-align: center;
+
+  .eyebrow {
+    @include a.t-label;
+    margin: 0;
+    color: var(--accent-text);
+  }
+
+  h2 {
+    @include a.t-h2;
+    margin: var(--space-3) 0 0;
+    text-wrap: balance;
+  }
+
+  > p:not(.eyebrow) {
+    @include a.t-body;
+    margin: var(--space-4) 0 0;
+    text-wrap: pretty;
+  }
+}
+
+.steps {
+  display: grid;
+  gap: var(--space-4);
+  padding: 0;
+  margin: var(--space-10) 0 0;
+  list-style: none;
+
+  li {
+    position: relative;
+    padding: var(--space-6);
+    background: var(--surface);
+    border: var(--border-width-hairline) solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+.step-number {
+  @include a.t-mono;
+  color: var(--accent-text);
+}
+
+.step-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-12);
+  height: var(--space-12);
+  margin-top: var(--space-5);
+  color: var(--accent-text);
+  background: var(--accent-subtle);
+  border: var(--border-width-hairline) solid var(--accent-subtle-border);
+  border-radius: var(--radius-lg);
+
+  svg {
+    width: var(--icon-size-lg);
+    height: var(--icon-size-lg);
+    stroke-width: var(--icon-stroke);
+  }
+}
+
+h3 {
+  @include a.t-h3;
+  margin: var(--space-5) 0 0;
+}
+
+li p {
+  @include a.t-body-sm;
+  margin: var(--space-2) 0 0;
+}
+
+@include a.respond(md) {
+  .workflow {
+    padding-block: var(--space-20);
+  }
+
+  .steps {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

@@ -1,0 +1,92 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+  flex: none;
+}
+
+.dg-toolbar {
+  display: flex;
+  align-items: center;
+  gap: a.space(2);
+  padding: a.space(2) a.space(3);
+  border-block-end: var(--border-width-hairline) solid var(--border);
+  background: var(--surface);
+}
+
+.dg-toolbar-region {
+  display: flex;
+  align-items: center;
+  gap: a.space(2);
+  min-width: 0;
+}
+
+// The start region absorbs the slack, so a lone item stays left-aligned and a
+// centre region lands in the middle whatever the start region holds.
+.dg-toolbar-region[data-region='start'] {
+  flex: 1 1 auto;
+}
+
+.dg-toolbar-region[data-region='end'] {
+  flex: 1 1 auto;
+  justify-content: flex-end;
+}
+
+// The measured unit. `flex: none` keeps a shrinking bar from compressing an
+// item below the width the collapse arithmetic was given.
+.dg-toolbar-item {
+  display: flex;
+  flex: none;
+  align-items: center;
+}
+
+.dg-toolbar-split {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.dg-toolbar-badge {
+  @include a.t-caption;
+
+  display: inline-flex;
+  align-items: center;
+  min-width: var(--datagrid-tag-height);
+  height: var(--datagrid-tag-height);
+  padding: 0 a.space(1);
+  border-radius: a.radius(pill);
+  background: var(--accent-subtle);
+  color: var(--accent-text);
+  font-variant-numeric: tabular-nums;
+  justify-content: center;
+}
+
+// Collapsed entries stack, so an item drawn for a horizontal bar still reads
+// as one row of the panel.
+.dg-toolbar-overflow {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(1);
+  min-width: 12rem;
+}
+
+.dg-toolbar-overflow-item {
+  display: flex;
+  align-items: stretch;
+}
+
+// Every row is exactly the panel's width, whatever it draws: a button, the
+// column chooser's own trigger, or the search field. `width` as well as `flex`
+// because the chooser is a component element rather than a control, and a
+// stretched box does not stretch what it wraps.
+.dg-toolbar-overflow-item > * {
+  flex: 1 1 auto;
+  width: 100%;
+}
+
+// The surface is a list, so the icons line up in one column and the captions
+// all start at the same x. `libButton` centres its content, which is right in
+// a bar of separate controls and wrong in a stack of rows.
+.dg-toolbar-overflow-item > button {
+  justify-content: flex-start;
+}

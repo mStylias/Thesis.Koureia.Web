@@ -1,0 +1,96 @@
+@use 'abstracts' as a;
+
+// The view's sections and grid, drawn as bars. The whole block pulses as one surface, because a
+// dozen separate blinks read as a fault. Opacity only, so the base layer's reduced-motion rule
+// stops it.
+:host {
+  display: flex;
+  flex-direction: column;
+  animation: view-skeleton-pulse 1.6s var(--ease-standard) infinite;
+}
+
+.skeleton-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-6);
+
+  & + & {
+    border-top: var(--border-width-hairline) solid var(--border);
+  }
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: var(--space-20) minmax(0, 1fr);
+  column-gap: var(--space-6);
+  row-gap: var(--space-5);
+  align-items: center;
+}
+
+.skeleton-line {
+  display: block;
+  height: var(--space-4);
+  border-radius: a.radius(sm);
+  background: var(--surface-2);
+}
+
+.skeleton-caption {
+  width: 70%;
+  height: var(--space-3);
+}
+
+.skeleton-badge {
+  width: var(--space-20);
+  height: var(--space-6);
+  border-radius: a.radius(pill);
+}
+
+.skeleton-long {
+  width: 75%;
+}
+
+.skeleton-medium {
+  width: 50%;
+}
+
+.skeleton-short {
+  width: 35%;
+}
+
+.skeleton-small {
+  height: var(--space-3);
+}
+
+.skeleton-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.skeleton-contact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.skeleton-button {
+  flex-shrink: 0;
+  width: var(--space-16);
+  height: var(--space-8);
+  border-radius: a.radius(md);
+  background: var(--surface-2);
+}
+
+.skeleton-box {
+  height: var(--space-16);
+  border-radius: a.radius(lg);
+  background: var(--surface-2);
+}
+
+@keyframes view-skeleton-pulse {
+  50% {
+    opacity: 0.6;
+  }
+}

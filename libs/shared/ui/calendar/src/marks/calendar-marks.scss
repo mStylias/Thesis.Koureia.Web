@@ -1,0 +1,26 @@
+// Never shrinks, so a long title gives way first.
+:host {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.125rem;
+  margin-inline-start: var(--space-1);
+}
+
+.mark {
+  display: inline-flex;
+  color: var(--text-secondary);
+
+  @each $tone in (success, warning, error, info) {
+    &[data-tone='#{$tone}'] {
+      color: var(--#{$tone}-text);
+    }
+  }
+
+  // The tile badge's icon size: the marks sit on a line of `--text-xs`.
+  svg {
+    width: 0.75rem;
+    height: 0.75rem;
+    stroke-width: var(--icon-stroke);
+  }
+}

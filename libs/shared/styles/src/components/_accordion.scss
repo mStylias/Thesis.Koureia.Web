@@ -1,0 +1,16 @@
+// The hairline dividers between accordion items.
+//
+// They are global because the element that separates one item from the next belongs to the
+// consumer. `lib-accordion` projects either one wrapper per item, the documented `<section>`,
+// or the heading and panel pair directly, and emulated encapsulation reaches neither. A
+// heading inside a `<section>` is always that section's `:first-child`, so the heading cannot
+// draw the divider from its own `:host`.
+
+lib-accordion {
+  // Wrapped items: the divider sits on top of every wrapper except the first.
+  > :not(:first-child) > [libAccordionHeading],
+  // Unwrapped items: the heading is the boundary.
+  > [libAccordionHeading]:not(:first-child) {
+    border-block-start: var(--border-width-hairline) solid var(--border);
+  }
+}

@@ -1,0 +1,49 @@
+@use 'abstracts' as a;
+
+// The form's two-column grid, drawn as bars. The whole block pulses as one surface. Opacity only,
+// so the base layer's reduced-motion rule stops it.
+:host {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  padding: var(--space-6);
+  animation: form-skeleton-pulse 1.6s var(--ease-standard) infinite;
+}
+
+.skeleton-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.skeleton-wide {
+  grid-column: 1 / -1;
+}
+
+// The date takes half a row alone, so start and end share the next one.
+.skeleton-row-start {
+  grid-column: 1;
+}
+
+.skeleton-label {
+  width: 40%;
+  height: var(--space-3);
+  border-radius: a.radius(sm);
+  background: var(--surface-2);
+}
+
+.skeleton-control {
+  height: var(--space-10);
+  border-radius: a.radius(md);
+  background: var(--surface-2);
+}
+
+.skeleton-textarea {
+  height: var(--space-20);
+}
+
+@keyframes form-skeleton-pulse {
+  50% {
+    opacity: 0.6;
+  }
+}

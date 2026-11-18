@@ -1,0 +1,99 @@
+<div class="dg-hf">
+  <p class="dg-hf-title">
+    {{ 'datagrid.headerFilter.title' | uiCopy | transloco: { column: caption() } }}
+  </p>
+
+  <div libIconField class="dg-hf-search">
+    <span libInputIcon><svg lucideSearch></svg></span>
+    <input
+      libInputText
+      size="sm"
+      type="search"
+      [value]="search()"
+      [attr.aria-label]="'datagrid.headerFilter.search' | uiCopy | transloco"
+      (input)="onSearch($event)"
+    />
+  </div>
+
+  @if (partial()) {
+    <p class="dg-hf-notice" role="status">
+      {{ 'datagrid.headerFilter.partial' | uiCopy | transloco }}
+    </p>
+  }
+  @if (generated()) {
+    <p class="dg-hf-notice" role="status">
+      {{ 'datagrid.headerFilter.generated' | uiCopy | transloco }}
+    </p>
+  }
+
+  @if (loading() && entries().length === 0) {
+    <p class="dg-hf-empty" role="status">
+      {{ 'datagrid.headerFilter.loading' | uiCopy | transloco }}
+    </p>
+  } @else if (empty()) {
+    <p class="dg-hf-empty">{{ 'datagrid.headerFilter.empty' | uiCopy | transloco }}</p>
+  } @else if (flatMode()) {
+    @if (selectAll()) {
+      <lib-checkbox
+        class="dg-hf-all"
+        size="sm"
+        [value]="allState() === 'all'"
+        [indeterminate]="allState() === 'some'"
+        (valueChange)="onToggleAll($event)"
+      >
+        {{ 'datagrid.headerFilter.selectAll' | uiCopy | transloco }}
+      </lib-checkbox>
+    }
+
+    <ul class="dg-hf-list">
+      @for (entry of visible(); track entry.key) {
+        <li>
+          <lib-checkbox
+            size="sm"
+            [value]="isChecked(entry.key)"
+            (valueChange)="onToggle(entry.key, $event)"
+          >
+            {{ entry.blank ? ('datagrid.headerFilter.blank' | uiCopy | transloco) : entry.label }}
+            @if (entry.count !== null) {
+              <span class="dg-hf-count">({{ entry.count }})</span>
+            }
+          </lib-checkbox>
+        </li>
+      }
+    </ul>
+
+    @if (hasMore()) {
+      <button libButton type="button" severity="secondary" size="sm" (click)="onShowMore()">
+        {{ 'datagrid.headerFilter.showMore' | uiCopy | transloco }}
+      </button>
+    }
+  } @else {
+    <lib-tree
+      class="dg-hf-tree"
+      size="sm"
+      selectionMode="checkbox"
+      [tree]="treeModel()"
+      [(value)]="treeChecked"
+      [ariaLabel]="dialogLabel()"
+      showGuides
+    >
+      <ng-template libTreeNode let-node>
+        <span class="dg-hf-tree-label">
+          <span>{{ node.label() }}</span>
+          @if (node.data().count !== null) {
+            <span class="dg-hf-count">({{ node.data().count }})</span>
+          }
+        </span>
+      </ng-template>
+    </lib-tree>
+  }
+
+  <div class="dg-hf-actions">
+    <button libButton type="button" severity="secondary" size="sm" (click)="onCancel()">
+      {{ 'datagrid.headerFilter.cancel' | uiCopy | transloco }}
+    </button>
+    <button libButton type="button" size="sm" (click)="onApply()">
+      {{ 'datagrid.headerFilter.apply' | uiCopy | transloco }}
+    </button>
+  </div>
+</div>

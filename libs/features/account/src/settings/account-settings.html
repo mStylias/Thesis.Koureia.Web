@@ -1,0 +1,141 @@
+<section class="settings-section" aria-labelledby="settings-reminders-title">
+  <h2 class="settings-heading" id="settings-reminders-title">
+    {{ 'account.settings.reminders.title' | transloco }}
+  </h2>
+  <p class="settings-hint">{{ 'account.settings.reminders.hint' | transloco }}</p>
+
+  <div class="settings-row">
+    @if (profileReady()) {
+      <lib-switch
+        [value]="emailReminders()"
+        ariaDescribedby="settings-reminders-email"
+        (valueChange)="setEmailReminders($event)"
+      >
+        {{ 'account.settings.reminders.email' | transloco }}
+      </lib-switch>
+      <p class="settings-detail" id="settings-reminders-email">{{ email() }}</p>
+    } @else if (profileFailed()) {
+      <p class="settings-detail" role="alert">{{ 'account.common.failed' | transloco }}</p>
+      <div class="settings-actions">
+        <button
+          libButton
+          type="button"
+          size="sm"
+          variant="outlined"
+          severity="secondary"
+          (click)="retryProfile()"
+        >
+          {{ 'account.common.retry' | transloco }}
+        </button>
+      </div>
+    } @else {
+      <p class="settings-detail" role="status">{{ 'account.common.loading' | transloco }}</p>
+    }
+  </div>
+
+  @let state = pushState();
+  @if (state !== 'unknown') {
+    <div class="settings-row">
+      <span class="settings-label">{{ 'account.settings.reminders.device' | transloco }}</span>
+
+      @switch (state) {
+        @case ('on') {
+          <p class="settings-detail">
+            <span class="settings-tag" data-tone="success">
+              {{ 'account.settings.reminders.on' | transloco }}
+            </span>
+          </p>
+          <div class="settings-actions">
+            <button
+              libButton
+              type="button"
+              size="sm"
+              variant="outlined"
+              severity="secondary"
+              [loading]="pushAction() === 'test'"
+              [disabled]="pushAction() !== null && pushAction() !== 'test'"
+              (click)="sendTest()"
+            >
+              {{ 'account.settings.reminders.test' | transloco }}
+            </button>
+            <button
+              libButton
+              type="button"
+              size="sm"
+              variant="text"
+              severity="secondary"
+              [loading]="pushAction() === 'disable'"
+              [disabled]="pushAction() !== null && pushAction() !== 'disable'"
+              (click)="disablePush()"
+            >
+              {{ 'account.settings.reminders.disable' | transloco }}
+            </button>
+          </div>
+        }
+        @case ('blocked') {
+          <p class="settings-detail">{{ 'account.settings.reminders.blocked' | transloco }}</p>
+          <div class="settings-actions">
+            <ng-container *ngTemplateOutlet="guideButton" />
+          </div>
+        }
+        @case ('needs-home-screen') {
+          <!-- Names the brand, so the app owns it. See `RemindersBrandCopy`. -->
+          <p class="settings-detail">{{ 'brand.reminders.iphoneLine' | transloco }}</p>
+          <div class="settings-actions">
+            <ng-container *ngTemplateOutlet="guideButton" />
+          </div>
+        }
+        @case ('in-app-browser') {
+          <p class="settings-detail">{{ 'account.settings.reminders.inApp' | transloco }}</p>
+          <div class="settings-actions">
+            <ng-container *ngTemplateOutlet="guideButton" />
+          </div>
+        }
+        @case ('unsupported') {
+          <p class="settings-detail">{{ 'account.settings.reminders.unsupported' | transloco }}</p>
+        }
+        @default {
+          <div class="settings-actions">
+            <button
+              libButton
+              type="button"
+              size="sm"
+              [loading]="pushAction() === 'enable'"
+              (click)="enablePush()"
+            >
+              {{ 'account.settings.reminders.enable' | transloco }}
+            </button>
+          </div>
+        }
+      }
+    </div>
+  }
+</section>
+
+<section class="settings-section" aria-labelledby="settings-language-title">
+  <h2 class="settings-heading" id="settings-language-title">
+    {{ 'account.settings.language' | transloco }}
+  </h2>
+  <p class="settings-hint">
+    {{ 'account.settings.languageHint' | transloco }}
+  </p>
+  <lib-language-switcher
+    class="settings-control"
+    [ariaLabel]="'account.settings.language' | transloco"
+  />
+</section>
+
+<lib-reminder-guide [(visible)]="guideOpen" />
+
+<ng-template #guideButton>
+  <button
+    libButton
+    type="button"
+    size="sm"
+    variant="outlined"
+    severity="secondary"
+    (click)="guideOpen.set(true)"
+  >
+    {{ 'account.settings.reminders.guide' | transloco }}
+  </button>
+</ng-template>

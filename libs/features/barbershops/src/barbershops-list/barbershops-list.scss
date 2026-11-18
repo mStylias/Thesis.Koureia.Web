@@ -1,0 +1,83 @@
+@use 'abstracts' as a;
+
+:host {
+  // The narrowest a card may be before the grid drops a column. Below `lg` the list has the
+  // whole page, above it the map takes a column, so the count follows the space that is left.
+  --shop-list-card-min: 18rem;
+
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.shop-list__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--shop-list-card-min), 1fr));
+  gap: var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  > li {
+    display: block;
+    min-width: 0;
+  }
+}
+
+.shop-list__status {
+  @include a.t-body;
+
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+  margin: 0;
+  padding: var(--space-10) var(--space-6);
+  text-align: center;
+  color: var(--text-secondary);
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border-subtle);
+  border-radius: a.radius(lg);
+
+  p {
+    margin: 0;
+  }
+}
+
+// Cards arrive rather than appear.
+//
+// Entrances only. A card leaves this grid by being replaced, not by being the last thing on
+// screen: an exit animation holds every outgoing card in its cell while the incoming ones are
+// already laid out around it, and the grid then collapses in one jump when the last exit ends.
+// That jump is what reads as lag — it is worst when a filter leaves one card of twenty.
+//
+// `backwards` is what makes the stagger work: without it a delayed card paints at its settled
+// state until its delay elapses, and the effect inverts into a flicker.
+.shop-card-enter {
+  animation: shop-card-enter var(--dur-base) var(--ease-out) var(--shop-card-enter-delay, 0ms)
+    backwards;
+}
+
+@keyframes shop-card-enter {
+  from {
+    opacity: 0;
+    // A card is a large surface, so it settles from close by. Starting further out, or from a
+    // smaller scale, reads as the page assembling itself.
+    transform: translateY(var(--space-3)) scale(0.98);
+  }
+}
+
+// The cards on screen stay readable while the next answer loads, so the grid says it is out of
+// date rather than emptying itself. Opacity alone, and no delay: this is a state, not an entrance.
+.shop-list__grid--busy {
+  opacity: var(--opacity-disabled);
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+// The base layer zeroes every animation's duration, but not its delay — a staggered card would
+// still sit invisible behind `backwards` for its whole delay. Only turning the animation off
+// clears both.
+@media (prefers-reduced-motion: reduce) {
+  .shop-card-enter {
+    animation: none;
+  }
+}

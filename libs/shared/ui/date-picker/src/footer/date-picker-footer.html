@@ -1,0 +1,20 @@
+@if (showToday()) {
+  <button
+    type="button"
+    class="date-today-button"
+    [disabled]="todayDisabled()"
+    (click)="todaySelected.emit()"
+  >
+    {{ 'datePicker.today' | uiCopy | transloco }}
+  </button>
+}
+@if (showNow()) {
+  <button
+    type="button"
+    class="date-today-button date-now-button"
+    [disabled]="nowDisabled()"
+    (click)="nowSelected.emit()"
+  >
+    {{ 'datePicker.now' | uiCopy | transloco }}
+  </button>
+}

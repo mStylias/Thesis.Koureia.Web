@@ -1,0 +1,127 @@
+@let fields = editor.form;
+
+<lib-dialog size="sm" [(visible)]="visible" [header]="title() | transloco">
+  <form class="time-off-form" [libForm]="editor">
+    <lib-form-errors />
+
+    <div class="time-off-pair">
+      <lib-field class="time-off-field" [field]="fields.startsOn">
+        <ng-template libFieldEditor let-id let-describedBy="describedBy">
+          <lib-date-picker
+            size="sm"
+            [inputId]="id"
+            [ariaDescribedby]="describedBy"
+            [locale]="language()"
+            [ariaLabel]="'managementStaffSchedule.timeOff.startsOn' | transloco"
+            [formField]="fields.startsOn"
+          />
+        </ng-template>
+      </lib-field>
+      <lib-field class="time-off-field" [field]="fields.endsOn">
+        <ng-template libFieldEditor let-id let-describedBy="describedBy">
+          <lib-date-picker
+            size="sm"
+            [inputId]="id"
+            [ariaDescribedby]="describedBy"
+            [locale]="language()"
+            [ariaLabel]="'managementStaffSchedule.timeOff.endsOn' | transloco"
+            [formField]="fields.endsOn"
+          />
+        </ng-template>
+      </lib-field>
+    </div>
+
+    <div class="time-off-switch">
+      <lib-switch inputId="staff-time-off-whole" [formField]="fields.wholeDays" />
+      <label for="staff-time-off-whole">{{
+        'managementStaffSchedule.timeOff.wholeDays' | transloco
+      }}</label>
+    </div>
+
+    @if (!fields.wholeDays().value()) {
+      <div class="time-off-pair">
+        <lib-field class="time-off-field time-off-time" [field]="fields.startTime">
+          <ng-template libFieldEditor let-id let-describedBy="describedBy">
+            <lib-time-picker
+              size="sm"
+              [inputId]="id"
+              [ariaDescribedby]="describedBy"
+              [interval]="interval()"
+              [ariaLabel]="'managementStaffSchedule.timeOff.startTime' | transloco"
+              [placeholder]="'managementStaffSchedule.timeOff.timePlaceholder' | transloco"
+              [formField]="fields.startTime"
+            />
+          </ng-template>
+        </lib-field>
+        <lib-field class="time-off-field time-off-time" [field]="fields.endTime">
+          <ng-template libFieldEditor let-id let-describedBy="describedBy">
+            <lib-time-picker
+              size="sm"
+              [inputId]="id"
+              [ariaDescribedby]="describedBy"
+              [interval]="interval()"
+              [ariaLabel]="'managementStaffSchedule.timeOff.endTime' | transloco"
+              [placeholder]="'managementStaffSchedule.timeOff.timePlaceholder' | transloco"
+              [formField]="fields.endTime"
+            />
+          </ng-template>
+        </lib-field>
+      </div>
+    }
+
+    <lib-field class="time-off-field" [field]="fields.reason">
+      <ng-template libFieldEditor>
+        <input
+          libInputText
+          libFieldControl
+          type="text"
+          size="sm"
+          autocomplete="off"
+          placeholder=" "
+          [formField]="fields.reason"
+        />
+      </ng-template>
+    </lib-field>
+    <div
+      class="time-off-reasons"
+      role="group"
+      [attr.aria-label]="'managementStaffSchedule.timeOff.reason' | transloco"
+    >
+      @for (reason of reasons; track reason) {
+        <button
+          libButton
+          type="button"
+          severity="secondary"
+          variant="outlined"
+          size="sm"
+          (click)="setReason(reason)"
+        >
+          {{ 'managementStaffSchedule.timeOff.reasons.' + reason | transloco }}
+        </button>
+      }
+    </div>
+  </form>
+
+  <ng-template libDialogFooter>
+    <button
+      libButton
+      type="button"
+      severity="secondary"
+      variant="text"
+      [disabled]="editor.submitting()"
+      (click)="close()"
+    >
+      {{ 'managementStaffSchedule.timeOff.cancel' | transloco }}
+    </button>
+    <!-- Never disabled by validity: the first press is what reveals it. -->
+    <button
+      libButton
+      type="button"
+      severity="primary"
+      [loading]="editor.submitting()"
+      (click)="save()"
+    >
+      {{ 'managementStaffSchedule.timeOff.save' | transloco }}
+    </button>
+  </ng-template>
+</lib-dialog>

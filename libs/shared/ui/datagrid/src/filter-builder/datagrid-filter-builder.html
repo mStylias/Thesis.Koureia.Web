@@ -1,0 +1,283 @@
+@let fromLabel = 'datagrid.filterRow.rangeFrom' | uiCopy | transloco;
+@let toLabel = 'datagrid.filterRow.rangeTo' | uiCopy | transloco;
+@let valueLabel = 'datagrid.filterBuilder.value' | uiCopy | transloco;
+@let removeLabel = 'datagrid.filterBuilder.remove' | uiCopy | transloco;
+@let fieldLabelText = 'datagrid.filterBuilder.field' | uiCopy | transloco;
+@let operatorLabelText = 'datagrid.filterBuilder.operator' | uiCopy | transloco;
+
+<p class="dg-fb-title">{{ 'datagrid.filterBuilder.title' | uiCopy | transloco }}</p>
+
+<div class="dg-fb-tree">
+  <ng-container [ngTemplateOutlet]="groupView" [ngTemplateOutletContext]="rootContext()" />
+</div>
+
+@if (empty()) {
+  <p class="dg-fb-hint">{{ 'datagrid.filterBuilder.empty' | uiCopy | transloco }}</p>
+}
+
+<!-- Never dropped in silence: a row the query cannot use is counted here and
+     marked on the row itself, which is §7.3 applied to this surface. -->
+@if (incompleteCount() > 0) {
+  <p class="dg-fb-note">
+    <svg lucideTriangleAlert aria-hidden="true"></svg>
+    {{ 'datagrid.filterBuilder.incomplete' | uiCopy | transloco }}
+  </p>
+}
+
+@if (otherFilterCount() > 0) {
+  <p class="dg-fb-note">
+    <svg lucideTriangleAlert aria-hidden="true"></svg>
+    {{ 'datagrid.filterBuilder.otherFilters' | uiCopy | transloco }}
+  </p>
+}
+
+<div class="dg-fb-actions">
+  <button
+    libButton
+    class="dg-fb-clear"
+    type="button"
+    severity="secondary"
+    size="sm"
+    (click)="onClear()"
+  >
+    {{ 'datagrid.filterBuilder.clear' | uiCopy | transloco }}
+  </button>
+  <button
+    libButton
+    class="dg-fb-cancel"
+    type="button"
+    severity="secondary"
+    size="sm"
+    (click)="onCancel()"
+  >
+    {{ 'datagrid.filterBuilder.cancel' | uiCopy | transloco }}
+  </button>
+  <button libButton class="dg-fb-apply" type="button" size="sm" (click)="onApply()">
+    {{ 'datagrid.filterBuilder.apply' | uiCopy | transloco }}
+  </button>
+</div>
+
+<!-- Recursive by template outlet rather than by the component referencing
+     itself: a group holds groups to any depth, and one embedded view per level
+     keeps the whole editor in a single change-detection tree. -->
+<ng-template #groupView let-group="group" let-depth="depth">
+  <div
+    class="dg-fb-group"
+    role="group"
+    [attr.data-depth]="depth"
+    [attr.aria-label]="'datagrid.filterBuilder.group' | uiCopy | transloco"
+  >
+    <div class="dg-fb-group-head">
+      <button
+        type="button"
+        class="dg-fb-chooser dg-fb-mode"
+        aria-haspopup="menu"
+        [attr.aria-label]="
+          ('datagrid.filterBuilder.groupOperator' | uiCopy | transloco) +
+          ': ' +
+          groupModeLabel(group)
+        "
+        (click)="openGroupMenu(group, $event)"
+      >
+        <span class="dg-fb-chooser-text">{{ groupModeLabel(group) }}</span>
+        <svg lucideChevronDown aria-hidden="true"></svg>
+      </button>
+      <button
+        libButton
+        class="dg-fb-add-condition"
+        type="button"
+        severity="secondary"
+        size="sm"
+        (click)="onAddCondition(group)"
+      >
+        <svg lucidePlus aria-hidden="true"></svg>
+        {{ 'datagrid.filterBuilder.addCondition' | uiCopy | transloco }}
+      </button>
+      <button
+        libButton
+        class="dg-fb-add-group"
+        type="button"
+        severity="secondary"
+        size="sm"
+        (click)="onAddGroup(group)"
+      >
+        <svg lucideBrackets aria-hidden="true"></svg>
+        {{ 'datagrid.filterBuilder.addGroup' | uiCopy | transloco }}
+      </button>
+      @if (depth > 0) {
+        <button
+          type="button"
+          class="dg-fb-remove"
+          [attr.aria-label]="'datagrid.filterBuilder.removeGroup' | uiCopy | transloco"
+          (click)="onRemove(group.id)"
+        >
+          <svg lucideX aria-hidden="true"></svg>
+        </button>
+      }
+    </div>
+
+    @for (child of group.children; track child.id) {
+      @if (child.kind === 'group') {
+        <ng-container
+          [ngTemplateOutlet]="groupView"
+          [ngTemplateOutletContext]="{ group: child, depth: depth + 1 }"
+        />
+      } @else {
+        <div
+          class="dg-fb-condition"
+          role="group"
+          [attr.aria-label]="conditionLabel(child)"
+          [attr.data-incomplete]="isIncomplete(child) ? '' : null"
+        >
+          <!-- A button and one shared menu, not a `lib-select`: a select draws
+               its list inline, so a scrolling ancestor clips it and the list
+               grows the surface it opens in. A menu is an overlay — over
+               everything, taking no space. -->
+          <button
+            type="button"
+            class="dg-fb-chooser dg-fb-field"
+            aria-haspopup="menu"
+            [attr.aria-label]="fieldLabelText + ': ' + fieldLabel(child)"
+            (click)="openFieldMenu(child, $event)"
+          >
+            <span class="dg-fb-chooser-text">{{ fieldLabel(child) }}</span>
+            <svg lucideChevronDown aria-hidden="true"></svg>
+          </button>
+          <button
+            type="button"
+            class="dg-fb-chooser dg-fb-operator"
+            aria-haspopup="menu"
+            [attr.aria-label]="operatorLabelText + ': ' + operatorLabel(child)"
+            (click)="openOperatorMenu(child, $event)"
+          >
+            <span class="dg-fb-chooser-text">{{ operatorLabel(child) }}</span>
+            <svg lucideChevronDown aria-hidden="true"></svg>
+          </button>
+
+          @switch (arityOf(child)) {
+            @case ('none') {}
+            @case ('range') {
+              <!-- Two editors side by side, unlike the filter row's single
+                   field: the editor is a panel and not a 120px column track,
+                   so a range shows both ends instead of hiding them behind a
+                   popover. -->
+              <div class="dg-fb-range">
+                <ng-container
+                  [ngTemplateOutlet]="valueEditor"
+                  [ngTemplateOutletContext]="{ item: child, end: false, label: fromLabel }"
+                />
+                <ng-container
+                  [ngTemplateOutlet]="valueEditor"
+                  [ngTemplateOutletContext]="{ item: child, end: true, label: toLabel }"
+                />
+              </div>
+            }
+            @case ('list') {
+              <div libIconField showClear class="dg-fb-value">
+                <input
+                  libInputText
+                  type="text"
+                  size="sm"
+                  [value]="asList(child.value)"
+                  [attr.aria-label]="valueLabel"
+                  [attr.placeholder]="'datagrid.filterBuilder.listHint' | uiCopy | transloco"
+                  (input)="onListInput(child, $event)"
+                />
+              </div>
+            }
+            @default {
+              <ng-container
+                [ngTemplateOutlet]="valueEditor"
+                [ngTemplateOutletContext]="{ item: child, end: false, label: valueLabel }"
+              />
+            }
+          }
+
+          @if (isIncomplete(child)) {
+            <span class="dg-fb-flag">
+              <svg lucideTriangleAlert aria-hidden="true"></svg>
+              {{ 'datagrid.filterBuilder.rowIncomplete' | uiCopy | transloco }}
+            </span>
+          }
+
+          <button
+            type="button"
+            class="dg-fb-remove"
+            [attr.aria-label]="removeLabel"
+            (click)="onRemove(child.id)"
+          >
+            <svg lucideX aria-hidden="true"></svg>
+          </button>
+        </div>
+      }
+    }
+  </div>
+</ng-template>
+
+<!-- One editor definition, used for a single value and for both ends of a
+     range. Duplicating the switch would leave two copies to drift apart. -->
+<ng-template #valueEditor let-item="item" let-end="end" let-label="label">
+  @switch (editorFor(item)) {
+    @case ('number') {
+      <lib-input-number
+        class="dg-fb-value"
+        size="sm"
+        showClear
+        [value]="asNumber(end ? item.valueEnd : item.value)"
+        [ariaLabel]="label"
+        (valueChange)="onValue(item, $event ?? undefined, end)"
+      />
+    }
+    @case ('date') {
+      <lib-date-picker
+        class="dg-fb-value"
+        size="sm"
+        [value]="asDate(end ? item.valueEnd : item.value)"
+        [ariaLabel]="label"
+        (valueChange)="onValue(item, $event, end)"
+      />
+    }
+    @case ('datetime') {
+      <lib-datetime-picker
+        #datetimeEditor
+        class="dg-fb-value"
+        size="sm"
+        iconPosition="end"
+        placeholder=""
+        [value]="asDatetime(end ? item.valueEnd : item.value)"
+        [timeEnabled]="datetimeHasTime(end ? item.valueEnd : item.value)"
+        [ariaLabel]="label"
+        (timeEnabledChange)="onDatetimeMode(item, $event, datetimeEditor.value(), end)"
+        (valueChange)="onDatetimeValue(item, $event, datetimeEditor.timeEnabled(), end)"
+      />
+    }
+    @case ('boolean') {
+      <button
+        type="button"
+        class="dg-fb-chooser dg-fb-value"
+        aria-haspopup="menu"
+        [attr.aria-label]="label + ': ' + booleanLabel(item)"
+        (click)="openBooleanMenu(item, $event)"
+      >
+        <span class="dg-fb-chooser-text">{{ booleanLabel(item) }}</span>
+        <svg lucideChevronDown aria-hidden="true"></svg>
+      </button>
+    }
+    @default {
+      <div libIconField showClear class="dg-fb-value">
+        <input
+          libInputText
+          type="text"
+          size="sm"
+          [value]="asText(end ? item.valueEnd : item.value)"
+          [attr.aria-label]="label"
+          (input)="onTextInput(item, $event, end)"
+        />
+      </div>
+    }
+  }
+</ng-template>
+
+<!-- One host for every chooser; its items are rebuilt at open time. Its overlay
+     is what keeps a list from taking space in, or being clipped by, the panel. -->
+<lib-context-menu #chooserMenu role="presentation" density="compact" [items]="menuItems()" />

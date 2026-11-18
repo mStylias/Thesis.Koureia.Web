@@ -1,0 +1,84 @@
+<!-- Rendered in an overlay pane, not here. The layer passes the top inset to
+     the bounds and to the panel, and draws no box of its own. -->
+<ng-template #surface>
+  <div class="fp-layer" [style.--floating-panel-inset-top]="insetTop() || null">
+    <!-- Outside the panel, so the enter animation's transform cannot become
+         its containing block. Its box is the area the panel may occupy. -->
+    <span class="fp-bounds" #bounds aria-hidden="true"></span>
+
+    @if (open()) {
+      <section
+        class="fp"
+        role="dialog"
+        tabindex="-1"
+        #panel
+        [id]="id()"
+        [attr.aria-labelledby]="titleId"
+        [attr.data-placed]="rect() ? '' : null"
+        [attr.data-moving]="moving() ? '' : null"
+        [style.--fp-dock-top]="dockTop() === null ? null : dockTop() + 'px'"
+        [style.left.px]="rect()?.left"
+        [style.top.px]="rect()?.top"
+        [style.width.px]="rect()?.width"
+        [style.height.px]="rect()?.height"
+        animate.enter="fp-enter"
+        animate.leave="fp-leave"
+        (keydown)="onKeydown($event)"
+      >
+        <!-- Pointer only: the keyboard path is the grip. A double click docks
+             the panel again. -->
+        <header
+          class="fp-header"
+          (pointerdown)="onMoveStart($event)"
+          (dblclick)="onHeaderDoubleClick($event)"
+        >
+          <button
+            libButton
+            type="button"
+            class="fp-grip"
+            data-fp-grip
+            variant="text"
+            severity="secondary"
+            size="sm"
+            iconOnly
+            [attr.aria-label]="moveAriaLabel() || ('floatingPanel.move' | uiCopy | transloco)"
+            [attr.aria-describedby]="hintId"
+            (keydown)="onGripKeydown($event)"
+          >
+            <svg lucideGripHorizontal aria-hidden="true"></svg>
+          </button>
+          <h2 class="fp-title" [id]="titleId">{{ header() }}</h2>
+          <button
+            libButton
+            type="button"
+            variant="text"
+            severity="secondary"
+            size="sm"
+            iconOnly
+            rounded
+            [attr.aria-label]="closeAriaLabel() || ('floatingPanel.close' | uiCopy | transloco)"
+            (click)="close()"
+          >
+            <svg lucideX aria-hidden="true"></svg>
+          </button>
+        </header>
+        <span class="fp-hint" [id]="hintId" hidden>
+          {{ 'floatingPanel.moveHint' | uiCopy | transloco }}
+        </span>
+
+        <div class="fp-body">
+          <ng-container [ngTemplateOutlet]="content()?.templateRef ?? null" />
+        </div>
+
+        @for (edge of edges; track edge) {
+          <span
+            class="fp-edge"
+            aria-hidden="true"
+            [attr.data-edge]="edge"
+            (pointerdown)="onResizeStart($event, edge)"
+          ></span>
+        }
+      </section>
+    }
+  </div>
+</ng-template>

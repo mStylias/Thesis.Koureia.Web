@@ -1,0 +1,27 @@
+<kc-auth-frame [title]="i18n.msgStr('emailVerifyTitle')" [description]="description()">
+  @let message = kcContext.message;
+  @if (message) {
+    <lib-banner
+      class="message"
+      [tone]="message.type"
+      [attr.role]="message.type === 'error' ? 'alert' : 'status'"
+    >
+      <span [innerHTML]="message.summary"></span>
+    </lib-banner>
+  }
+
+  <div class="verify-resend">
+    <p>{{ i18n.msgStr('emailVerifyNotReceived') }}</p>
+
+    <!-- An anchor, not a form: Keycloak resends the mail on a plain GET of the login action. -->
+    <a
+      libButton
+      variant="outlined"
+      severity="secondary"
+      size="lg"
+      [href]="kcContext.url.loginAction"
+    >
+      {{ i18n.msgStr('emailVerifyResend') }}
+    </a>
+  </div>
+</kc-auth-frame>

@@ -1,0 +1,89 @@
+<main class="barbershops-page">
+  <div class="barbershops-results">
+    <!-- Visually the filter bar heads this page, but an indexed page still owes a crawler and a
+         screen reader one heading. -->
+    <h1 class="sr-only">{{ 'barbershops.title' | transloco }}</h1>
+
+    <lib-barbershops-filters class="barbershops-filters" [(filters)]="filters" />
+
+    <div #results class="barbershops-results__body">
+      <lib-barbershops-list
+        [shops]="pageItems()"
+        [loading]="loading()"
+        [refreshing]="refreshing()"
+        [failed]="error() !== null"
+        [filtered]="filtered()"
+        (retry)="reload()"
+        (clearFilters)="clearFilters()"
+        (locate)="locateShop($event)"
+      />
+
+      <lib-paginator
+        class="barbershops-paginator"
+        [(page)]="page"
+        [rows]="pageSize"
+        [totalRecords]="all().length"
+        [layout]="paginatorLayout"
+        [currentPageReportTemplate]="'barbershops.list.report' | transloco"
+        [alwaysShow]="false"
+        (paginate)="scrollToResults()"
+      />
+    </div>
+  </div>
+
+  <!-- Always in the DOM so the server and the browser agree on the markup; CSS removes it below
+       `lg`, and the `when` keeps MapLibre from booting where it is not shown. -->
+  <section class="barbershops-map" [attr.aria-label]="'barbershops.map.label' | transloco">
+    @defer (when mapInPage()) {
+      <lib-barbershops-map
+        [shops]="all()"
+        [popupTemplate]="shopPopup"
+        [(selectedId)]="selectedShopId"
+        [origin]="filters().origin"
+        [originLabel]="filters().origin?.label || ('barbershops.map.yourLocation' | transloco)"
+      />
+    } @placeholder {
+      <lib-barbershops-map-skeleton />
+    }
+  </section>
+
+  <!-- The way to the other half of this page, on a screen that has room for one half at a
+       time. A bar of the app's own rather than a button floating over the list. -->
+  <div class="barbershops-actionbar">
+    <button
+      libButton
+      rounded
+      class="barbershops-map-button"
+      (click)="openMap()"
+      [attr.aria-expanded]="mapOpen()"
+    >
+      <svg lucideMap aria-hidden="true"></svg>
+      {{ 'barbershops.map.open' | transloco }}
+    </button>
+  </div>
+</main>
+
+<lib-drawer
+  class="barbershops-map-drawer"
+  [(visible)]="mapOpen"
+  position="full"
+  blockScroll
+  [header]="'barbershops.map.label' | transloco"
+>
+  <!-- Created on open and destroyed on close, which is what keeps one MapLibre instance across
+       both layouts. -->
+  @if (mapOpen()) {
+    <lib-barbershops-map
+      class="barbershops-map-panel"
+      [shops]="all()"
+      [popupTemplate]="shopPopup"
+      [(selectedId)]="selectedShopId"
+      [origin]="filters().origin"
+      [originLabel]="filters().origin?.label || ('barbershops.map.yourLocation' | transloco)"
+    />
+  }
+</lib-drawer>
+
+<ng-template #shopPopup let-shop>
+  <lib-barbershop-card class="shop-popup__card" [shop]="shop" [showLocate]="false" />
+</ng-template>

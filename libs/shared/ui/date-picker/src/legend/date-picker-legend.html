@@ -1,0 +1,10 @@
+<!-- Hidden from assistive technology: each day's name already carries its level. -->
+<div class="date-legend" aria-hidden="true">
+  <span>{{ 'datePicker.availability.legend' | uiCopy | transloco }}</span>
+  @for (level of levels; track level) {
+    <span class="date-legend-item">
+      <span class="date-legend-swatch" [attr.data-availability]="level"></span>
+      {{ 'datePicker.availability.' + level | uiCopy | transloco }}
+    </span>
+  }
+</div>

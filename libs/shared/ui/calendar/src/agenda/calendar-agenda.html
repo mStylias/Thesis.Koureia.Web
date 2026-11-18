@@ -1,0 +1,64 @@
+@let todayLabel = 'calendar.today' | uiCopy | transloco;
+
+@if (groups().length === 0) {
+  <p class="ag-empty">{{ 'calendar.agendaEmpty' | uiCopy | transloco }}</p>
+} @else {
+  <div class="ag" role="list">
+    @for (group of groups(); track group.date) {
+      <section
+        class="ag-day"
+        role="listitem"
+        [attr.data-date]="group.date"
+        [attr.data-today]="group.today ? '' : null"
+        [attr.aria-labelledby]="listId + '-' + group.date"
+      >
+        <h3 class="ag-heading" [id]="listId + '-' + group.date">
+          {{ group.label }}
+          @if (group.today) {
+            <span class="ag-today">{{ todayLabel }}</span>
+          }
+        </h3>
+        <ul class="ag-list">
+          @for (row of group.rows; track row.event.id) {
+            <li animate.enter="ag-row-enter">
+              <button
+                type="button"
+                class="ag-row"
+                [attr.data-swatch]="row.resource?.swatch ?? null"
+                [attr.data-muted]="row.event.muted ? '' : null"
+                [attr.aria-current]="row.event.id === selectedEventId() ? 'true' : null"
+                [attr.aria-label]="
+                  ('calendar.eventLabel'
+                    | uiCopy
+                    | transloco: { start: row.start, end: row.end, title: row.event.title }) +
+                  extras(row)
+                "
+                (click)="onRowClick(row)"
+              >
+                <span class="ag-time">{{ row.start }}–{{ row.end }}</span>
+                <span class="ag-bar" aria-hidden="true"></span>
+                <span class="ag-text">
+                  <span class="ag-title-row">
+                    <span class="ag-title">{{ row.event.title }}</span>
+                    @if (row.event.marks?.length) {
+                      <lib-calendar-marks [marks]="row.event.marks" />
+                    }
+                  </span>
+                  @if (row.event.subtitle; as subtitle) {
+                    <span class="ag-subtitle">{{ subtitle }}</span>
+                  }
+                </span>
+                @if (row.resource; as resource) {
+                  <span class="ag-resource">{{ resource.label }}</span>
+                }
+                @if (row.event.badge; as badge) {
+                  <span class="ag-badge" [attr.data-tone]="badge.tone">{{ badge.label }}</span>
+                }
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  </div>
+}

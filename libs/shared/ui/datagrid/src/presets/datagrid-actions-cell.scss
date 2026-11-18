@@ -1,0 +1,8 @@
+@use 'abstracts' as a;
+
+:host {
+  display: flex;
+  align-items: center;
+  gap: a.space(1);
+  min-width: 0;
+}

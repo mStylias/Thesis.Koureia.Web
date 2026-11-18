@@ -1,0 +1,48 @@
+@let booked = appointment();
+
+<article libCard class="appointment">
+  <div class="appointment-logo" aria-hidden="true">
+    @if (booked.companyLogoUrl) {
+      <img [src]="booked.companyLogoUrl" alt="" width="48" height="48" loading="lazy" />
+    } @else {
+      <span>{{ initial() }}</span>
+    }
+  </div>
+
+  <div class="appointment-main">
+    <h3 class="appointment-shop">
+      <a class="appointment-link" [langLink]="link()">{{ booked.companyName }}</a>
+    </h3>
+    <p class="appointment-when">{{ when() }}</p>
+    <p class="appointment-meta">
+      {{ services() }} ·
+      {{ 'account.appointments.withBarber' | transloco: { name: booked.staffDisplayName } }}
+    </p>
+  </div>
+
+  <div class="appointment-side">
+    <span class="appointment-status" [attr.data-tone]="status().tone">
+      {{ status().labelKey | transloco }}
+    </span>
+    <span class="appointment-total">{{ total() }}</span>
+  </div>
+
+  @if (booked.canReview) {
+    <div class="appointment-actions">
+      <button
+        libButton
+        type="button"
+        size="sm"
+        variant="outlined"
+        severity="secondary"
+        (click)="rate.emit(booked)"
+      >
+        {{ 'account.appointments.rate' | transloco }}
+      </button>
+    </div>
+  } @else if (booked.review; as review) {
+    <div class="appointment-actions">
+      <lib-rating readonly size="sm" [value]="review.rating" />
+    </div>
+  }
+</article>

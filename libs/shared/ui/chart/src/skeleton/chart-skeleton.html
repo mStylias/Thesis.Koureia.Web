@@ -1,0 +1,87 @@
+@switch (kind()) {
+  @case ('donut') {
+    <svg class="donut" viewBox="0 0 100 100" focusable="false">
+      <circle
+        class="ring"
+        cx="50"
+        cy="50"
+        [attr.r]="ring.radius"
+        [attr.stroke-width]="ring.width"
+      />
+    </svg>
+  }
+  @case ('sparkline') {
+    <svg class="spark" viewBox="0 0 100 40" preserveAspectRatio="none" focusable="false">
+      <path class="wave" [attr.d]="wave" />
+    </svg>
+  }
+  @case ('treemap') {
+    <div class="treemap">
+      @for (block of blocks; track block) {
+        <span class="block fill" [style.grid-area]="block"></span>
+      }
+    </div>
+  }
+  @case ('heatmap') {
+    <div class="heat">
+      <div class="cells" [style.--columns]="columns()" [style.--rows]="size()">
+        @for (row of heatRows(); track row) {
+          <span class="stub label"></span>
+          @for (hidden of heatTicks(); track $index) {
+            <span class="cell fill"></span>
+          }
+        }
+        <span></span>
+        @for (hidden of heatTicks(); track $index) {
+          <span class="stub tick" [class.is-hidden]="hidden"></span>
+        }
+      </div>
+      <div class="ramp"><span class="stub ramp-bar"></span></div>
+    </div>
+  }
+  @case ('bars-horizontal') {
+    <div class="frame frame-h">
+      <div class="vrules">
+        @for (rule of rules; track rule) {
+          <span class="vline"></span>
+        }
+      </div>
+      <div class="hrows">
+        @for (row of rows(); track $index) {
+          <span class="stub label" [style.width.%]="row.label"></span>
+          <span class="hbar fill" [style.width.%]="row.bar"></span>
+        }
+      </div>
+      <div class="hticks">
+        @for (rule of rules; track rule) {
+          <span class="stub tick"></span>
+        }
+      </div>
+    </div>
+  }
+  @default {
+    <div class="frame">
+      <div class="rules">
+        @for (rule of rules; track rule) {
+          <div class="rule"><span class="stub label"></span><span class="line"></span></div>
+        }
+      </div>
+      <div class="plot">
+        @if (kind() === 'line') {
+          <svg class="spark" viewBox="0 0 100 40" preserveAspectRatio="none" focusable="false">
+            <path class="wave" [attr.d]="wave" />
+          </svg>
+        } @else {
+          @for (height of barHeights(); track $index) {
+            <span class="slot"><span class="bar fill" [style.height.%]="height"></span></span>
+          }
+        }
+      </div>
+      <div class="ticks">
+        @for (hidden of ticks(); track $index) {
+          <span class="slot"><span class="stub tick" [class.is-hidden]="hidden"></span></span>
+        }
+      </div>
+    </div>
+  }
+}

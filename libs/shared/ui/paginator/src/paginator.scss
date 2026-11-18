@@ -1,0 +1,102 @@
+// Consumes the design-system CSS custom properties emitted by the global
+// shared @ui styles. Keyboard focus comes from the global
+// `:focus-visible` rule; the child controls (button/select/input-number)
+// carry their own chrome — this file only lays them out.
+//
+// The `paginator` class lives on the component HOST, so host-level rules
+// use `:host`.
+
+:host {
+  display: block;
+}
+
+.paginator-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+// The whole bar fades + rises in when it appears (e.g. `alwaysShow=false`
+// crossing the single-page threshold), and reverses ~20% faster on the way
+// out. Enter/exit → GPU-only transform + opacity on `--ease-out`. No
+// `prefers-reduced-motion` query: the base layer collapses every
+// `animation-duration` globally with `!important`. The component withholds
+// these classes on the first paint, so nothing animates on load.
+.paginator-enter {
+  animation: paginator-in var(--dur-base) var(--ease-out);
+}
+
+.paginator-leave {
+  animation: paginator-out var(--dur-fast) var(--ease-out);
+}
+
+@keyframes paginator-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes paginator-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+// The numbered page-link strip.
+//
+// It absorbs the row's slack and centres its own contents, which is what keeps
+// the pager stable: the strip's width changes as navigation adds or drops an
+// ellipsis, and without this the controls on either side would slide with it.
+// The first/prev and next/last groups stay where the user last saw them.
+.paginator-pages {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+}
+
+// Keep numbered links visually square so single- and double-digit pages
+// don't shift around as you navigate.
+.paginator-pages [libButton] {
+  min-width: var(--paginator-link-size);
+}
+
+.paginator-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--paginator-link-size);
+  color: var(--text-muted);
+  user-select: none;
+}
+
+.paginator-report {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  padding-inline: var(--space-2);
+  // Tabular figures so the report width doesn't jitter while paging.
+  font-variant-numeric: tabular-nums;
+}
+
+.paginator-rows,
+.paginator-jump-select {
+  // Just wide enough for the values; the select supplies its own chrome.
+  min-width: var(--paginator-select-width);
+}
+
+.paginator-jump-input {
+  min-width: var(--paginator-jump-width);
+}

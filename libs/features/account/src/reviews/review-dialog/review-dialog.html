@@ -1,0 +1,59 @@
+@let fields = editor.form;
+
+<lib-dialog size="sm" [(visible)]="visible" [header]="title() | transloco">
+  <form class="review-form" [libForm]="editor">
+    @if (context(); as visit) {
+      <p class="review-context">
+        {{
+          'account.review.context'
+            | transloco: { shop: visit.shop, date: visit.date, barber: visit.barber }
+        }}
+      </p>
+    }
+
+    <lib-form-errors />
+
+    <lib-field labelStyle="plain" [field]="fields.rating">
+      <ng-template libFieldEditor let-describedBy="describedBy">
+        <lib-rating
+          size="lg"
+          [ariaLabel]="'account.review.rating' | transloco"
+          [ariaDescribedby]="describedBy"
+          [formField]="fields.rating"
+        />
+      </ng-template>
+    </lib-field>
+
+    <lib-field [field]="fields.comment">
+      <ng-template libFieldEditor>
+        <textarea
+          libTextarea
+          libFieldControl
+          rows="4"
+          autoResize
+          placeholder=" "
+          [formField]="fields.comment"
+        ></textarea>
+      </ng-template>
+    </lib-field>
+    <!-- Not a live region: it is read with the field, not on every keystroke. -->
+    <span class="review-count">{{ commentLength() }} / {{ commentMax }}</span>
+  </form>
+
+  <ng-template libDialogFooter>
+    <button
+      libButton
+      type="button"
+      severity="secondary"
+      variant="text"
+      [disabled]="editor.submitting()"
+      (click)="close()"
+    >
+      {{ 'account.review.cancel' | transloco }}
+    </button>
+    <!-- Never disabled by validity: the first press is what reveals it. -->
+    <button libButton type="button" [loading]="editor.submitting()" (click)="submit()">
+      {{ submitLabel() | transloco }}
+    </button>
+  </ng-template>
+</lib-dialog>

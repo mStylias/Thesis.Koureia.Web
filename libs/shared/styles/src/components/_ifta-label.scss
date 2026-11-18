@@ -1,0 +1,46 @@
+// @ui/form-field: styles for the `[libIftaLabel]` wrapper.
+//
+// These rules are global, not component-scoped, because they must style the projected label
+// and control, which Angular's emulated encapsulation cannot reach. Every rule sits under the
+// [libIftaLabel] attribute.
+
+[libIftaLabel] {
+  position: relative;
+  // The wrapper height must equal the control height. See _float-label.scss.
+  display: inline-flex;
+  flex-direction: column;
+  height: fit-content;
+
+  // A design-system control reads this to make room for the label.
+  --field-pad-top: var(--space-6);
+
+  > label {
+    position: absolute;
+    top: var(--space-2);
+    left: var(--field-label-inset, var(--space-3));
+    max-width: calc(100% - 2 * var(--field-label-inset, var(--space-3)));
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    pointer-events: none;
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    line-height: var(--leading-tight);
+    color: var(--text-muted);
+    transition: color var(--dur-fast) var(--ease-standard);
+  }
+
+  > input,
+  > textarea {
+    padding-top: var(--field-pad-top);
+  }
+
+  &:focus-within > label {
+    color: var(--accent-text);
+  }
+
+  &:has([aria-invalid='true']) > label,
+  &:has([data-invalid]) > label {
+    color: var(--error-text);
+  }
+}

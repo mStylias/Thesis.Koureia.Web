@@ -1,0 +1,81 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+// A fixed frame rather than a tall page: the sidebar and the top bar hold their place and only
+// the routed page scrolls. The sidebar scrolls its own option list, which needs a bounded
+// height to do at all.
+.management-shell {
+  display: flex;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.management-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.management-content {
+  --management-content-pad: #{a.space(6)};
+
+  // The containing block of every absolute descendant, such as an `sr-only` label. Without it,
+  // one deep in a long page lengthens the document and the page gets a second scrollbar.
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--management-content-pad);
+}
+
+// A phone spends its width on the page, not on the frame around it. The step
+// is at the same breakpoint the datagrid turns into cards, so a screen narrow
+// enough to need that layout gets the tighter page with it.
+@include a.respond-down(md) {
+  .management-content {
+    --management-content-pad: #{a.space(3)};
+  }
+}
+
+// Truncates instead of pushing the bar wider — the bar's height is pinned to the sidebar
+// header's, and content that outgrows it breaks the single rule the two draw together.
+.management-page-title {
+  @include a.t-title;
+
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+// Projected into the sidebar through a template this component declares, so these rules reach
+// it. The fade that pairs the text with the collapsing rail is the sidebar's, applied through
+// `styles/components/_sidebar.scss`.
+.management-brand {
+  display: flex;
+  align-items: center;
+  gap: a.space(3);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.management-brand-logo {
+  flex-shrink: 0;
+  width: var(--icon-size-lg);
+  height: var(--icon-size-lg);
+  object-fit: contain;
+}
+
+.management-brand-name {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+}

@@ -1,0 +1,25 @@
+@use 'abstracts' as a;
+
+// The head of a booking step: a name and a sentence saying what to do with it.
+//
+// Four components render the same two elements, so the rules live here once and are pulled
+// in. A parent cannot reach them — emulated encapsulation stamps each component's own
+// attribute on its elements — and four copies would drift.
+@mixin step-header {
+  .step__title {
+    @include a.t-h3;
+    margin: 0 0 a.space(2);
+  }
+
+  .step__lead {
+    @include a.t-body;
+    margin: 0 0 a.space(6);
+    color: var(--text-secondary);
+  }
+
+  .step__empty {
+    @include a.t-body-sm;
+    margin: 0;
+    color: var(--text-muted);
+  }
+}

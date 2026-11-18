@@ -1,0 +1,65 @@
+@use 'abstracts' as a;
+
+:host {
+  // The narrowest a barber card gets: the avatar and a two-word name, with room around both.
+  --barbershop-barber-min: 10rem;
+
+  display: block;
+}
+
+.barbers {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--barbershop-barber-min), 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// The landing page's card, centred. It stands on the band's alternate surface, so the card's
+// own surface is what lifts it.
+.barber {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+.barber__avatar {
+  width: var(--barbershop-avatar-size);
+  height: var(--barbershop-avatar-size);
+  border-radius: a.radius(pill);
+  object-fit: cover;
+  background: var(--surface-2);
+  // A hairline ring in the accent's pale tint frames a photo and an initial the same way.
+  box-shadow: 0 0 0 var(--border-width-strong) var(--accent-subtle-border);
+}
+
+.barber__avatar--initials {
+  display: grid;
+  place-items: center;
+  background: var(--accent-subtle);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  color: var(--accent-text);
+}
+
+.barber__name {
+  @include a.t-body;
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+  // A long name wraps inside its card rather than widening the column.
+  overflow-wrap: anywhere;
+}
+
+@media (forced-colors: active) {
+  .barber__avatar {
+    border: var(--border-width-hairline) solid CanvasText;
+  }
+}

@@ -1,0 +1,28 @@
+@use 'abstracts' as a;
+
+// Sits against the grid's bottom edge like the auto-refresh strip, so the two
+// transient bars occupy one place rather than each finding its own.
+:host {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: a.space(3);
+  padding: a.space(2) a.space(3);
+  border-block-start: var(--border-width-hairline) solid var(--border);
+  background: var(--surface);
+}
+
+.dg-export-count {
+  @include a.t-body-sm;
+
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+// Takes the room the count and the button leave, so the bar grows with the
+// grid rather than sitting at a fixed width in the middle of it.
+.dg-export-progress {
+  flex: 1 1 auto;
+  min-width: a.space(16);
+}

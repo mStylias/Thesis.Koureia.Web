@@ -1,0 +1,84 @@
+<header class="site-header" [attr.data-surface]="overlay() && !scrolled() ? 'dark' : null">
+  <div class="site-header-inner">
+    <lib-site-brand />
+
+    <!--
+      The site's pages, on the screen's centre line — see the grid in the stylesheet. The bar
+      carries no call to action: booking is what the hero and the closing section are for, and
+      a header button competing with them was a third place to ask for the same click.
+    -->
+    <nav class="desktop-center" [attr.aria-label]="'siteLayout.header.label' | transloco">
+      <a langLink="/how-it-works">{{ 'siteLayout.header.how' | transloco }}</a>
+    </nav>
+
+    <!--
+      Language, then sign in — sign in last, so the account sits at the outer edge where it is
+      looked for. Outside any navigation landmark deliberately: neither is a place in the site.
+    -->
+    <div class="desktop-controls">
+      @if (showThemeToggle) {
+        <lib-theme-toggle size="sm" />
+      }
+      <lib-language-switcher size="sm" />
+      <auth-entry size="sm" />
+    </div>
+
+    <button
+      libButton
+      class="menu-button"
+      type="button"
+      variant="text"
+      severity="secondary"
+      size="sm"
+      iconOnly
+      rounded
+      [attr.aria-expanded]="menuOpen()"
+      [attr.aria-label]="'siteLayout.header.open' | transloco"
+      (click)="menuOpen.set(true)"
+    >
+      <svg lucideMenu aria-hidden="true"></svg>
+    </button>
+  </div>
+</header>
+
+<lib-drawer
+  [(visible)]="menuOpen"
+  position="right"
+  size="sm"
+  [header]="'siteLayout.header.drawerTitle' | transloco"
+  [closeAriaLabel]="'siteLayout.header.close' | transloco"
+  blockScroll
+>
+  <!--
+    These two are links, and both rules below are checking for something already true.
+    `langLink` puts an `href` on the anchor exactly as `routerLink` did, so each element is
+    focusable and Enter activates it natively — but the lint rules recognise `routerLink`
+    by name and cannot see through the language wrapper. The `(click)` only closes the
+    drawer on the way out; it is not what performs the navigation, so there is no keyboard
+    path that misses anything.
+  -->
+  <!-- eslint-disable @angular-eslint/template/click-events-have-key-events -->
+  <!-- eslint-disable @angular-eslint/template/interactive-supports-focus -->
+  <nav class="mobile-nav" [attr.aria-label]="'siteLayout.header.label' | transloco">
+    <a langLink="/how-it-works" (click)="closeMenu()">{{ 'siteLayout.header.how' | transloco }}</a>
+  </nav>
+  <!-- eslint-enable @angular-eslint/template/click-events-have-key-events -->
+  <!-- eslint-enable @angular-eslint/template/interactive-supports-focus -->
+
+  <!--
+    Outside the navigation landmark, deliberately: these are not places in the site. Both
+    leave the app entirely, and a screen reader announcing them as navigation would be
+    describing something that does not happen.
+
+    The language control is here as well as in the desktop bar, because the bar it lives in is
+    hidden below `md` — without it a narrow screen would have no way to reach it.
+  -->
+  <auth-entry class="mobile-auth-entry" layout="block" />
+
+  <div class="mobile-controls">
+    @if (showThemeToggle) {
+      <lib-theme-toggle />
+    }
+    <lib-language-switcher />
+  </div>
+</lib-drawer>

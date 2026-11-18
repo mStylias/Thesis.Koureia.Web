@@ -1,0 +1,31 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+.booking-form {
+  display: grid;
+  gap: a.space(5);
+}
+
+.booking-grid {
+  display: grid;
+  gap: a.space(5);
+
+  @include a.respond(md) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+// The view template is this component's, so the field's own value style does not reach it.
+.booking-value {
+  @include a.detail-value;
+}
+
+.booking-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: a.space(3);
+}

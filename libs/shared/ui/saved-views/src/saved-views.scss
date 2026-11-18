@@ -1,0 +1,518 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.sv {
+  display: flex;
+  align-items: center;
+  gap: a.space(2);
+  min-width: 0;
+}
+
+// The strip is what gives when the host caps the width; the control that adds
+// to it is not, or it is the first thing to disappear from a full bar.
+.sv-add {
+  flex: none;
+}
+
+// The strip scrolls rather than wrapping: the bar is one row, and a second row
+// of tabs would push the rows down every time a view is added.
+.sv-tabs {
+  // The offset parent of the tabs, which the drag reads `offsetLeft` against.
+  // Without it the origin is whatever positioned ancestor the host sits in.
+  position: relative;
+  display: flex;
+  align-items: center;
+  // The gap is the whole of the separation — an outlined tab against its
+  // neighbour reads as one segmented control rather than as a set of choices.
+  gap: a.space(2);
+  min-width: 0;
+  // Room for the editor's 2px frame and for the dragged tab's shadow: the
+  // scroller clips its own overflow, and a frame drawn on the box edge loses
+  // its outer half to that clip — which is what made the outline read as
+  // uneven on one side.
+  padding: a.space(1);
+  margin: calc(#{a.space(1)} * -1);
+  // Scrolls, but never draws a bar: a toolbar row cannot spare the height, and
+  // a horizontal scrollbar is a poor affordance for a short strip anyway. The
+  // arrows either side are the visible one; the wheel and the trackpad still
+  // work, which is the part `overflow: hidden` would have taken away.
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+// Pointer-only, so they carry no focus ring. Dimmed rather than removed at
+// their own end: the pair is drawn or not drawn together, and a button that
+// vanished on the last press would resize the strip under the pointer.
+.sv-scroll {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--saved-views-tab-height);
+  height: var(--saved-views-tab-height);
+  padding: 0;
+  border: 0;
+  border-radius: a.radius(sm);
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard),
+    opacity var(--dur-fast) var(--ease-standard);
+
+  &:hover:not(:disabled) {
+    background: var(--surface-sunken);
+    color: var(--text-primary);
+  }
+
+  &:disabled {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  svg {
+    display: block;
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+  }
+}
+
+.sv-tab {
+  box-sizing: border-box;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: a.space(1);
+  // Declared, and shared with the editor that stands in a tab's place: sized
+  // by their contents the two disagree, and the taller one grows the toolbar
+  // row every time a view is renamed.
+  height: var(--saved-views-tab-height);
+  // No inset at the end: the affordance there sits against the frame, so a
+  // gap would leave its hover fill floating short of the edge.
+  padding: 0 0 0 a.space(2);
+  // A control against a rounded frame needs that frame's corner, at the
+  // host's radius **less its border width**, or the two meet as a square
+  // inside a curve. The same rule the datagrid uses for its own outer corners.
+  --sv-tab-inner-radius: calc(#{a.radius(md)} - var(--border-width-hairline));
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(md);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  cursor: grab;
+  user-select: none;
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+
+.sv-tab:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-sunken);
+}
+
+// Selection carries the accent on the border and the text, plus the weight —
+// never the fill alone, so the choice in force survives a colour-blind reader
+// and a forced-colors mode.
+.sv-tab[data-selected] {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+  color: var(--accent-text);
+  font-weight: var(--weight-medium);
+}
+
+.sv-tab:focus-visible {
+  outline: var(--border-width-strong) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+// The dragged tab is the ghost: it leaves the flow visually and follows the
+// pointer, so a second painted copy would be the same thing drawn twice — and
+// the strip is a scroller, which would clip one anyway. Lifted off the strip
+// so it reads as held rather than as merely tinted.
+.sv-tab[data-dragging] {
+  position: relative;
+  z-index: 1;
+  border-color: var(--accent);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  cursor: grabbing;
+  // The pointer drives the travel frame by frame; a transition on top of it
+  // would make the tab lag the hand by its own duration.
+  transition: none;
+}
+
+.sv-tab-name {
+  // A tab is scanned in a row of tabs. Past this a name is being read rather
+  // than recognised, so it is clipped here and carried whole in the tooltip
+  // and in the accessible name.
+  max-width: 12rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// The default view is the one a fresh load applies. That is a position, and a
+// position stops being visible the moment the strip scrolls.
+.sv-tab-default {
+  flex: none;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  color: var(--accent-text);
+}
+
+.sv-tab-temporary {
+  display: flex;
+  flex: none;
+  color: var(--text-muted);
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+  }
+}
+
+.sv-tab-dirty {
+  color: var(--accent-text);
+  font-weight: var(--weight-bold);
+  line-height: 1;
+}
+
+// The unsaved-changes pair, inside the tab they act on: the view they would
+// save is the one the user is looking at, and a control parked at the end of
+// the strip states that only by implication. Set apart from the mark, which
+// reports the state the two of them resolve.
+.sv-tab-actions {
+  display: inline-flex;
+  align-self: stretch;
+  align-items: stretch;
+  margin-inline-start: a.space(1);
+}
+
+// Always drawn, unlike the remove affordance: these two are the state, not an
+// action revealed on approach.
+//
+// Stretched to the full inner height of whatever holds them, so the hover fill
+// is the height of the tab rather than a small square floating in the middle
+// of it — a target the eye can find is a target the pointer can hit.
+.sv-tab-action,
+.sv-tab-remove {
+  display: inline-flex;
+  flex: none;
+  align-self: stretch;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  // A little air either side of the glyph. The block padding stays at zero:
+  // the height comes from the stretch, which is what makes the hover fill
+  // reach the top and bottom edges of whatever holds the button.
+  padding-block: 0;
+  padding-inline: a.space(1);
+  border: 0;
+  // Square by default: these sit in a row, and a rounded fill per button reads
+  // as a set of pills rather than as one strip of actions.
+  border-radius: 0;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    opacity var(--dur-fast) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+
+// The editor's save reads as the affirmative of the pair it sits in.
+.sv-tab-action-accent {
+  color: var(--accent-text);
+}
+
+.sv-tab-action:disabled {
+  cursor: not-allowed;
+  @include a.disabled;
+}
+
+.sv-tab-action:focus-visible {
+  outline: var(--border-width-strong) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+// Revealed by hover and by the selection, so a strip at rest is a row of names
+// rather than a row of close buttons.
+.sv-tab-remove {
+  opacity: 0;
+}
+
+.sv-tab:hover .sv-tab-remove,
+.sv-tab[data-selected] .sv-tab-remove {
+  opacity: 1;
+}
+
+// The one against the frame's end takes that frame's corner, so the fill stops
+// exactly where the border does.
+.sv-tab > .sv-tab-remove,
+.sv-tab-actions > .sv-tab-action:last-child,
+.sv-tab-editor-actions > .sv-tab-action:last-child {
+  border-start-end-radius: var(--sv-tab-inner-radius);
+  border-end-end-radius: var(--sv-tab-inner-radius);
+}
+
+// A wash over whatever it sits on, so the fill is visible on a plain tab and
+// on a hovered one alike — a flat surface token is lighter than the hover the
+// tab itself already carries, and reads as nothing.
+.sv-tab-action:hover:not(:disabled),
+.sv-tab-remove:hover {
+  background: color-mix(in srgb, var(--text-primary) 12%, transparent);
+}
+
+.sv-tab-action:hover:not(:disabled) {
+  color: var(--accent-text);
+}
+
+.sv-tab-remove:hover {
+  color: var(--error-text);
+}
+
+.sv-tab-default,
+.sv-tab-temporary svg,
+.sv-tab-action svg,
+.sv-tab-remove svg {
+  // Blocks, not inline: an inline `svg` sits on the text baseline and reserves
+  // the descender space under it, which is the gap that showed as a margin
+  // beneath every button in the editor's frame.
+  display: block;
+}
+
+.sv-tab-action svg,
+.sv-tab-remove svg {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+}
+
+// The editor draws the frame; the field inside it is frameless, the same split
+// the filter row's cells take.
+//
+// The 2px weight is a real border rather than the fields' hairline plus a
+// `box-shadow` ring: a shadow is painted outside the border box, and this
+// frame sits inside a scroller that clips exactly that — which showed as an
+// outline thinner on the clipped edges than on the others.
+.sv-tab-editor {
+  box-sizing: border-box;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: a.space(1);
+  // Exactly a tab's height. The frame holds a field and two buttons where a
+  // tab holds a word, and left to its contents it stands taller — which grows
+  // the toolbar row for as long as a name is being typed.
+  height: var(--saved-views-tab-height);
+  padding-inline: a.space(2) 0;
+  border: var(--border-width-strong) solid var(--accent);
+  border-radius: a.radius(md);
+  background: var(--surface);
+  --sv-tab-inner-radius: calc(#{a.radius(md)} - var(--border-width-strong));
+}
+
+// The field takes the frame's height rather than its own: `libInputText`'s
+// `sm` is a form-field metric, and a form field is taller than a tab.
+.sv-tab-editor-input {
+  width: 7.5rem;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding-block: 0;
+  font-size: var(--text-sm);
+  line-height: 1;
+}
+
+// The two halves of one decision, so nothing sits between them. Set apart from
+// the field they act on, which is a different thing entirely.
+.sv-tab-editor-actions {
+  display: inline-flex;
+  align-self: stretch;
+  align-items: stretch;
+  gap: 0;
+  margin-inline-start: a.space(1);
+}
+
+// A shade wider than the ones inside a tab: these two are the whole of what
+// the editor asks, where a tab's are secondary to the name beside them.
+.sv-tab-editor-actions .sv-tab-action {
+  min-width: 1.75rem;
+}
+
+// The compact form. The field is capped well short of a tab's own limit: it
+// sits on a bar that has already run out of room, and a name long enough to
+// need more space than this is being read rather than recognised — which is
+// the same call the tab makes, one size down.
+.sv-select-shell {
+  position: relative;
+  display: inline-flex;
+  // Fixed, not elastic. The field used to be the one thing on the bar that
+  // gave way, on the reasoning that a floor is paid for by the buttons beside
+  // it — but the buttons are what the overflow menu is for, and a field
+  // squeezed to its own chrome is a control that has stopped working: the
+  // menu button drawn over it takes `--select-value-inset-end`, so the last
+  // 1.625rem of the give was coming out of the text and nothing else.
+  //
+  // `COMPACT_MIN_WIDTH` is the matching half — it floors the entry's cap at
+  // this width plus the unsaved pair, so a dirty host cannot starve it either.
+  flex: none;
+  width: 11rem;
+}
+
+.sv-select {
+  flex: 1 1 auto;
+  min-width: 0;
+  // Keeps the closed field clear of the menu button drawn over it, for every
+  // one of the three things the field can hold. The inset is the button's own
+  // width — the glyph plus its inline padding either side.
+  //
+  // Set on the select and not on this lib's own `libSelectedItem` content: the
+  // placeholder is the select's markup, so a padding inside the template it
+  // renders instead of the placeholder cannot reach it, and the Greek
+  // "no views created yet" is long enough to run under the glyph.
+  --select-value-inset-end: calc(var(--icon-size-sm) + #{a.space(1)} * 2);
+}
+
+// Inside the field, before the chevron. The inset is the trigger's own
+// trailing padding plus the chevron and the gap in front of it — the `sm`
+// scale, which is the size this field is drawn at. Square, like every other
+// button inside a view: the fill is the full inner height of what holds it,
+// and a rounded one floating in a field reads as a control of its own.
+.sv-menu-trigger {
+  position: absolute;
+  inset-block: var(--border-width-hairline);
+  inset-inline-end: calc(var(--icon-size-sm) + #{a.space(2)} * 2);
+}
+
+// One row of the listbox, and the closed field, which draw the same marks.
+// `flex`, not `inline-flex`: a row sized to its content cannot shrink, so the
+// name would never reach the ellipsis it carries and would run past the panel.
+.sv-option {
+  display: flex;
+  align-items: center;
+  gap: a.space(1);
+  min-width: 0;
+  // Caps the panel, which is otherwise sized by its widest row — a listbox as
+  // wide as the longest name is the failure the tab's own clip prevents, moved
+  // one surface across.
+  max-width: 12rem;
+}
+
+// The closed field alone. It takes the width it is given; the clearance for
+// the menu button is the select's `--select-value-inset-end` above, which
+// covers the placeholder as well as this.
+.sv-option-current {
+  max-width: 100%;
+}
+
+.sv-option-icon {
+  flex: none;
+  display: block;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+}
+
+.sv-option-default {
+  color: var(--accent-text);
+}
+
+.sv-option-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// The field fills the dialog rather than the 10rem the strip's editor takes:
+// the reason that one is narrow is the bar it sits in, and this one is not in
+// a bar.
+.sv-dialog-field {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(2);
+
+  input {
+    width: 100%;
+  }
+}
+
+.sv-dialog-label {
+  @include a.t-field-label;
+}
+
+.sv-empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+.sv-error {
+  margin: 0;
+  color: var(--error-text);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+// The dirty fact as text, for a reader who never sees the asterisk. Out of
+// flow rather than removed: it is referenced by `aria-describedby`.
+.sv-note {
+  position: absolute;
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sv-tab,
+  .sv-tab-action,
+  .sv-tab-remove,
+  .sv-scroll {
+    transition: none;
+  }
+
+  // The arrows scroll with no `behavior` of their own, so this is the whole of
+  // the rule that neutralizes it.
+  .sv-tabs {
+    scroll-behavior: auto;
+  }
+}
+
+@media (forced-colors: active) {
+  .sv-tab-action:hover:not(:disabled),
+  .sv-tab-remove:hover {
+    background: Highlight;
+    color: HighlightText;
+  }
+}
+
+@media (forced-colors: active) {
+  .sv-tab[data-selected] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+
+  .sv-tab-remove {
+    opacity: 1;
+  }
+
+  .sv-tab[data-dragging] {
+    outline: 2px dashed Highlight;
+    outline-offset: -2px;
+  }
+}

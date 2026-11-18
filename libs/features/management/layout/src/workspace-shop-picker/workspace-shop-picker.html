@@ -1,0 +1,29 @@
+@if (needsShop()) {
+  <span id="workspace-shop-prompt" class="shop-picker-prompt">
+    {{ 'management.workspace.pickShop' | transloco }}
+  </span>
+}
+
+<lib-select
+  class="shop-picker-select"
+  size="sm"
+  key="id"
+  [source]="source()"
+  [displayWith]="shopName"
+  [value]="value()"
+  (valueChange)="pick($event)"
+  [loading]="switching()"
+  [disabled]="switching()"
+  [placeholder]="'management.workspace.shop' | transloco"
+  [ariaLabel]="'management.workspace.shop' | transloco"
+  [ariaDescribedby]="needsShop() ? 'workspace-shop-prompt' : ''"
+>
+  <ng-template libSelectOption let-option>
+    <span class="shop-option">
+      <span class="shop-option-name">{{ option.label }}</span>
+      @if (isInactive(option.item)) {
+        <span class="shop-option-tag">{{ 'management.workspace.inactive' | transloco }}</span>
+      }
+    </span>
+  </ng-template>
+</lib-select>

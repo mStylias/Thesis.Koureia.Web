@@ -1,0 +1,10 @@
+// A short page still ends on the footer at the bottom of the viewport.
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+lib-site-footer {
+  margin-block-start: auto;
+}

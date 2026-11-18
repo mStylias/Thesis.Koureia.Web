@@ -1,0 +1,89 @@
+<!-- The backdrop click is a pointer-only affordance; keyboard users close
+     with Escape (the native `cancel` event) or the focusable buttons. -->
+<!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+<dialog
+  #dialog
+  class="confirmation-dialog"
+  [attr.data-severity]="config().severity"
+  [attr.data-closing]="closing() ? '' : null"
+  [attr.aria-labelledby]="showTitle() ? titleId : null"
+  [attr.aria-label]="showTitle() ? null : ('confirmationDialog.title' | uiCopy | transloco)"
+  [attr.aria-describedby]="showMessage() ? messageId : null"
+  (cancel)="onEscape($event)"
+  (click)="onBackdropClick($event)"
+>
+  @if (config().dismissible) {
+    <button
+      libButton
+      type="button"
+      class="dialog-dismiss"
+      variant="text"
+      severity="secondary"
+      size="sm"
+      iconOnly
+      rounded
+      [attr.aria-label]="'confirmationDialog.closeDialog' | uiCopy | transloco"
+      (click)="dismiss()"
+    >
+      <svg lucideX aria-hidden="true"></svg>
+    </button>
+  }
+
+  <div class="dialog-body">
+    @if (config().showIcon) {
+      <div class="dialog-icon" aria-hidden="true">
+        @switch (config().severity) {
+          @case ('primary') {
+            <svg lucideSparkles></svg>
+          }
+          @case ('success') {
+            <svg lucideCircleCheck></svg>
+          }
+          @case ('info') {
+            <svg lucideInfo></svg>
+          }
+          @case ('warning') {
+            <svg lucideTriangleAlert></svg>
+          }
+          @case ('error') {
+            <svg lucideCircleX></svg>
+          }
+          @default {
+            <svg lucideCircleQuestionMark></svg>
+          }
+        }
+      </div>
+    }
+
+    <div class="dialog-copy">
+      @if (showTitle()) {
+        <h2 class="dialog-title" [id]="titleId">
+          {{ config().title || ('confirmationDialog.title' | uiCopy | transloco) }}
+        </h2>
+      }
+      @if (showMessage()) {
+        <p class="dialog-message" [id]="messageId">
+          {{ config().message || ('confirmationDialog.message' | uiCopy | transloco) }}
+        </p>
+      }
+    </div>
+  </div>
+
+  <div class="dialog-actions">
+    @if (config().showCancel) {
+      <button
+        libButton
+        type="button"
+        variant="outlined"
+        severity="secondary"
+        autofocus
+        (click)="cancel()"
+      >
+        {{ config().cancelLabel || ('confirmationDialog.cancelLabel' | uiCopy | transloco) }}
+      </button>
+    }
+    <button libButton type="button" [severity]="config().severity" (click)="confirm()">
+      {{ config().confirmLabel || ('confirmationDialog.confirmLabel' | uiCopy | transloco) }}
+    </button>
+  </div>
+</dialog>

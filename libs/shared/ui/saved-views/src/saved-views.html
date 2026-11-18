@@ -1,0 +1,409 @@
+@let editorState = editor();
+@let editing = editorState !== null;
+@let createLabel = 'savedViews.create' | uiCopy | transloco;
+@let saveChangesLabel = 'savedViews.saveChanges' | uiCopy | transloco;
+@let discardLabel = 'savedViews.discardChanges' | uiCopy | transloco;
+@let menuLabel = 'savedViews.menu' | uiCopy | transloco;
+@let temporaryLabel = temporaryDescription() ?? ('savedViews.temporary' | uiCopy | transloco);
+@let closeLabel = 'savedViews.close' | uiCopy | transloco;
+
+<div class="sv" [attr.data-compact]="compact() ? '' : null">
+  @if (compact()) {
+    <!-- The strip's own shape below the width it needs. A listbox rather than
+         a scrolling row: the row would still be a row, only one the user has
+         to drag sideways to read, and the bar has other things to hold. -->
+    <span class="sv-select-shell">
+      <lib-select
+        class="sv-select"
+        size="sm"
+        [options]="options()"
+        [value]="selectValue()"
+        [ariaLabel]="'savedViews.label' | uiCopy | transloco"
+        [ariaDescribedby]="selectDescribedBy() ?? ''"
+        [placeholder]="'savedViews.emptyField' | uiCopy | transloco"
+        (valueChange)="onSelectValue($event)"
+      >
+        <!-- The rows carry the same two marks the tabs do. The star and the
+             asterisk are `aria-hidden`: an option's accessible name is its
+             content, and a name that gained "default" would be re-announced
+             every time the state behind it changed. -->
+        <ng-template libSelectOption let-option>
+          @let row = optionRow(option.value);
+          <span class="sv-option">
+            @if (row === null) {
+              <svg lucidePlus class="sv-option-icon" aria-hidden="true"></svg>
+              <span class="sv-option-name">{{ createLabel }}</span>
+            } @else {
+              @if (row.isDefault) {
+                <svg lucideStar class="sv-option-icon sv-option-default" aria-hidden="true"></svg>
+              }
+              @if (row.temporary) {
+                <svg lucideSparkles class="sv-option-icon" aria-hidden="true"></svg>
+              }
+              <span class="sv-option-name">{{ row.view.name }}</span>
+              @if (row.dirty) {
+                <span class="sv-tab-dirty" aria-hidden="true">*</span>
+              }
+            }
+          </span>
+        </ng-template>
+        <!-- The closed field. It reserves the width of the menu button drawn
+             over it, so a long name is clipped before it reaches the glyph
+             rather than sliding under it. -->
+        <ng-template libSelectedItem let-option>
+          @let row = optionRow(option.value);
+          @if (row !== null) {
+            <span class="sv-option sv-option-current">
+              @if (row.isDefault) {
+                <svg lucideStar class="sv-option-icon sv-option-default" aria-hidden="true"></svg>
+              }
+              @if (row.temporary) {
+                <svg lucideSparkles class="sv-option-icon" aria-hidden="true"></svg>
+              }
+              <span class="sv-option-name">{{ row.view.name }}</span>
+              @if (row.dirty) {
+                <span class="sv-tab-dirty" aria-hidden="true">*</span>
+              }
+            </span>
+          }
+        </ng-template>
+      </lib-select>
+
+      <!-- Everything a tab offers on hover or by right-click, for the view the
+           field is showing, and drawn inside that field so it reads as the
+           view's rather than the bar's. A sibling of the select in the DOM, never
+           a child: the trigger is a `combobox`, and that role admits no
+           interactive children — the same rule that made the multi-select's chip
+           ×s `aria-hidden` glyphs. This one stays a real button, so the keyboard
+           still reaches duplicate, rename and delete. -->
+      <button
+        type="button"
+        class="sv-tab-action sv-menu-trigger"
+        aria-haspopup="menu"
+        [attr.aria-label]="menuLabel"
+        [libTooltip]="menuLabel"
+        (click)="openSelectedMenu($event)"
+      >
+        <svg lucideEllipsisVertical aria-hidden="true"></svg>
+      </button>
+    </span>
+
+    <!-- Only the unsaved pair stays out of the menu: it is the one thing here
+         that is urgent, and the mark inside the field says it is waiting
+         without saying what to do about it. -->
+    @if (dirty()) {
+      @if (!temporarySelected()) {
+        <button
+          libButton
+          type="button"
+          severity="secondary"
+          variant="text"
+          size="sm"
+          iconOnly
+          [attr.aria-label]="saveChangesLabel"
+          [libTooltip]="saveChangesLabel"
+          (click)="saveChanges()"
+        >
+          <svg lucideSave aria-hidden="true"></svg>
+        </button>
+      }
+      <button
+        libButton
+        type="button"
+        severity="secondary"
+        variant="text"
+        size="sm"
+        iconOnly
+        [attr.aria-label]="discardLabel"
+        [libTooltip]="discardLabel"
+        (click)="revertChanges()"
+      >
+        <svg lucideUndo2 aria-hidden="true"></svg>
+      </button>
+    }
+  } @else {
+    <!-- Pointer-only, like the same pair in `@ui/tabs` and for the same reason:
+         the keyboard walks the strip with the arrow keys, and focusing a tab
+         brings it into view without being asked. Hidden from assistive tech, so
+         the label is a tooltip rather than an `aria-label` the tree never
+         reaches. -->
+    @if (scrollable()) {
+      <button
+        type="button"
+        class="sv-scroll"
+        tabindex="-1"
+        aria-hidden="true"
+        [disabled]="!canScrollStart()"
+        [libTooltip]="'savedViews.scrollPrev' | uiCopy | transloco"
+        (click)="scrollByStep(-1)"
+      >
+        <svg lucideChevronLeft aria-hidden="true"></svg>
+      </button>
+    }
+
+    @if (tabs().length > 0 || editing) {
+      <!-- A tablist while it is a list of tabs. The inline editor is a text
+           field, which a tablist may not hold, so the role steps down to a plain
+           group for as long as one is open rather than the editor moving to the
+           end of the strip, away from the tab it renames. -->
+      <div
+        #tabList
+        class="sv-tabs"
+        [attr.role]="editing ? 'group' : 'tablist'"
+        [attr.aria-orientation]="editing ? null : 'horizontal'"
+        [attr.aria-label]="'savedViews.label' | uiCopy | transloco"
+        (scroll)="onStripScroll()"
+        (pointermove)="onListPointerMove($event)"
+        (pointerup)="onListPointerUp($event)"
+        (pointercancel)="onListPointerUp($event)"
+      >
+        @for (tab of tabs(); track tab.view.id) {
+          @if (tab.editing) {
+            <ng-container [ngTemplateOutlet]="nameEditor" />
+          } @else {
+            <div
+              class="sv-tab"
+              [attr.data-view-id]="tab.temporary ? null : tab.view.id"
+              [attr.data-temporary-id]="tab.temporary ? tab.view.id : null"
+              [attr.role]="editing ? null : 'tab'"
+              [attr.aria-selected]="editing ? null : tab.selected"
+              [attr.aria-describedby]="describedBy(tab)"
+              [attr.tabindex]="editing ? -1 : rovingId() === tab.view.id ? 0 : -1"
+              [attr.data-selected]="tab.selected ? '' : null"
+              [attr.data-dragging]="isDragging(tab) ? '' : null"
+              (pointerdown)="onTabPointerDown(tab, $event)"
+              (click)="onTabClick(tab)"
+              (dblclick)="onTabDoubleClick(tab)"
+              (keydown)="onTabKeydown(tab, $event)"
+              (focus)="onTabFocus(tab)"
+              (contextmenu)="onTabContextMenu(tab, $event)"
+            >
+              @if (tab.isDefault) {
+                <!-- The default is a position, and a position is invisible once
+                     the strip scrolls. The glyph says which view a fresh load
+                     applies; the description beside it says the same in words. -->
+                <svg lucideStar class="sv-tab-default" aria-hidden="true"></svg>
+              }
+              @if (tab.temporary) {
+                <!-- The note the tab points at says the same in words. -->
+                <span class="sv-tab-temporary" aria-hidden="true" [libTooltip]="temporaryLabel">
+                  <svg lucideSparkles aria-hidden="true"></svg>
+                </span>
+              }
+              <span class="sv-tab-name" showOnEllipsis [libTooltip]="tab.view.name">{{
+                tab.view.name
+              }}</span>
+              <!-- Every affordance inside a tab is pointer-only, like the close
+                   affordance of `@ui/tabs` and for the same reason: a focusable
+                   button inside a `tab` nests interactive elements. The keyboard
+                   reaches all three through the context menu, which `Shift`+`F10`
+                   opens. -->
+              @if (tab.dirty) {
+                <!-- The mark is never the whole of the message: the tab points at
+                     a description, so the fact reaches a reader who sees no glyph. -->
+                <span class="sv-tab-dirty" aria-hidden="true">*</span>
+                <span class="sv-tab-actions">
+                  @if (!tab.temporary) {
+                    <button
+                      type="button"
+                      class="sv-tab-action"
+                      aria-hidden="true"
+                      tabindex="-1"
+                      [libTooltip]="saveChangesLabel"
+                      (click)="saveChanges(); $event.stopPropagation()"
+                    >
+                      <svg lucideSave aria-hidden="true"></svg>
+                    </button>
+                  }
+                  <button
+                    type="button"
+                    class="sv-tab-action"
+                    aria-hidden="true"
+                    tabindex="-1"
+                    [libTooltip]="discardLabel"
+                    (click)="revertChanges(); $event.stopPropagation()"
+                  >
+                    <svg lucideUndo2 aria-hidden="true"></svg>
+                  </button>
+                </span>
+              } @else {
+                <button
+                  type="button"
+                  class="sv-tab-remove"
+                  aria-hidden="true"
+                  tabindex="-1"
+                  [libTooltip]="closeLabel"
+                  [tooltipDisabled]="!tab.temporary"
+                  (click)="onDelete(tab); $event.stopPropagation()"
+                >
+                  <svg lucideX aria-hidden="true"></svg>
+                </button>
+              }
+            </div>
+          }
+        }
+        @if (editorState?.mode === 'create') {
+          <ng-container [ngTemplateOutlet]="nameEditor" />
+        }
+      </div>
+    }
+
+    @if (scrollable()) {
+      <button
+        type="button"
+        class="sv-scroll"
+        tabindex="-1"
+        aria-hidden="true"
+        [disabled]="!canScrollEnd()"
+        [libTooltip]="'savedViews.scrollNext' | uiCopy | transloco"
+        (click)="scrollByStep(1)"
+      >
+        <svg lucideChevronRight aria-hidden="true"></svg>
+      </button>
+    }
+
+    @if (ready() && tabs().length === 0 && !editing) {
+      <p class="sv-empty">{{ 'savedViews.empty' | uiCopy | transloco }}</p>
+    }
+
+    <!-- After the views, and after the empty message: the control that adds one
+         belongs at the end of what it adds to. The compact form has no button of
+         its own — the first row of the listbox is the same control. -->
+    <button
+      libButton
+      type="button"
+      severity="secondary"
+      variant="text"
+      size="sm"
+      iconOnly
+      class="sv-add"
+      [disabled]="editing"
+      [attr.aria-label]="createLabel"
+      [libTooltip]="createLabel"
+      (click)="onCreate()"
+    >
+      <svg lucidePlus aria-hidden="true"></svg>
+    </button>
+  }
+
+  @if (tabs().length > 0) {
+    <span [id]="defaultNoteId" class="sv-note">
+      {{ 'savedViews.default' | uiCopy | transloco }}
+    </span>
+  }
+  @if (temporaryPresent()) {
+    <span [id]="temporaryNoteId" class="sv-note">{{ temporaryLabel }}</span>
+  }
+  @if (dirty()) {
+    <span [id]="dirtyNoteId" class="sv-note">
+      {{ 'savedViews.unsaved' | uiCopy | transloco }}
+    </span>
+  }
+
+  @if (status() === 'error') {
+    <p class="sv-error" role="status">{{ 'savedViews.error' | uiCopy | transloco }}</p>
+  }
+</div>
+
+<lib-context-menu
+  #viewMenu
+  density="compact"
+  [items]="menuItems()"
+  [ariaLabel]="'savedViews.menu' | uiCopy | transloco"
+/>
+
+<!-- The compact form's editor. A dialog rather than the frame the strip uses:
+     the listbox is one control on a bar that has already run out of room, and
+     an input plus two buttons in its place is the shape that ran out. Rendered
+     unconditionally so opening and closing keep their transitions. -->
+<lib-dialog
+  size="sm"
+  dismissible
+  [visible]="dialogOpen()"
+  [header]="
+    (editorState?.mode === 'rename' ? 'savedViews.rename' : 'savedViews.create')
+      | uiCopy
+      | transloco
+  "
+  (opened)="focusDialogInput()"
+  (closed)="onDialogClosed()"
+>
+  <label class="sv-dialog-field">
+    <span class="sv-dialog-label">{{ 'savedViews.name' | uiCopy | transloco }}</span>
+    <input
+      #dialogInput
+      libInputText
+      type="text"
+      autocomplete="off"
+      [value]="editorState?.name ?? ''"
+      [attr.maxlength]="nameMaxLength"
+      (input)="onEditorInput($event)"
+      (keydown.enter)="commitEditor()"
+    />
+  </label>
+  <ng-template libDialogFooter>
+    <button libButton type="button" severity="secondary" variant="text" (click)="cancelEditor()">
+      {{ 'savedViews.cancel' | uiCopy | transloco }}
+    </button>
+    <button libButton type="button" [disabled]="!editorValid()" (click)="commitEditor()">
+      {{ 'savedViews.confirm' | uiCopy | transloco }}
+    </button>
+  </ng-template>
+</lib-dialog>
+
+<!-- One definition for create and for rename: the two differ in what they
+     write, never in what they draw. -->
+<ng-template #nameEditor>
+  @let openEditor = editor();
+  @let nameLabel = 'savedViews.name' | uiCopy | transloco;
+  @let saveLabel = 'savedViews.save' | uiCopy | transloco;
+  @let renaming = openEditor?.mode === 'rename';
+  @let cancelLabel =
+    (renaming ? 'savedViews.restoreName' : 'savedViews.cancel') | uiCopy | transloco;
+  <span class="sv-tab-editor">
+    <input
+      #editorInput
+      libInputText
+      frameless
+      size="sm"
+      type="text"
+      class="sv-tab-editor-input"
+      autocomplete="off"
+      [value]="openEditor?.name ?? ''"
+      [attr.aria-label]="nameLabel"
+      [attr.maxlength]="nameMaxLength"
+      (input)="onEditorInput($event)"
+      (keydown)="onEditorKeydown($event)"
+    />
+    <!-- Bare buttons rather than `libButton`: the frame has to stand exactly
+         as tall as a tab, and a button carrying its own size scale and
+         `aspect-ratio` decides that height for it. -->
+    <span class="sv-tab-editor-actions">
+      <button
+        type="button"
+        class="sv-tab-action sv-tab-action-accent"
+        [disabled]="!editorValid()"
+        [attr.aria-label]="saveLabel"
+        [libTooltip]="saveLabel"
+        (click)="commitEditor()"
+      >
+        <svg lucideSave aria-hidden="true"></svg>
+      </button>
+      <button
+        type="button"
+        class="sv-tab-action"
+        [attr.aria-label]="cancelLabel"
+        [libTooltip]="cancelLabel"
+        (click)="cancelEditor()"
+      >
+        <!-- Renaming puts a name back; creating discards one that never
+             existed. The two are different actions and take different glyphs. -->
+        @if (renaming) {
+          <svg lucideUndo2 aria-hidden="true"></svg>
+        } @else {
+          <svg lucideX aria-hidden="true"></svg>
+        }
+      </button>
+    </span>
+  </span>
+</ng-template>

@@ -1,0 +1,20 @@
+:host {
+  display: contents;
+}
+
+.expired-actions {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: stretch;
+}
+
+/* Quieter than the restart, which is the exit that always works. */
+a[libButton][data-variant='text'] {
+  justify-self: center;
+}
+
+@media (min-width: 64rem) and (min-height: 48rem) {
+  .expired-actions {
+    gap: var(--space-4);
+  }
+}

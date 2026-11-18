@@ -1,0 +1,50 @@
+<kc-auth-frame
+  [title]="i18n.advancedMsgStr('loginProfileTitle')"
+  [description]="i18n.msgStr('updateProfileDescription')"
+>
+  <!-- `@let`, not `@if (…; as message)`: `&&` returns its last operand, so the `as` form bound
+       the boolean and the tone and text came out empty. `innerHTML` as a plain string, for the
+       reason in `login.html`. -->
+  @let message = kcContext.message;
+  @if (message && (message.type !== 'error' || showErrors()) && showGlobalMessage()) {
+    <lib-banner
+      class="message"
+      [tone]="message.type"
+      [attr.role]="message.type === 'error' ? 'alert' : 'status'"
+    >
+      <span [innerHTML]="message.summary"></span>
+    </lib-banner>
+  }
+
+  <form
+    #form
+    id="kc-update-profile-form"
+    class="auth-form"
+    method="post"
+    [action]="kcContext.url.loginAction"
+    novalidate
+    (submit)="onSubmit($event)"
+  >
+    <kc-user-profile-fields [showErrors]="showErrors()" />
+
+    <button libButton type="submit" size="lg" [disabled]="submitting()">
+      {{ i18n.msgStr('updateProfileSubmit') }}
+    </button>
+
+    @if (canCancel) {
+      <button
+        libButton
+        type="submit"
+        variant="text"
+        severity="secondary"
+        size="lg"
+        name="cancel-aia"
+        value="true"
+        formnovalidate
+        [disabled]="submitting()"
+      >
+        {{ i18n.msgStr('doCancel') }}
+      </button>
+    }
+  </form>
+</kc-auth-frame>

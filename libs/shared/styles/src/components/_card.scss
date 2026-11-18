@@ -1,0 +1,18 @@
+// The media element is projected into the CardMedia component, so emulated encapsulation
+// cannot reach it. Keep this escape hatch scoped to the public marker, and leave every frame
+// and layout rule with the Angular components.
+
+[libCardMedia] > img,
+[libCardMedia] > picture,
+[libCardMedia] > video,
+[libCardMedia] > picture > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+[libCardMedia] > img,
+[libCardMedia] > video,
+[libCardMedia] > picture > img {
+  object-fit: cover;
+}

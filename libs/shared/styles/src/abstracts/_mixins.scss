@@ -1,0 +1,340 @@
+// Semantic type styles and shared foundation rules. A type style reads CSS custom properties,
+// so it follows a theme switch at runtime.
+@use 'sass:map';
+@use 'scale';
+@use 'functions' as f;
+
+// Mobile-first min-width media query. The values mirror the Tailwind responsive variants, so
+// `@include respond(md)` equals `md:`.
+@mixin respond($breakpoint) {
+  @if not map.has-key(scale.$breakpoints, $breakpoint) {
+    @error 'Unknown breakpoint `#{$breakpoint}`. Valid: #{map.keys(scale.$breakpoints)}.';
+  }
+  @media (min-width: map.get(scale.$breakpoints, $breakpoint)) {
+    @content;
+  }
+}
+
+// Desktop-first max-width query. The fractional subtraction keeps this range from overlapping
+// the matching min-width query at the breakpoint.
+@mixin respond-down($breakpoint) {
+  @if not map.has-key(scale.$breakpoints, $breakpoint) {
+    @error 'Unknown breakpoint `#{$breakpoint}`. Valid: #{map.keys(scale.$breakpoints)}.';
+  }
+  @media (max-width: (map.get(scale.$breakpoints, $breakpoint) - 0.02px)) {
+    @content;
+  }
+}
+
+// A closed-open range. It includes the lower breakpoint and stops just before the upper one,
+// which matches the non-overlapping Tailwind variants.
+@mixin respond-between($lower, $upper) {
+  @if not map.has-key(scale.$breakpoints, $lower) {
+    @error 'Unknown lower breakpoint `#{$lower}`. Valid: #{map.keys(scale.$breakpoints)}.';
+  }
+  @if not map.has-key(scale.$breakpoints, $upper) {
+    @error 'Unknown upper breakpoint `#{$upper}`. Valid: #{map.keys(scale.$breakpoints)}.';
+  }
+  @if map.get(scale.$breakpoints, $lower) >= map.get(scale.$breakpoints, $upper) {
+    @error 'The lower breakpoint `#{$lower}` must be smaller than `#{$upper}`.';
+  }
+  @media (min-width: map.get(scale.$breakpoints, $lower)) and (max-width: (
+    map.get(scale.$breakpoints, $upper) - 0.02px
+  )) {
+    @content;
+  }
+}
+
+// The design's content column: centered, about 1040px wide, with page gutters.
+@mixin container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--container-gutter);
+}
+
+// A disabled control is dimmed and loses its shadow.
+@mixin disabled {
+  opacity: var(--opacity-disabled);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+// Semantic type styles. Display and headings use Alegreya, a warm book serif, for the
+// wordmark, the hero, H1 to H3 and prices. UI and body text use Alegreya Sans. The mono face
+// carries time slots, dense prices and booking codes, which need tabular numerals. Display, H1
+// and H2 go one step down the scale below `sm`, where the full size breaks a short title.
+
+@mixin t-display {
+  font-family: var(--font-display);
+  font-weight: var(--weight-black);
+  font-size: var(--text-4xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+
+  @include respond-down(sm) {
+    font-size: var(--text-3xl);
+  }
+}
+
+@mixin t-h1 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-3xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+
+  @include respond-down(sm) {
+    font-size: var(--text-2xl);
+  }
+}
+
+@mixin t-h2 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-2xl);
+  line-height: var(--leading-snug);
+  color: var(--text-primary);
+
+  @include respond-down(sm) {
+    font-size: var(--text-xl);
+  }
+}
+
+@mixin t-h3 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-xl);
+  line-height: var(--leading-snug);
+  color: var(--text-primary);
+}
+
+@mixin t-title {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-lg);
+  line-height: var(--leading-snug);
+  color: var(--text-primary);
+}
+
+@mixin t-body {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-regular);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+
+@mixin t-body-sm {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-regular);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+
+// The small eyebrow label over a block. Sentence case, as all text: the product sets nothing in
+// capitals, and Greek in capitals must also drop its accents, which `text-transform` cannot do.
+@mixin t-label {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+// The caption that names a form control.
+@mixin t-field-label {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-xs);
+  line-height: var(--leading-tight);
+  color: var(--text-secondary);
+}
+
+@mixin t-caption {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-regular);
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+  color: var(--text-muted);
+}
+
+@mixin t-mono {
+  font-family: var(--font-mono);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+}
+
+// The visible focus ring for keyboard navigation, WCAG 2.4.7: a solid 2px accent ring. A form
+// field gets the same weight from its own colored border plus a 1px ring, so the border
+// lights up.
+@mixin focus-ring {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--focus-ring);
+}
+
+/// A tag: a short label that names a value or a state, such as a service or a status.
+///
+/// One recipe for every tag in the product, so a status reads the same in the grid, the
+/// calendar and the drawer. A tone is filled with its `--on-*` text, the contrast pairing each
+/// theme checks. Neutral is `--tag-bg` with a `--tag-border` edge. A pale tone background
+/// disappeared against a tinted tile and against a hovered row, which is why neither is used.
+///
+/// Colour only: size, padding and type stay with the component. The text is the state and the
+/// tone repeats it, so a tone never carries meaning alone.
+@mixin tag {
+  border-radius: f.radius(pill);
+  background: var(--tag-bg);
+  box-shadow: inset 0 0 0 var(--border-width-hairline) var(--tag-border);
+  color: var(--text-primary);
+
+  @each $tone in (success, warning, error, info) {
+    &[data-tone='#{$tone}'] {
+      background: var(--#{$tone});
+      box-shadow: none;
+      color: var(--on-#{$tone});
+    }
+  }
+
+  &[data-tone='accent'] {
+    background: var(--accent);
+    box-shadow: none;
+    color: var(--accent-fg);
+  }
+
+  // Forced colours drop every background, so the outline keeps it a tag.
+  @media (forced-colors: active) {
+    outline: var(--border-width-hairline) solid CanvasText;
+  }
+}
+
+/// A read-only details panel: sections, each with a heading and caption–value rows.
+///
+/// One recipe for every drawer that shows a record, so a caption reads the same over a service,
+/// an appointment, a role and a staff member. Use the parts together:
+///
+/// ```scss
+/// .view { @include a.detail-panel; }
+/// .view-section { @include a.detail-section; }
+/// .view-heading { @include a.detail-heading; }
+/// .view-grid { @include a.detail-grid; }
+/// .view-row { @include a.detail-row; }
+/// .view-caption { @include a.detail-caption; }
+/// .view-value { @include a.detail-value; }
+/// ```
+///
+/// The sections are subgrids of the panel, so the widest caption of all of them sets one value
+/// column for every section. The caption is the value's size, not smaller: it names the value
+/// and must read first.
+
+/// The panel's columns: an inset on each side, and the caption and value columns between. Lines
+/// `full` and `content` name the two widths. `$stacked` is one column, the caption over its value.
+@mixin detail-panel-columns($inset: f.space(6), $stacked: false) {
+  @if $stacked {
+    grid-template-columns:
+      [full-start] $inset [content-start] minmax(0, 1fr)
+      [content-end] $inset [full-end];
+  } @else {
+    grid-template-columns:
+      [full-start] $inset [content-start] max-content minmax(0, 1fr)
+      [content-end] $inset [full-end];
+  }
+}
+
+/// The element that holds the sections. A child that is not a section, such as a callout or an
+/// edit form, takes the whole width and pads itself. `$inset` is the space beside the content,
+/// `0` in a drawer that pads its own content slot. Below `sm` the caption sits over its value.
+@mixin detail-panel($inset: f.space(6)) {
+  @include detail-panel-columns($inset);
+
+  display: grid;
+  align-content: start;
+
+  // In a layer, so a section's own column wins whatever selector holds the panel. Emulated
+  // encapsulation drops a `:where()`, so specificity cannot do it.
+  @layer detail-panel {
+    > * {
+      grid-column: full;
+    }
+  }
+
+  @include respond-down(sm) {
+    @include detail-panel-columns($inset, $stacked: true);
+  }
+}
+
+/// A section: a subgrid of the panel's content columns. Sections are separated by a hairline that
+/// stops at the content's edges.
+@mixin detail-section {
+  display: grid;
+  grid-column: content;
+  grid-template-columns: subgrid;
+  align-content: start;
+  column-gap: f.space(6);
+  row-gap: f.space(4);
+  min-width: 0;
+  padding-block: f.space(5);
+
+  > * {
+    grid-column: 1 / -1;
+  }
+
+  & + & {
+    border-top: var(--border-width-hairline) solid var(--border);
+  }
+}
+
+/// The section's heading, in sentence case.
+@mixin detail-heading {
+  @include t-title;
+
+  margin: 0;
+}
+
+/// The rows, on the panel's caption and value columns.
+@mixin detail-grid {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  row-gap: f.space(4);
+  margin: 0;
+
+  @include respond-down(sm) {
+    row-gap: f.space(5);
+  }
+}
+
+@mixin detail-row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: baseline;
+
+  @include respond-down(sm) {
+    row-gap: f.space(1);
+  }
+}
+
+/// What a value is: at the value's size, in the secondary text color.
+@mixin detail-caption {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-regular);
+  font-size: var(--text-base);
+  line-height: var(--leading-snug);
+  color: var(--text-secondary);
+}
+
+@mixin detail-value {
+  min-width: 0;
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--leading-snug);
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}

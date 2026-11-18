@@ -1,0 +1,145 @@
+@use 'abstracts' as a;
+
+:host {
+  @include a.detail-panel;
+}
+
+.services-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-5) var(--space-6);
+}
+
+.services-errors:not(:empty) {
+  display: block;
+}
+
+.services-hint {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  color: var(--text-muted);
+}
+
+// One category: its name with "Select all", then a grid so the value columns align.
+.services-group {
+  // Fits "€ 1.234,56" and "480 λεπτά" in a `sm` number input.
+  --services-value-width: 8.5rem;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--services-value-width) var(--services-value-width);
+  column-gap: var(--space-3);
+  row-gap: var(--space-2);
+  align-items: center;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.services-group-head {
+  display: flex;
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 0;
+}
+
+.services-group-name {
+  @include a.detail-heading;
+}
+
+.services-head,
+.services-row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+}
+
+.services-head {
+  @include a.t-field-label;
+}
+
+.services-row {
+  // The control's own minimum is wider than a value column.
+  --input-number-min-width: 0;
+
+  row-gap: var(--space-1);
+  padding: var(--space-1) 0;
+  border-top: var(--border-width-hairline) solid var(--border);
+
+  lib-input-number {
+    width: 100%;
+  }
+
+  // An unticked service reads as secondary: its own values are disabled with it.
+  &:not([data-selected]) .services-label {
+    color: var(--text-secondary);
+  }
+}
+
+.services-label {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  overflow-wrap: anywhere;
+}
+
+.services-meta {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.services-error {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--error-text);
+}
+
+.services-section {
+  @include a.detail-section;
+}
+
+.services-heading {
+  @include a.detail-heading;
+}
+
+.services-grid {
+  @include a.detail-grid;
+}
+
+.services-view-row {
+  @include a.detail-row;
+}
+
+.services-caption {
+  @include a.detail-caption;
+}
+
+.services-value {
+  @include a.detail-value;
+
+  font-variant-numeric: tabular-nums;
+}
+
+// On a phone the own values move under the name, one each.
+@include a.respond-down(sm) {
+  .services-group {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .services-head {
+    display: none;
+  }
+
+  .services-name {
+    grid-column: 1 / -1;
+  }
+}

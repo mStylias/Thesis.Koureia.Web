@@ -1,0 +1,8 @@
+// Sass-only helpers: structural tokens, functions and mixins. This file emits no CSS. Import
+// it with a namespace, `@use '../abstracts' as a;`.
+//
+// It is brand-neutral, so it holds no colors and no type faces. Those live in a theme package
+// and reach a component only as CSS custom properties.
+@forward 'scale';
+@forward 'functions';
+@forward 'mixins';

@@ -1,0 +1,61 @@
+<!-- Focusable while it has a comparison, so a keyboard opens the tooltip as a pointer does. -->
+<div
+  class="kpi-tile"
+  [libTooltip]="previous()"
+  [tooltipDisabled]="!previous()"
+  [attr.tabindex]="previous() ? 0 : null"
+  [attr.role]="previous() ? 'group' : null"
+  [attr.aria-label]="previous() ? ('managementDashboard.kpis.' + id() | transloco) : null"
+>
+  <!-- The skeleton keeps the stat, its label and its slots, so the loaded tile takes its height. -->
+  <lib-stat labelFirst [value]="value()" [label]="'managementDashboard.kpis.' + id() | transloco">
+    @if (pending()) {
+      <span class="kpi-stub kpi-value-stub" [attr.data-kpi]="id()" aria-hidden="true"></span>
+    }
+  </lib-stat>
+
+  <div class="kpi-foot">
+    @if (pending()) {
+      <span class="kpi-stub kpi-change-stub" aria-hidden="true"></span>
+    } @else if (change(); as shown) {
+      <span class="kpi-change" [attr.data-tone]="shown.tone">
+        @switch (shown.direction) {
+          @case ('up') {
+            <svg lucideArrowUp class="kpi-change-icon" aria-hidden="true"></svg>
+          }
+          @case ('down') {
+            <svg lucideArrowDown class="kpi-change-icon" aria-hidden="true"></svg>
+          }
+          @case ('flat') {
+            <svg lucideMinus class="kpi-change-icon" aria-hidden="true"></svg>
+          }
+        }
+        <!-- The space keeps the direction and the figure two words for a screen reader. -->
+        <span class="kpi-hidden">{{
+          ('managementDashboard.kpis.' + shown.direction | transloco) + ' '
+        }}</span>
+        <span>{{ shown.text }}</span>
+      </span>
+    }
+
+    @if (previous()) {
+      <span class="kpi-hidden">{{ previous() }}</span>
+    }
+
+    @if (pending()) {
+      <lib-chart-skeleton class="kpi-sparkline" kind="sparkline" [height]="sparklineHeight" />
+    } @else if (sparkline(); as option) {
+      <lib-chart
+        class="kpi-sparkline"
+        [height]="sparklineHeight"
+        [option]="option"
+        [ariaLabel]="
+          'managementDashboard.kpis.trend'
+            | transloco: { label: 'managementDashboard.kpis.' + id() | transloco }
+        "
+      />
+    } @else {
+      <span class="kpi-sparkline kpi-sparkline-space" aria-hidden="true"></span>
+    }
+  </div>
+</div>

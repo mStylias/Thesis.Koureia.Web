@@ -1,0 +1,12 @@
+<footer class="footer" data-surface="dark">
+  <div class="footer-inner">
+    <lib-site-brand />
+
+    <nav [attr.aria-label]="'siteLayout.footer.label' | transloco">
+      <a langLink="/">{{ 'siteLayout.footer.home' | transloco }}</a>
+      <a langLink="/how-it-works">{{ 'siteLayout.footer.how' | transloco }}</a>
+    </nav>
+  </div>
+  <!-- Brand-bearing: an app-owned root key, not a scope key. See `LandingBrandCopy`. -->
+  <div class="footer-bottom">{{ 'brand.landing.copyright' | transloco: { year } }}</div>
+</footer>

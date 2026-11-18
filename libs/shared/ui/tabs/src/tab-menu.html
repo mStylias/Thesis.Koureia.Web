@@ -1,0 +1,32 @@
+<ul class="tab-menu-list">
+  @for (item of items(); track item) {
+    <li class="tab-menu-item">
+      @if (item.routerLink) {
+        <a
+          class="tab-menu-link"
+          [routerLink]="item.disabled ? null : item.routerLink"
+          routerLinkActive="is-active"
+          ariaCurrentWhenActive="page"
+          [routerLinkActiveOptions]="routerLinkActiveOptions()"
+          [attr.aria-disabled]="item.disabled ? 'true' : null"
+          [attr.tabindex]="item.disabled ? -1 : null"
+          (click)="onSelect(item, $event)"
+        >
+          {{ item.label }}
+        </a>
+      } @else {
+        <a
+          class="tab-menu-link"
+          [attr.href]="item.disabled ? null : item.url"
+          [attr.target]="item.target || null"
+          [attr.rel]="item.target === '_blank' ? 'noopener' : null"
+          [attr.aria-disabled]="item.disabled ? 'true' : null"
+          [attr.tabindex]="item.disabled ? -1 : null"
+          (click)="onSelect(item, $event)"
+        >
+          {{ item.label }}
+        </a>
+      }
+    </li>
+  }
+</ul>

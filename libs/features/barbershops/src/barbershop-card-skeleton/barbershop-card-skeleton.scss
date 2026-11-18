@@ -1,0 +1,84 @@
+@use 'abstracts' as a;
+
+:host {
+  --card-skeleton-logo-size: var(--space-12);
+  --card-skeleton-line-height: var(--space-3);
+
+  display: grid;
+  align-content: space-between;
+  gap: var(--space-4);
+  min-width: 0;
+  height: 100%;
+  padding: var(--space-5);
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(xl);
+
+  // One shimmer for the whole card rather than per line, so the bars read as a single surface
+  // settling instead of a dozen independent blinks. Opacity only; the base layer's
+  // reduced-motion rule stops it.
+  animation: card-skeleton-pulse 1.6s var(--ease-standard) infinite;
+}
+
+.card-skeleton__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.card-skeleton__logo {
+  flex: none;
+  width: var(--card-skeleton-logo-size);
+  height: var(--card-skeleton-logo-size);
+  background: var(--surface-2);
+  border-radius: a.radius(md);
+}
+
+.card-skeleton__names {
+  display: grid;
+  flex: 1;
+  gap: var(--space-2);
+}
+
+.card-skeleton__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block-start: var(--space-4);
+  border-block-start: var(--border-width-hairline) solid var(--border-subtle);
+}
+
+.card-skeleton__line {
+  display: block;
+  height: var(--card-skeleton-line-height);
+  background: var(--surface-2);
+  border-radius: a.radius(sm);
+
+  &--title {
+    width: 60%;
+    height: var(--space-4);
+  }
+
+  &--subtitle {
+    width: 80%;
+  }
+
+  &--short {
+    width: 45%;
+  }
+
+  &--distance {
+    width: var(--space-16);
+  }
+
+  &--action {
+    width: var(--space-20);
+  }
+}
+
+@keyframes card-skeleton-pulse {
+  50% {
+    opacity: 0.6;
+  }
+}

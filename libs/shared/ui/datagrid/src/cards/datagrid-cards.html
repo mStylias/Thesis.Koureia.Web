@@ -1,0 +1,244 @@
+<!-- Sticky rather than absolute: the table's bar rides a sticky header, and
+     this one has to hold the same edge while the cards scroll under it. -->
+@if (loading()) {
+  <div
+    class="dg-cards-loading"
+    aria-hidden="true"
+    animate.enter="dg-cards-loading-enter"
+    animate.leave="dg-cards-loading-leave"
+  ></div>
+}
+
+<!-- The list role is withheld while the grid is grouped: the headings between
+     the cards are not list items, and a list holding them is invalid. -->
+<div
+  class="dg-cards"
+  [attr.role]="grouped() ? null : 'list'"
+  [attr.aria-label]="grouped() ? null : ariaLabel() || null"
+>
+  @for (item of items(); track item.key) {
+    @switch (item.kind) {
+      @case ('cardGroup') {
+        <h3
+          class="dg-card-group"
+          [attr.data-key]="item.keyText"
+          [attr.data-level]="item.level"
+          [attr.aria-expanded]="item.expanded"
+          [attr.tabindex]="isFocused(item.key) ? 0 : -1"
+          [style.padding-inline-start.px]="item.level * 16"
+        >
+          <svg
+            lucideChevronRight
+            class="dg-card-chevron"
+            aria-hidden="true"
+            [attr.data-expanded]="item.expanded ? '' : null"
+          ></svg>
+          @if (item.template) {
+            <ng-container
+              [ngTemplateOutlet]="item.template"
+              [ngTemplateOutletContext]="item.context"
+            />
+          } @else if (item.component; as renderer) {
+            <ng-container
+              [ngComponentOutlet]="renderer.type"
+              [ngComponentOutletInputs]="renderer.inputs"
+            />
+          } @else {
+            <span class="dg-card-group-caption">{{ item.caption }}:</span>
+            <span class="dg-card-group-value">{{ item.text }}</span>
+            @if (item.count !== null) {
+              <span class="dg-card-group-count">({{ item.count }})</span>
+            }
+            @for (summary of item.summaries; track $index) {
+              <span class="dg-card-group-summary">
+                <span class="dg-summary-label">{{ summary.labelKey | uiCopy | transloco }}</span>
+                {{ summary.text }}
+              </span>
+            }
+          }
+        </h3>
+      }
+      @case ('cardDetail') {
+        <!-- Instantiated on first expansion and destroyed on collapse, so a
+             detail region costs nothing while it is closed. -->
+        <div class="dg-card-detail" [attr.data-key]="item.keyText">
+          @if (item.template) {
+            <ng-container
+              [ngTemplateOutlet]="item.template"
+              [ngTemplateOutletContext]="item.context"
+            />
+          } @else if (item.component; as renderer) {
+            <ng-container
+              [ngComponentOutlet]="renderer.type"
+              [ngComponentOutletInputs]="renderer.inputs"
+            />
+          }
+        </div>
+      }
+      @default {
+        <article
+          libCard
+          class="dg-card"
+          data-card
+          [class]="item.classes"
+          [style]="item.styles"
+          [libDatagridAttrs]="item.aria"
+          [attr.role]="grouped() ? null : 'listitem'"
+          [attr.aria-selected]="selectable() ? item.selected : null"
+          [attr.aria-expanded]="item.expanded"
+          [attr.data-key]="item.keyText"
+          [attr.data-selected]="item.selected ? '' : null"
+          [attr.data-expanded]="item.expanded ? '' : null"
+          [attr.tabindex]="isFocused(item.key) ? 0 : -1"
+        >
+          @if (item.template) {
+            <ng-container
+              [ngTemplateOutlet]="item.template"
+              [ngTemplateOutletContext]="item.context"
+            />
+          } @else if (item.component; as renderer) {
+            <ng-container
+              [ngComponentOutlet]="renderer.type"
+              [ngComponentOutletInputs]="renderer.inputs"
+            />
+          } @else {
+            <div class="dg-card-header">
+              @if (selectable()) {
+                <!-- Presentational, as the row's checkbox is. The grid owns
+                     selection because it is the only place the modifier keys
+                     are available; a box that toggled itself as well would
+                     apply the change twice. -->
+                <lib-checkbox
+                  class="dg-card-select"
+                  size="sm"
+                  tabIndex="-1"
+                  data-card-select
+                  [value]="item.selected"
+                  [ariaLabel]="selectRowLabel()"
+                  (click)="$event.preventDefault()"
+                />
+              }
+              <div class="dg-card-heading">
+                @if (item.title; as title) {
+                  <h3 class="dg-card-title">
+                    <ng-container
+                      [ngTemplateOutlet]="value"
+                      [ngTemplateOutletContext]="{ $implicit: title }"
+                    />
+                  </h3>
+                }
+                @if (item.subtitle; as subtitle) {
+                  <p class="dg-card-subtitle">
+                    <ng-container
+                      [ngTemplateOutlet]="value"
+                      [ngTemplateOutletContext]="{ $implicit: subtitle }"
+                    />
+                  </p>
+                }
+              </div>
+              @if (item.expanded !== null) {
+                <!-- Marked, not wired: the pointer handler lives on the
+                     viewport, and a press stopped here would never reach the
+                     grid that owns expansion. -->
+                <button
+                  type="button"
+                  class="dg-card-expander"
+                  tabindex="-1"
+                  data-card-expand
+                  [attr.aria-label]="expandRowLabel()"
+                  [attr.aria-expanded]="item.expanded"
+                >
+                  <svg
+                    lucideChevronRight
+                    class="dg-card-chevron"
+                    aria-hidden="true"
+                    [attr.data-expanded]="item.expanded ? '' : null"
+                  ></svg>
+                </button>
+              }
+            </div>
+
+            @if (item.meta.length > 0) {
+              <p class="dg-card-meta">
+                @for (entry of item.meta; track entry.columnId) {
+                  <span class="dg-card-meta-item" [attr.data-column]="entry.columnId">
+                    <ng-container
+                      [ngTemplateOutlet]="value"
+                      [ngTemplateOutletContext]="{ $implicit: entry }"
+                    />
+                  </span>
+                }
+              </p>
+            }
+
+            @if (item.fields.length > 0) {
+              <dl class="dg-card-fields">
+                @for (entry of item.fields; track entry.columnId) {
+                  <div class="dg-card-field" [attr.data-wide]="entry.wide ? '' : null">
+                    <!-- Clipped rather than dropped when the field hides it: a
+                         value's only name is its caption, and a card that drops
+                         the caption for sighted readers must not drop it for
+                         everyone else. -->
+                    <dt class="dg-card-label" [attr.data-clipped]="entry.hideLabel ? '' : null">
+                      {{ entry.label }}
+                    </dt>
+                    <dd
+                      class="dg-card-value"
+                      [class]="entry.classes"
+                      [style]="entry.styles"
+                      [libDatagridAttrs]="entry.aria"
+                      [attr.data-column]="entry.columnId"
+                    >
+                      <!-- A dash, not a blank, so an empty value does not read as a missing line. -->
+                      @if (!entry.template && !entry.component && entry.text === '') {
+                        <span class="dg-card-empty">—</span>
+                      } @else {
+                        <ng-container
+                          [ngTemplateOutlet]="value"
+                          [ngTemplateOutletContext]="{ $implicit: entry }"
+                        />
+                      }
+                    </dd>
+                  </div>
+                }
+              </dl>
+            }
+
+            @if (item.actions.length > 0) {
+              <div class="dg-card-actions">
+                @for (entry of item.actions; track entry.columnId) {
+                  <ng-container
+                    [ngTemplateOutlet]="value"
+                    [ngTemplateOutletContext]="{ $implicit: entry }"
+                  />
+                }
+              </div>
+            }
+          }
+        </article>
+      }
+    }
+  }
+
+  @for (skeleton of range(skeletonCards()); track skeleton) {
+    <div class="dg-card dg-card-skeleton" aria-hidden="true">
+      <span class="dg-skeleton-bar dg-skeleton-title"></span>
+      @for (field of range(skeletonFields()); track field) {
+        <span class="dg-skeleton-bar"></span>
+      }
+    </div>
+  }
+</div>
+
+<!-- One template for every value on a card: the three branches are identical
+     wherever a field is drawn, and writing them per slot would leave five
+     copies to keep in step. -->
+<ng-template #value let-entry>
+  @if (entry.template) {
+    <ng-container [ngTemplateOutlet]="entry.template" [ngTemplateOutletContext]="entry.context" />
+  } @else if (entry.component; as renderer) {
+    <ng-container [ngComponentOutlet]="renderer.type" [ngComponentOutletInputs]="renderer.inputs" />
+  } @else {
+    {{ entry.text }}
+  }
+</ng-template>

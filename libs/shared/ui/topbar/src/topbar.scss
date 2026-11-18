@@ -1,0 +1,159 @@
+@use 'abstracts' as a;
+
+// Consumes the design-system CSS custom properties emitted by the global
+// shared @ui styles. The top bar is the matched pair of
+// the sidebar: in the desktop L-shape it sits to the right of the
+// full-height sidebar, and its bottom hairline lines up with the one the
+// sidebar draws under its header — together they form a single unbroken
+// rule. Keyboard focus comes from the global `:focus-visible` rule.
+
+:host {
+  // The bar's OUTER height, exposed as a knob (mirroring the sidebar's
+  // `--sidebar-width` convention). Defaults to the shared shell token, the
+  // same one `.sidebar-header` pins itself to.
+  --topbar-height: var(--shell-header-height);
+
+  // The bottom hairline must land on the exact same Y as the one under the
+  // sidebar's header, so the two meet as a single unbroken line at the
+  // sidebar's right edge. That is why the height is PINNED rather than a
+  // `min-height`: with a minimum, each bar grows to its own content, and
+  // since the two hold different things they end up different heights — a
+  // `--text-xl` page title alone pushed this bar 8px below the sidebar's
+  // line. Boxes are border-box (Tailwind preflight), so this value covers
+  // the border too; there is no padding-block to add back.
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+  height: var(--topbar-height);
+  // The gutter the panels below this bar keep: a drawer's header, its toolbar
+  // and its content all sit `--space-6` from the edge, and the bar is read as
+  // one column with them. The trailing slot needs nothing else — the control
+  // there is a button, exactly as a drawer header's close button is, so the two
+  // button boxes land on the same axis.
+  padding-inline: var(--space-6);
+  background: var(--surface);
+  border-bottom: var(--border-width-hairline) solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+// The sidebar owns navigation on desktop (with its own collapse toggle),
+// so the hamburger only appears once the sidebar drops out of the flow
+// and becomes a drawer — below the same 1024px breakpoint as the
+// sidebar's DESKTOP_MEDIA_QUERY. Keep this query in sync with it.
+//
+// An icon button at the leading edge is pulled out by its own padding, so what
+// lines up with the gutter is the glyph rather than the button box. That is the
+// axis a reader sees: the panel below puts a bare icon at the gutter, and 8px of
+// invisible button padding reads as the bar being indented past it. The value is
+// the `md` size's padding, which is what these two buttons are.
+//
+// Applied to both wrappers and never twice: exactly one of them is ever in the
+// layout, and a `display: none` element's margin does not apply.
+.topbar-menu {
+  display: none;
+  flex-shrink: 0;
+  margin-inline-start: calc(-1 * var(--space-2));
+}
+
+@include a.respond-down(lg) {
+  .topbar-menu {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.topbar-menu-icon {
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
+  stroke-width: var(--icon-stroke);
+}
+
+// ---- Sidebar collapse toggle (desktop only) ----
+//
+// The exact inverse of the hamburger's query, on the wrapper for the same
+// reasons: above the breakpoint the sidebar is an in-flow panel that
+// collapses to a rail, below it there is no rail to toggle — only a
+// drawer, which the hamburger owns. The two never coexist.
+.topbar-sidebar-toggle {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-inline-start: calc(-1 * var(--space-2));
+}
+
+@include a.respond-down(lg) {
+  .topbar-sidebar-toggle {
+    display: none;
+  }
+}
+
+// One cell, both icons stacked: the leaving icon keeps its box through
+// `animate.leave`, so overlapping them is what stops the swap from
+// resizing the button mid-animation.
+.topbar-sidebar-toggle-swap {
+  display: grid;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
+}
+
+.topbar-sidebar-toggle-icon {
+  grid-area: 1 / 1;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
+  stroke-width: var(--icon-stroke);
+}
+
+// A swap, not an entrance: the two icons are the same glyph mirrored, so
+// they cross-fade in place. Scale starts at 0.9 rather than 0 (an icon
+// growing from nothing reads as an object arriving, not as one state
+// becoming another), and the exit runs ~20% faster than the entrance.
+// --ease-out on both: from the user's side this IS an element arriving.
+.toggle-icon-enter {
+  animation: topbar-toggle-icon-in var(--dur-fast) var(--ease-out);
+}
+
+.toggle-icon-leave {
+  animation: topbar-toggle-icon-out calc(var(--dur-fast) * 0.8) var(--ease-out);
+}
+
+@keyframes topbar-toggle-icon-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes topbar-toggle-icon-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+// Leading area — grows to fill the bar and pushes the end actions right.
+.topbar-start {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  // Let long titles/breadcrumbs truncate instead of forcing the bar wider.
+  min-width: 0;
+}
+
+// Trailing actions, pinned to the right edge.
+.topbar-end {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}

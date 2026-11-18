@@ -1,0 +1,107 @@
+<lib-dashboard-filters
+  class="dashboard-filters"
+  [query]="store.query()"
+  [filters]="store.filters()"
+  [staff]="store.staff()"
+  [today]="today"
+  [locale]="store.language()"
+  (queryChange)="store.update($event)"
+/>
+
+<section
+  #kpis
+  class="dashboard-kpis"
+  tabindex="-1"
+  aria-labelledby="dashboard-kpis-heading"
+  [attr.aria-busy]="store.overviewLoading() || null"
+>
+  <h2 id="dashboard-kpis-heading" class="dashboard-hidden">
+    {{ 'managementDashboard.kpis.label' | transloco }}
+  </h2>
+
+  @if (store.overviewFailed()) {
+    <lib-banner class="dashboard-notice" tone="error">
+      {{ 'managementDashboard.kpis.failed' | transloco }}
+      <button
+        libButton
+        libBannerAction
+        type="button"
+        variant="outlined"
+        size="sm"
+        (click)="retryOverview(kpis)"
+      >
+        {{ 'managementDashboard.card.retry' | transloco }}
+      </button>
+    </lib-banner>
+  }
+
+  <!-- Polite, as the chart cards are. The region stays, so a screen reader hears it fill. -->
+  <p class="dashboard-hidden" role="status">
+    @if (store.overviewFailed()) {
+      {{ 'managementDashboard.kpis.failed' | transloco }}
+    }
+  </p>
+
+  <ul class="kpi-row" [class.is-dim]="store.overviewLoading() && store.overview() !== null">
+    @for (id of kpiIds; track id) {
+      <li>
+        <lib-kpi-tile
+          [id]="id"
+          [kpi]="store.overviewFailed() ? null : (store.overview()?.[id] ?? null)"
+          [context]="overviewContext()"
+          [failed]="store.overviewFailed()"
+        />
+      </li>
+    }
+  </ul>
+</section>
+
+<lib-tabs class="dashboard-tabs" scrollable>
+  <lib-tab-list
+    selectionMode="explicit"
+    [value]="store.tab()"
+    [attr.aria-label]="'managementDashboard.tabs.label' | transloco"
+    (valueChange)="selectTab($event)"
+  >
+    @for (tab of tabs; track tab) {
+      <lib-tab [value]="tab">{{ 'managementDashboard.tabs.' + tab | transloco }}</lib-tab>
+    }
+  </lib-tab-list>
+
+  <!-- Lazy panels: a hidden tab's charts are destroyed. The store keeps its response. -->
+  <lib-tab-panel value="revenue">
+    <ng-template libTabContent>
+      <lib-revenue-tab [entry]="store.entry('revenue')" (retry)="store.retryTab('revenue')" />
+    </ng-template>
+  </lib-tab-panel>
+  <lib-tab-panel value="demand">
+    <ng-template libTabContent>
+      <lib-demand-tab [entry]="store.entry('demand')" (retry)="store.retryTab('demand')" />
+    </ng-template>
+  </lib-tab-panel>
+  <lib-tab-panel value="team">
+    <ng-template libTabContent>
+      <lib-team-tab [entry]="store.entry('team')" (retry)="store.retryTab('team')" />
+    </ng-template>
+  </lib-tab-panel>
+  <lib-tab-panel value="services">
+    <ng-template libTabContent>
+      <lib-services-tab [entry]="store.entry('services')" (retry)="store.retryTab('services')" />
+    </ng-template>
+  </lib-tab-panel>
+  <lib-tab-panel value="customers">
+    <ng-template libTabContent>
+      <lib-customers-tab [entry]="store.entry('customers')" (retry)="store.retryTab('customers')" />
+    </ng-template>
+  </lib-tab-panel>
+  <lib-tab-panel value="lost">
+    <ng-template libTabContent>
+      <lib-lost-tab [entry]="store.entry('lost')" (retry)="store.retryTab('lost')" />
+    </ng-template>
+  </lib-tab-panel>
+  <lib-tab-panel value="quality">
+    <ng-template libTabContent>
+      <lib-quality-tab [entry]="store.entry('quality')" (retry)="store.retryTab('quality')" />
+    </ng-template>
+  </lib-tab-panel>
+</lib-tabs>

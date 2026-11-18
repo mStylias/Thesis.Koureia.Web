@@ -1,0 +1,9 @@
+// The intl-tel-input base stylesheet, used by @ui/phone-input. The `no-assets` variant omits
+// the flag-sprite URLs, so the sprite variables below point at the package images and make the
+// bundler emit them. Visual theming is in `components/_phone-input.scss`.
+@use '../../../../../node_modules/intl-tel-input/dist/css/intlTelInput-no-assets';
+
+.iti {
+  --iti-path-flags-1x: url('../../../../../node_modules/intl-tel-input/dist/img/flags.webp');
+  --iti-path-flags-2x: url('../../../../../node_modules/intl-tel-input/dist/img/flags@2x.webp');
+}

@@ -1,0 +1,41 @@
+@let enter = swapped() ? 'sp-enter' : '';
+
+<lib-drawer
+  position="left"
+  size="sm"
+  [mode]="overlay() ? 'over' : 'push'"
+  [modal]="false"
+  [header]="header()"
+  [visible]="panel() !== null"
+  (visibleChange)="onVisibleChange($event)"
+>
+  <!-- One cell for both bodies, so the outgoing one fades over the incoming
+       one instead of stacking under it. -->
+  <div class="sp-stack">
+    @switch (shown()) {
+      @case ('settings') {
+        <lib-calendar-settings
+          class="sp-pane"
+          [animate.enter]="enter"
+          animate.leave="sp-leave"
+          [view]="view()"
+          [dayColumnsLabel]="dayColumnsLabel()"
+          [(timeScale)]="timeScale"
+          [(dayColumns)]="dayColumns"
+          [(showTime)]="showTime"
+        />
+      }
+      @default {
+        <div class="sp-pane" [animate.enter]="enter" animate.leave="sp-leave">
+          <ng-container [ngTemplateOutlet]="filtersTemplate()" />
+        </div>
+      }
+    }
+  </div>
+
+  @if (hasFooter()) {
+    <div libDrawerFooter class="sp-footer">
+      <ng-container [ngTemplateOutlet]="filterActionsTemplate()" />
+    </div>
+  }
+</lib-drawer>

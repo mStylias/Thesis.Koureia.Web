@@ -1,0 +1,265 @@
+<!-- The backdrop click is a pointer-only shortcut; Escape and the close
+     button remain available to keyboard users. -->
+<!-- eslint-disable-next-line @angular-eslint/template/interactive-supports-focus -->
+<dialog
+  #dialog
+  class="dialog"
+  [attr.data-position]="position()"
+  [attr.data-size]="size()"
+  [attr.data-max-height]="maxHeight()"
+  [attr.data-modal]="modal() ? '' : null"
+  [attr.data-full-screen]="effectiveFullScreen() ? '' : null"
+  [attr.data-closing]="closing() ? '' : null"
+  [attr.aria-label]="label()"
+  [attr.aria-labelledby]="labelledBy()"
+  [attr.aria-describedby]="ariaDescribedBy() || null"
+  (cancel)="onCancel($event)"
+  (keydown)="onKeydown($event)"
+  (click)="onBackdropClick($event)"
+>
+  <div class="dialog-frame" [attr.data-headless]="headless() ? '' : null">
+    @if (headless(); as headlessTemplate) {
+      <ng-container
+        [ngTemplateOutlet]="headlessTemplate.templateRef"
+        [ngTemplateOutletContext]="headlessContext"
+      />
+    } @else {
+      @if (hasHeader()) {
+        <header
+          class="dialog-header"
+          [attr.data-draggable]="draggable() && !effectiveFullScreen() ? '' : null"
+          (pointerdown)="onDragStart($event)"
+        >
+          <div class="dialog-heading" [id]="titleId" tabindex="-1">
+            @if (header()) {
+              <h2 class="dialog-title">{{ header() }}</h2>
+            }
+            <ng-content select="[libDialogHeader]" />
+          </div>
+
+          <div class="dialog-tools">
+            @if (draggable() && !effectiveFullScreen()) {
+              <div #moveControl class="dialog-move-control">
+                <button
+                  libButton
+                  type="button"
+                  variant="text"
+                  severity="secondary"
+                  size="sm"
+                  iconOnly
+                  rounded
+                  [attr.aria-label]="'dialog.moveDialog' | uiCopy | transloco"
+                  [attr.aria-expanded]="moveMenuOpen()"
+                  [attr.aria-controls]="moveMenuOpen() ? moveMenuId : null"
+                  (click)="toggleMoveMenu($event)"
+                >
+                  <svg lucideMove aria-hidden="true"></svg>
+                </button>
+
+                @if (moveMenuOpen()) {
+                  <div
+                    class="dialog-move-menu"
+                    [id]="moveMenuId"
+                    role="group"
+                    [attr.aria-label]="'dialog.choosePosition' | uiCopy | transloco"
+                    animate.enter="dialog-move-enter"
+                    animate.leave="dialog-move-leave"
+                    (keydown)="onMoveMenuKeydown($event)"
+                  >
+                    <button
+                      libButton
+                      type="button"
+                      class="dialog-move-option"
+                      variant="text"
+                      severity="secondary"
+                      size="sm"
+                      iconOnly
+                      [attr.aria-label]="'dialog.positions.topLeft' | uiCopy | transloco"
+                      [libTooltip]="'dialog.positions.topLeft' | uiCopy | transloco"
+                      [attr.aria-pressed]="position() === 'top-left'"
+                      (click)="selectPosition('top-left')"
+                    >
+                      <svg lucideArrowUpLeft aria-hidden="true"></svg>
+                    </button>
+                    <button
+                      libButton
+                      type="button"
+                      class="dialog-move-option"
+                      variant="text"
+                      severity="secondary"
+                      size="sm"
+                      iconOnly
+                      [attr.aria-label]="'dialog.positions.top' | uiCopy | transloco"
+                      [libTooltip]="'dialog.positions.top' | uiCopy | transloco"
+                      [attr.aria-pressed]="position() === 'top'"
+                      (click)="selectPosition('top')"
+                    >
+                      <svg lucideArrowUp aria-hidden="true"></svg>
+                    </button>
+                    <button
+                      libButton
+                      type="button"
+                      class="dialog-move-option"
+                      variant="text"
+                      severity="secondary"
+                      size="sm"
+                      iconOnly
+                      [attr.aria-label]="'dialog.positions.topRight' | uiCopy | transloco"
+                      [libTooltip]="'dialog.positions.topRight' | uiCopy | transloco"
+                      [attr.aria-pressed]="position() === 'top-right'"
+                      (click)="selectPosition('top-right')"
+                    >
+                      <svg lucideArrowUpRight aria-hidden="true"></svg>
+                    </button>
+                    <button
+                      libButton
+                      type="button"
+                      class="dialog-move-option"
+                      variant="text"
+                      severity="secondary"
+                      size="sm"
+                      iconOnly
+                      [attr.aria-label]="'dialog.positions.left' | uiCopy | transloco"
+                      [libTooltip]="'dialog.positions.left' | uiCopy | transloco"
+                      [attr.aria-pressed]="position() === 'left'"
+                      (click)="selectPosition('left')"
+                    >
+                      <svg lucideArrowLeft aria-hidden="true"></svg>
+                    </button>
+                    <button
+                      libButton
+                      type="button"
+                      class="dialog-move-option"
+                      variant="text"
+                      severity="secondary"
+                      size="sm"
+                      iconOnly
+                      [attr.aria-label]="'dialog.positions.center' | uiCopy | transloco"
+                      [libTooltip]="'dialog.positions.center' | uiCopy | transloco"
+                      [attr.aria-pressed]="position() === 'center'"
+                      (click)="selectPosition('center')"
+                    >
+                      <svg lucideCircleDot aria-hidden="true"></svg>
+                    </button>
+                    <button
+                      libButton
+                      type="button"
+                      class="dialog-move-option"
+                      variant="text"
+                      severity="secondary"
+                      size="sm"
+                      iconOnly
+                      [attr.aria-label]="'dialog.positions.right' | uiCopy | transloco"
+                      [libTooltip]="'dialog.positions.right' | uiCopy | transloco"
+                      [attr.aria-pressed]="position() === 'right'"
+                      (click)="selectPosition('right')"
+                    >
+                      <svg lucideArrowRight aria-hidden="true"></svg>
+                    </button>
+                    <button
+                      libButton
+                      type="button"
+                      class="dialog-move-option"
+                      variant="text"
+                      severity="secondary"
+                      size="sm"
+                      iconOnly
+                      [attr.aria-label]="'dialog.positions.bottomLeft' | uiCopy | transloco"
+                      [libTooltip]="'dialog.positions.bottomLeft' | uiCopy | transloco"
+                      [attr.aria-pressed]="position() === 'bottom-left'"
+                      (click)="selectPosition('bottom-left')"
+                    >
+                      <svg lucideArrowDownLeft aria-hidden="true"></svg>
+                    </button>
+                    <button
+                      libButton
+                      type="button"
+                      class="dialog-move-option"
+                      variant="text"
+                      severity="secondary"
+                      size="sm"
+                      iconOnly
+                      [attr.aria-label]="'dialog.positions.bottom' | uiCopy | transloco"
+                      [libTooltip]="'dialog.positions.bottom' | uiCopy | transloco"
+                      [attr.aria-pressed]="position() === 'bottom'"
+                      (click)="selectPosition('bottom')"
+                    >
+                      <svg lucideArrowDown aria-hidden="true"></svg>
+                    </button>
+                    <button
+                      libButton
+                      type="button"
+                      class="dialog-move-option"
+                      variant="text"
+                      severity="secondary"
+                      size="sm"
+                      iconOnly
+                      [attr.aria-label]="'dialog.positions.bottomRight' | uiCopy | transloco"
+                      [libTooltip]="'dialog.positions.bottomRight' | uiCopy | transloco"
+                      [attr.aria-pressed]="position() === 'bottom-right'"
+                      (click)="selectPosition('bottom-right')"
+                    >
+                      <svg lucideArrowDownRight aria-hidden="true"></svg>
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (maximizable() && !fullScreen()) {
+              <!--
+                The name stays "Maximize dialog" in both states and the state
+                rides on aria-pressed: a label that flips while the button has
+                focus gets re-announced mid-interaction.
+              -->
+              <button
+                libButton
+                type="button"
+                variant="text"
+                severity="secondary"
+                size="sm"
+                iconOnly
+                rounded
+                [attr.aria-label]="'dialog.maximizeDialog' | uiCopy | transloco"
+                [attr.aria-pressed]="maximized()"
+                (click)="toggleMaximized()"
+              >
+                @if (maximized()) {
+                  <svg lucideMinimize2 aria-hidden="true"></svg>
+                } @else {
+                  <svg lucideMaximize2 aria-hidden="true"></svg>
+                }
+              </button>
+            }
+
+            @if (closable()) {
+              <button
+                libButton
+                type="button"
+                variant="text"
+                severity="secondary"
+                size="sm"
+                iconOnly
+                rounded
+                [attr.aria-label]="'dialog.closeDialog' | uiCopy | transloco"
+                (click)="closeFromButton()"
+              >
+                <svg lucideX aria-hidden="true"></svg>
+              </button>
+            }
+          </div>
+        </header>
+      }
+
+      <div class="dialog-content">
+        <ng-content />
+      </div>
+
+      @if (customFooter()) {
+        <footer class="dialog-footer">
+          <ng-container [ngTemplateOutlet]="customFooter()!.templateRef" />
+        </footer>
+      }
+    }
+  </div>
+</dialog>

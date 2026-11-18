@@ -1,0 +1,88 @@
+@use 'abstracts' as a;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+// The square. The image moves inside it, and the mask darkens what the crop leaves out.
+.cropper-area {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: a.radius(md);
+  background: var(--surface-sunken);
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &:not([data-ready]) {
+    cursor: default;
+  }
+}
+
+.cropper-image {
+  position: absolute;
+  max-width: none;
+  pointer-events: none;
+}
+
+// A hole the size of the square, and a shadow wide enough to cover any corner outside it.
+.cropper-mask {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: 0 0 0 100vmax var(--scrim);
+  pointer-events: none;
+}
+
+:host([data-shape='square']) .cropper-mask {
+  border-radius: 0;
+}
+
+.cropper-hint,
+.cropper-error {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+}
+
+.cropper-hint {
+  color: var(--text-muted);
+}
+
+.cropper-error {
+  color: var(--error-text);
+}
+
+.cropper-zoom {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-secondary);
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+    flex-shrink: 0;
+  }
+}
+
+.cropper-slider {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+
+@media (forced-colors: active) {
+  .cropper-mask {
+    outline: var(--border-width-hairline) solid CanvasText;
+  }
+}

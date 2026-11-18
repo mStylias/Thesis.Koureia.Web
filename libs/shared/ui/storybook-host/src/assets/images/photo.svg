@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-label="Placeholder photograph">
+  <!--
+    Brand-neutral stand-in for tenant photography in Storybook stories that
+    need an image in a media slot. 16:9, mid-tone, low contrast, so it reads as
+    a photo placeholder without competing with the component being documented.
+
+    No design tokens: an external SVG cannot inherit CSS custom properties.
+  -->
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9a9a9a" />
+      <stop offset="1" stop-color="#6e6e6e" />
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#g)" />
+  <g fill="none" stroke="#ffffff" stroke-opacity="0.22" stroke-width="3">
+    <path d="M0 640 L520 360 L900 620 L1240 440 L1600 660" />
+    <path d="M0 760 L520 500 L900 740 L1240 580 L1600 780" />
+  </g>
+  <circle cx="1290" cy="220" r="76" fill="#ffffff" fill-opacity="0.28" />
+</svg>

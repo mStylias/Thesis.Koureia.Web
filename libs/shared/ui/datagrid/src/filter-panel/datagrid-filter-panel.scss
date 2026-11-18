@@ -1,0 +1,101 @@
+@use 'abstracts' as a;
+
+:host {
+  box-sizing: border-box;
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: a.space(2);
+  padding: a.space(2) a.space(3);
+  border-block-end: var(--border-width-hairline) solid var(--border);
+  background: var(--surface);
+}
+
+// At the bottom the divider has to face the rows, or the panel reads as
+// belonging to whatever sits below the grid rather than to the grid.
+:host([data-position='bottom']) {
+  border-block-end: none;
+  border-block-start: var(--border-width-hairline) solid var(--border);
+}
+
+.dg-fp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-width: 22rem;
+  padding: 0 var(--space-1) 0 var(--space-2);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(pill);
+  background: var(--surface-2);
+  font-size: var(--text-xs);
+  line-height: 1.75rem;
+}
+
+.dg-fp-chip[data-unsupported] {
+  border-color: var(--border-strong);
+}
+
+.dg-fp-warning {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  stroke-width: var(--icon-stroke);
+  color: var(--text-secondary);
+}
+
+.dg-fp-caption {
+  font-weight: 600;
+}
+
+.dg-fp-op {
+  color: var(--text-secondary);
+}
+
+.dg-fp-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dg-fp-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: a.radius(pill);
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+  }
+
+  &:hover {
+    color: var(--text-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 1px;
+  }
+}
+
+// Pushed to the trailing edge, so the chips read as one list and the actions
+// as the region's own controls.
+.dg-fp-actions {
+  display: inline-flex;
+  gap: a.space(2);
+  margin-inline-start: auto;
+}
+
+@media (forced-colors: active) {
+  .dg-fp-chip[data-unsupported] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}

@@ -1,0 +1,70 @@
+<lib-page-section
+  sectionId="booking"
+  skeletonRows="4"
+  [heading]="'managementCompany.booking.title' | transloco"
+  [state]="state()"
+  (retry)="retry()"
+>
+  <!-- Static, so the section's slot matches it. The button inside comes and goes. -->
+  <div libPageSectionActions>
+    @if (canEdit() && editor.viewing()) {
+      <button
+        #editButton
+        libButton
+        type="button"
+        size="sm"
+        variant="outlined"
+        severity="secondary"
+        (click)="edit()"
+      >
+        <svg libButtonIcon lucidePencil aria-hidden="true"></svg>
+        {{ 'managementCompany.actions.edit' | transloco }}
+      </button>
+    }
+  </div>
+
+  @let fields = editor.form;
+  @let choices = options();
+  @let views = sentences();
+  <form class="booking-form" [libForm]="editor">
+    <lib-form-errors />
+
+    <div class="booking-grid">
+      @for (rule of rules; track rule) {
+        <lib-field [field]="fields[rule]">
+          <ng-template libFieldEditor let-id let-describedBy="describedBy">
+            <lib-select
+              size="sm"
+              [inputId]="id"
+              [ariaDescribedby]="describedBy"
+              [options]="choices[rule]"
+              [formField]="fields[rule]"
+            />
+          </ng-template>
+          <ng-template libFieldView>
+            <span class="booking-value">{{ views[rule] }}</span>
+          </ng-template>
+        </lib-field>
+      }
+    </div>
+
+    @if (editor.editing()) {
+      <div class="booking-actions">
+        <button
+          libButton
+          type="button"
+          variant="outlined"
+          severity="secondary"
+          [disabled]="editor.submitting()"
+          (click)="cancel()"
+        >
+          {{ 'managementCompany.actions.cancel' | transloco }}
+        </button>
+        <!-- Never disabled by validity: the first press is what reveals it. -->
+        <button libButton type="submit" [loading]="editor.submitting()">
+          {{ 'managementCompany.actions.save' | transloco }}
+        </button>
+      </div>
+    }
+  </form>
+</lib-page-section>

@@ -1,0 +1,182 @@
+<lib-drawer
+  position="right"
+  [modal]="false"
+  [closeGuard]="closeGuard"
+  [visible]="open()"
+  [ariaLabelledby]="labelledBy()"
+  (visibleChange)="onVisibleChange($event)"
+>
+  <div libDrawerHeader class="appointment-details-heading">
+    <svg lucideCalendarDays class="appointment-details-icon" aria-hidden="true"></svg>
+    <div class="appointment-details-titles">
+      <h2 class="appointment-details-title" id="appointment-details-title">
+        {{ heading() | transloco }}
+      </h2>
+      @if (description(); as text) {
+        <p class="appointment-details-description" id="appointment-details-description">
+          {{ text }}
+        </p>
+      } @else if (reading()) {
+        <span
+          class="appointment-details-skeleton appointment-details-skeleton-description"
+          aria-hidden="true"
+        ></span>
+      }
+    </div>
+  </div>
+
+  <!-- Pinned, so Save stays reachable however long the form below it is. -->
+  <lib-drawer-actions
+    libDrawerToolbar
+    [actions]="toolbarActions()"
+    [paused]="switching()"
+    [attr.aria-label]="'managementAppointments.actions.label' | transloco"
+  >
+    @if (editor.editing()) {
+      <button
+        libButton
+        type="button"
+        severity="secondary"
+        variant="outlined"
+        size="sm"
+        [disabled]="editor.submitting()"
+        (click)="cancelEdit()"
+      >
+        {{ 'managementAppointments.actions.cancelEdit' | transloco }}
+      </button>
+      <!-- Never disabled by validity: the first press is what reveals it. -->
+      <button
+        libButton
+        type="button"
+        severity="primary"
+        size="sm"
+        [loading]="editor.submitting()"
+        (click)="save()"
+      >
+        <svg lucideSave libButtonIcon aria-hidden="true"></svg>
+        {{ 'managementAppointments.actions.save' | transloco }}
+      </button>
+    } @else if (appointment() !== null) {
+      @if (canUpdate()) {
+        <button
+          libButton
+          type="button"
+          severity="secondary"
+          variant="outlined"
+          size="sm"
+          [disabled]="acting()"
+          (click)="edit()"
+        >
+          <svg lucidePencil libButtonIcon aria-hidden="true"></svg>
+          {{ 'managementAppointments.actions.edit' | transloco }}
+        </button>
+      }
+    } @else if (reading()) {
+      @for (placeholder of [1, 2, 3]; track placeholder) {
+        <span
+          class="appointment-details-skeleton appointment-details-skeleton-button"
+          aria-hidden="true"
+        ></span>
+      }
+    }
+  </lib-drawer-actions>
+
+  @if (stale()) {
+    <lib-banner class="appointment-details-notice" tone="error" role="alert">
+      {{ 'managementAppointments.errors.APPOINTMENT_NOT_EDITABLE' | transloco }}
+      <button
+        libButton
+        libBannerAction
+        type="button"
+        variant="outlined"
+        size="sm"
+        (click)="reload()"
+      >
+        {{ 'managementAppointments.panel.reload' | transloco }}
+      </button>
+    </lib-banner>
+  }
+
+  @if (reading()) {
+    <lib-appointment-view-skeleton />
+    <p class="sr-only" role="status">{{ 'managementAppointments.panel.loading' | transloco }}</p>
+  } @else if (notFound()) {
+    <p class="appointment-details-status" role="alert">
+      {{ 'managementAppointments.panel.notFound' | transloco }}
+    </p>
+  } @else if (readErrorText()) {
+    <lib-banner class="appointment-details-notice" tone="error" role="alert">
+      {{ readErrorText() }}
+      <button
+        libButton
+        libBannerAction
+        type="button"
+        variant="outlined"
+        size="sm"
+        (click)="reload()"
+      >
+        {{ 'managementAppointments.panel.retry' | transloco }}
+      </button>
+    </lib-banner>
+  } @else if (editor.editing()) {
+    @if (catalogErrorText()) {
+      <lib-banner class="appointment-details-notice" tone="error" role="alert">
+        {{ catalogErrorText() }}
+        <button
+          libButton
+          libBannerAction
+          type="button"
+          variant="outlined"
+          size="sm"
+          (click)="reloadCatalog()"
+        >
+          {{ 'managementAppointments.panel.retry' | transloco }}
+        </button>
+      </lib-banner>
+    } @else if (pricing(); as prices) {
+      <lib-appointment-form
+        [editor]="editor"
+        [pricing]="prices"
+        [staff]="host.staff()"
+        [appointment]="editor.creating() ? null : appointment()"
+        [noteOnly]="noteOnly()"
+        [customers]="customers"
+        [warnings]="warnings()"
+        [slots]="slots()"
+        [slotsLoading]="slotsLoading()"
+        [slotsFailed]="slotsFailed()"
+        [dayAvailability]="dayAvailability()"
+        [pastDay]="pastDay()"
+        [notifyOffered]="notifyOffered()"
+        [language]="language()"
+        [customer]="customerRow()"
+        (customerPicked)="pickedCustomer.set($event)"
+        (monthShown)="shownMonth.set($event)"
+      />
+    } @else {
+      <lib-appointment-form-skeleton />
+      <p class="sr-only" role="status">
+        {{ 'managementAppointments.panel.catalogLoading' | transloco }}
+      </p>
+    }
+  } @else if (appointment(); as viewed) {
+    <lib-appointment-view
+      [appointment]="viewed"
+      [staffMember]="staffMember()"
+      [timezone]="host.timezone()"
+      [language]="language()"
+      [customerLink]="customerLink()"
+      (openAppointment)="openOther($event.id, $event.localDate)"
+    />
+  }
+</lib-drawer>
+
+@if (appointment(); as viewed) {
+  <lib-cancel-appointment-dialog
+    [(visible)]="cancelOpen"
+    [appointment]="viewed"
+    [language]="language()"
+    [busy]="acting()"
+    (confirmed)="cancelAppointment($event)"
+  />
+}

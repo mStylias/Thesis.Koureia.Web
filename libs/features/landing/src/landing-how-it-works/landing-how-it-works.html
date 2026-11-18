@@ -1,0 +1,14 @@
+<main id="main-content">
+  <section class="page-intro" data-surface="dark" aria-labelledby="how-title">
+    <div>
+      <p class="eyebrow">{{ 'landing.howPage.eyebrow' | transloco }}</p>
+      <!-- Brand-bearing: an app-owned root key, not a scope key. See `LandingBrandCopy`. -->
+      <h1 id="how-title">{{ 'brand.landing.howTitle' | transloco }}</h1>
+      <p>{{ 'landing.howPage.lead' | transloco }}</p>
+    </div>
+  </section>
+
+  <lib-landing-steps sectionId="how-it-works" i18nKey="landing.workflow" [steps]="workflowSteps" />
+  <lib-landing-features />
+  <lib-landing-cta />
+</main>

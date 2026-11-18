@@ -1,0 +1,80 @@
+<div
+  class="filters"
+  role="group"
+  [attr.aria-label]="'managementDashboard.toolbar.label' | transloco"
+>
+  <div class="filter filter-range">
+    <span class="filter-label" [id]="ids.range">
+      {{ 'managementDashboard.toolbar.range' | transloco }}
+    </span>
+    <lib-date-range-picker
+      size="sm"
+      [value]="range()"
+      [presets]="presets"
+      [maxDays]="maxDays"
+      [today]="today()"
+      [locale]="locale()"
+      [ariaLabelledby]="ids.range"
+      (valueChange)="onRange($event)"
+    />
+  </div>
+
+  <div
+    class="filter filter-compare"
+    [libTooltip]="'managementDashboard.toolbar.compareHint' | transloco"
+  >
+    <span class="filter-label" [id]="ids.compare">
+      {{ 'managementDashboard.toolbar.compareTo' | transloco }}
+    </span>
+    <lib-select
+      size="sm"
+      [options]="compareOptions()"
+      [value]="compareValue()"
+      [ariaLabelledby]="ids.compare"
+      [ariaDescribedby]="ids.compareHint"
+      (valueChange)="onCompare($event)"
+    />
+    <span class="filter-hidden" [id]="ids.compareHint">
+      {{ 'managementDashboard.toolbar.compareHint' | transloco }}
+    </span>
+  </div>
+
+  <div class="filter filter-granularity">
+    <span class="filter-label" [id]="ids.granularity">
+      {{ 'managementDashboard.toolbar.granularity' | transloco }}
+    </span>
+    <lib-select
+      size="sm"
+      [options]="granularityOptions()"
+      [value]="granularityValue()"
+      [ariaLabelledby]="ids.granularity"
+      (valueChange)="onGranularity($event)"
+    />
+  </div>
+
+  @if (staffShown()) {
+    <div
+      class="filter filter-staff"
+      [libTooltip]="'managementDashboard.toolbar.staffTeamTab' | transloco"
+      [tooltipDisabled]="!staffLocked()"
+    >
+      <span class="filter-label" [id]="ids.staff">
+        {{ 'managementDashboard.toolbar.staff' | transloco }}
+      </span>
+      <lib-select
+        size="sm"
+        [options]="staffOptions()"
+        [value]="staffValue()"
+        [disabled]="staffLocked()"
+        [ariaLabelledby]="ids.staff"
+        [ariaDescribedby]="staffLocked() ? ids.staffHint : ''"
+        (valueChange)="onStaff($event)"
+      />
+      @if (staffLocked()) {
+        <span class="filter-hidden" [id]="ids.staffHint">
+          {{ 'managementDashboard.toolbar.staffTeamTab' | transloco }}
+        </span>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,231 @@
+<lib-drawer position="right" [modal]="false" [(visible)]="open" (closed)="returnToList()">
+  <!-- The heading is projected rather than passed as `header`, because the
+       built-in one draws the title first and this icon belongs before it. It
+       is the icon the navigation gives this section, so the panel says which
+       part of the app it belongs to. -->
+  <div libDrawerHeader class="role-details-heading">
+    <svg lucideShieldCheck class="role-details-icon" aria-hidden="true"></svg>
+    <h2 class="role-details-title">{{ heading() }}</h2>
+  </div>
+
+  <!-- The toolbar slot, not the content, so the actions stay reachable however far the
+       permission tree below them is scrolled. Which actions they are is the mode's: reading a
+       role offers the one way out of reading it, editing offers the two ways out of editing. -->
+  <lib-drawer-actions
+    libDrawerToolbar
+    [attr.aria-label]="'managementRoles.details.actions' | transloco"
+  >
+    @if (editor.editing()) {
+      <button
+        libButton
+        type="button"
+        severity="secondary"
+        variant="outlined"
+        size="sm"
+        [disabled]="editor.submitting()"
+        (click)="cancel()"
+      >
+        {{ 'managementRoles.details.cancel' | transloco }}
+      </button>
+      <!-- `loading` blocks the press, reports `aria-busy` and spins in the disk icon's place.
+           The caption stays: the button holds focus after a press, and a name that flips there
+           is re-announced mid-interaction.
+
+           Never disabled by validity: the first press is what reveals it, so a dead button
+           would be one the user could never make live. -->
+      <button
+        libButton
+        type="button"
+        severity="primary"
+        size="sm"
+        [loading]="editor.submitting()"
+        (click)="save()"
+      >
+        <svg lucideSave libButtonIcon aria-hidden="true"></svg>
+        {{ 'managementRoles.details.save' | transloco }}
+      </button>
+    } @else if (canEdit()) {
+      <!-- Withheld, not disabled, for a role the user cannot edit: there is nothing the user
+           could do to earn it, and a dead button invites the try. -->
+      <button
+        libButton
+        type="button"
+        severity="secondary"
+        variant="outlined"
+        size="sm"
+        (click)="edit()"
+      >
+        <svg lucidePencil libButtonIcon aria-hidden="true"></svg>
+        {{ 'managementRoles.details.edit' | transloco }}
+      </button>
+    }
+  </lib-drawer-actions>
+
+  @if (roleError()) {
+    <lib-banner class="role-load-error" tone="error" role="alert">
+      {{ roleError() }}
+      <button
+        libButton
+        libBannerAction
+        type="button"
+        variant="outlined"
+        size="sm"
+        (click)="reloadRole()"
+      >
+        {{ 'managementRoles.details.retry' | transloco }}
+      </button>
+    </lib-banner>
+  } @else if (roleLoading()) {
+    <p class="role-permissions-hint" role="status">
+      {{ 'managementRoles.details.roleLoading' | transloco }}
+    </p>
+  } @else if (editor.editing()) {
+    <!-- `libForm` carries the editor to the fields, turns a native submit into a commit, and
+         sets `novalidate` so the browser never bubbles over a translated message. -->
+    <form class="role-form" [libForm]="editor">
+      <!-- What the write refused that no field owns: an escalated code, a permission no
+           company-owned role may hold. -->
+      <lib-form-errors class="role-form-error" />
+
+      <!-- One column of the two, so a name is not a field the width of the panel. -->
+      <lib-field
+        class="role-form-cell role-form-cell-half"
+        inputId="role-name"
+        [field]="editor.form.name"
+      >
+        <ng-template libFieldEditor>
+          <input
+            libInputText
+            libFieldControl
+            type="text"
+            size="sm"
+            autocomplete="off"
+            placeholder=" "
+            [formField]="editor.form.name"
+          />
+        </ng-template>
+      </lib-field>
+
+      <lib-field
+        class="role-form-cell"
+        inputId="role-description"
+        [field]="editor.form.description"
+      >
+        <ng-template libFieldEditor>
+          <textarea
+            libTextarea
+            libFieldControl
+            rows="2"
+            size="sm"
+            autoResize
+            placeholder=" "
+            [formField]="editor.form.description"
+          ></textarea>
+        </ng-template>
+      </lib-field>
+
+      <section class="role-permissions">
+        <h3 class="role-permissions-title" id="role-permissions-label">
+          {{ 'managementRoles.details.permissions' | transloco }}
+        </h3>
+        <p class="role-permissions-hint">
+          {{ 'managementRoles.details.permissionsHint' | transloco }}
+        </p>
+
+        @if (catalogError()) {
+          <lib-banner class="role-load-error" tone="error" role="alert">
+            {{ catalogError() }}
+            <button
+              libButton
+              libBannerAction
+              type="button"
+              variant="outlined"
+              size="sm"
+              (click)="reloadPermissions()"
+            >
+              {{ 'managementRoles.details.retry' | transloco }}
+            </button>
+          </lib-banner>
+        } @else if (permissionsLoading()) {
+          <p class="role-permissions-hint" role="status">
+            {{ 'managementRoles.details.permissionsLoading' | transloco }}
+          </p>
+        } @else {
+          <!-- The whole catalog, which is what a full replace has to be authored against: the
+               role's codes ticked, the rest not, and a code the caller cannot grant disabled —
+               checked and disabled where the role already holds it, since the server checks the
+               whole submitted set rather than the diff and would refuse the save over it.
+
+               Checkbox mode, so a category row cascades to the codes under it. Its key is
+               this component's own and is dropped before the write. -->
+          <lib-tree
+            [tree]="editTree()"
+            selectionMode="checkbox"
+            [(value)]="selection"
+            ariaLabelledby="role-permissions-label"
+            [emptyMessage]="'managementRoles.details.permissionsEmpty' | transloco"
+            showGuides
+          >
+            <!-- The row text is read here rather than baked into the node, so switching
+                 language relabels the categories without rebuilding the model and discarding
+                 what the user has ticked. -->
+            <ng-template libTreeNode let-node>{{ rowLabel(node) }}</ng-template>
+          </lib-tree>
+        }
+      </section>
+    </form>
+  } @else if (role(); as viewed) {
+    <div class="role-view">
+      <section class="role-view-section">
+        <dl class="role-view-grid">
+          <div class="role-view-row">
+            <dt class="role-view-caption">{{ 'managementRoles.name' | transloco }}</dt>
+            <!-- Not the model's value: a seeded role's name is an identifier the database holds in
+                 English, and the client is the only place its label exists. -->
+            <dd class="role-view-value">{{ viewedName() }}</dd>
+          </div>
+          <!-- Withheld for a seeded role. Its description is the English of the very label the
+               name now shows, so translating it would print the same sentence twice. -->
+          @if (!viewed.isSystem && viewed.description) {
+            <div class="role-view-row">
+              <dt class="role-view-caption">{{ 'managementRoles.description' | transloco }}</dt>
+              <dd class="role-view-value">{{ viewed.description }}</dd>
+            </div>
+          }
+        </dl>
+      </section>
+
+      <section class="role-view-section">
+        <h3 class="role-permissions-title" id="role-granted-label">
+          {{ 'managementRoles.details.permissions' | transloco }}
+        </h3>
+
+        @if (viewed.permissions.length === 0) {
+          <p class="role-permissions-hint">
+            {{ 'managementRoles.details.grantsNothing' | transloco }}
+          </p>
+        } @else if (permissionsLoading()) {
+          <p class="role-permissions-hint" role="status">
+            {{ 'managementRoles.details.permissionsLoading' | transloco }}
+          </p>
+        } @else {
+          <!-- Only what the role holds, which is the shortest true answer to what it can do.
+               `readonly` and not `disabled`: the rows keep arrow navigation, typeahead and
+               expansion, so the tree stays readable. Its default status glyphs draw a check
+               rather than a checkbox, so nothing reads as a control that refuses to move. -->
+          <lib-tree
+            [tree]="viewTree()"
+            selectionMode="checkbox"
+            [value]="viewed.permissions"
+            readonly
+            ariaLabelledby="role-granted-label"
+            [emptyMessage]="'managementRoles.details.grantsNothing' | transloco"
+            showGuides
+          >
+            <ng-template libTreeNode let-node>{{ rowLabel(node) }}</ng-template>
+          </lib-tree>
+        }
+      </section>
+    </div>
+  }
+</lib-drawer>

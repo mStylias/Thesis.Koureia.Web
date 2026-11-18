@@ -1,0 +1,124 @@
+<kc-auth-frame
+  [title]="i18n.msgStr('loginAccountTitle')"
+  [description]="i18n.msgStr('loginDescription')"
+>
+  <!-- `alert` rather than `status` for an error, which is the more urgent role. -->
+  @if (pageMessage(); as message) {
+    <lib-banner
+      class="message"
+      [tone]="message.type"
+      [attr.role]="message.type === 'error' ? 'alert' : 'status'"
+    >
+      <!--
+        `innerHTML`, not interpolation: a realm can override any message, and several shipped ones
+        carry markup that interpolation prints raw. Bound as a plain string, which keeps Angular's
+        sanitizer. Do not reach for `| kcSanitize` here, because that pipe only marks a string
+        trusted. On an inner element, because `innerHTML` on the banner host replaces its template.
+      -->
+      <span [innerHTML]="message.summary"></span>
+    </lib-banner>
+  }
+
+  @if (kcContext.realm.password) {
+    <form
+      class="auth-form"
+      method="post"
+      [action]="kcContext.url.loginAction"
+      (submit)="submitting.set(true)"
+    >
+      @if (!kcContext.usernameHidden) {
+        <div class="field">
+          <label for="username">{{ usernameLabel() }}</label>
+          <input
+            libInputText
+            id="username"
+            name="username"
+            type="text"
+            autocomplete="username"
+            [value]="kcContext.login.username ?? ''"
+            [invalid]="kcContext.messagesPerField.existsError('username', 'password')"
+            [attr.aria-describedby]="
+              kcContext.messagesPerField.existsError('username', 'password') ? 'login-error' : null
+            "
+          />
+        </div>
+      }
+
+      <div class="field">
+        <div class="field-label-row">
+          <label for="password">{{ i18n.msgStr('password') }}</label>
+          @if (kcContext.realm.resetPasswordAllowed) {
+            <a [href]="resetCredentialsUrl()">
+              {{ i18n.msgStr('doForgotPassword') }}
+            </a>
+          }
+        </div>
+        <lib-password-input
+          inputId="password"
+          name="password"
+          autocomplete="current-password"
+          [invalid]="kcContext.messagesPerField.existsError('username', 'password')"
+          [ariaDescribedby]="
+            kcContext.messagesPerField.existsError('username', 'password') ? 'login-error' : ''
+          "
+        />
+      </div>
+
+      @if (kcContext.messagesPerField.existsError('username', 'password')) {
+        <p
+          id="login-error"
+          class="field-error"
+          aria-live="polite"
+          [innerHTML]="kcContext.messagesPerField.getFirstError('username', 'password')"
+        ></p>
+      }
+
+      @if (kcContext.realm.rememberMe && !kcContext.usernameHidden) {
+        <lib-checkbox inputId="rememberMe" name="rememberMe" [(value)]="rememberMe">
+          {{ i18n.msgStr('rememberMe') }}
+        </lib-checkbox>
+      }
+
+      <input type="hidden" name="credentialId" [value]="kcContext.auth.selectedCredential ?? ''" />
+      <button libButton type="submit" size="lg" [disabled]="submitting()">
+        {{ i18n.msgStr('doLogIn') }}
+      </button>
+    </form>
+  }
+
+  @if (kcContext.social?.providers?.length) {
+    <div class="social-login">
+      <div class="divider">
+        <span>{{ i18n.msgStr('socialLoginDivider') }}</span>
+      </div>
+      <div class="social-providers">
+        @for (provider of kcContext.social.providers; track provider.alias) {
+          @let googleProvider = isGoogleProvider(provider.alias);
+          <a
+            libButton
+            variant="outlined"
+            size="lg"
+            [class.google-provider]="googleProvider"
+            [href]="provider.loginUrl"
+          >
+            <span class="social-provider-content">
+              @if (googleProvider) {
+                <img class="social-provider-icon" [src]="googleIconUrl" alt="" />
+                <span>{{ i18n.msgStr('googleSignInLabel') }}</span>
+              } @else {
+                <span [innerHTML]="provider.displayName"></span>
+              }
+            </span>
+          </a>
+        }
+      </div>
+    </div>
+  }
+
+  @if (kcContext.realm.registrationAllowed && !kcContext.registrationDisabled) {
+    <p class="auth-switch">
+      {{ i18n.msgStr('registrationPrompt') }}
+      <a [href]="kcContext.url.registrationUrl">{{ i18n.msgStr('doRegister') }}</a>
+    </p>
+  }
+</kc-auth-frame>

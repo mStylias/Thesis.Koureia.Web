@@ -1,0 +1,97 @@
+@let fields = form();
+<ol class="hours-days">
+  @for (day of days(); track day.index) {
+    @let dayField = fields.days[day.index];
+    <li class="hours-day">
+      <div class="hours-day-head">
+        <lib-switch
+          size="sm"
+          [inputId]="day.id"
+          [value]="day.working"
+          (valueChange)="setWorking(day.index, $event)"
+        />
+        <label class="hours-day-name" [for]="day.id">{{ day.name }}</label>
+        @if (day.referenceText !== null) {
+          <span class="hours-shop">{{ day.referenceText }}</span>
+        }
+      </div>
+
+      @if (day.working) {
+        @for (range of day.ranges; track $index; let r = $index) {
+          @let rangeField = dayField.ranges[r];
+          <div class="hours-range">
+            <lib-time-picker
+              size="sm"
+              [interval]="step()"
+              [ariaLabel]="
+                'managementStaffSchedule.hours.fromOf' | transloco: { day: day.name, n: r + 1 }
+              "
+              [formField]="rangeField.startTime"
+            />
+            <span class="hours-dash" aria-hidden="true">–</span>
+            <lib-time-picker
+              size="sm"
+              [interval]="step()"
+              [ariaLabel]="
+                'managementStaffSchedule.hours.toOf' | transloco: { day: day.name, n: r + 1 }
+              "
+              [formField]="rangeField.endTime"
+            />
+            <button
+              libButton
+              type="button"
+              severity="secondary"
+              variant="text"
+              size="sm"
+              iconOnly
+              [attr.aria-label]="'managementStaffSchedule.hours.removeRange' | transloco"
+              [libTooltip]="'managementStaffSchedule.hours.removeRange' | transloco"
+              (click)="removeRange(day.index, r)"
+            >
+              <svg lucideX aria-hidden="true"></svg>
+            </button>
+          </div>
+          @for (error of rangeField().errors(); track $index) {
+            <p class="hours-error" role="alert">{{ error.message ?? '' | transloco }}</p>
+          }
+          @if (range.outside) {
+            <p class="hours-warning">
+              {{ 'managementStaffSchedule.hours.outsideShop' | transloco }}
+            </p>
+          }
+        }
+
+        <div class="hours-day-actions">
+          @if (day.canAdd) {
+            <button
+              libButton
+              type="button"
+              severity="secondary"
+              variant="text"
+              size="sm"
+              (click)="addRange(day.index)"
+            >
+              <svg lucidePlus libButtonIcon aria-hidden="true"></svg>
+              {{ 'managementStaffSchedule.hours.addRange' | transloco }}
+            </button>
+          }
+          <button
+            libButton
+            type="button"
+            severity="secondary"
+            variant="text"
+            size="sm"
+            (click)="copyToAll(day.index)"
+          >
+            <svg lucideCopy libButtonIcon aria-hidden="true"></svg>
+            {{ copyToAllText() || ('managementStaffSchedule.hours.copyToAll' | transloco) }}
+          </button>
+        </div>
+      } @else {
+        <p class="hours-off">
+          {{ offText() || ('managementStaffSchedule.hours.dayOff' | transloco) }}
+        </p>
+      }
+    </li>
+  }
+</ol>

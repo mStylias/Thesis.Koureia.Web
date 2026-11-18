@@ -1,0 +1,96 @@
+@use 'abstracts' as a;
+
+:host {
+  // The narrowest a field may be before the row wraps. Three of them are what decide whether
+  // the bar is one line or two.
+  --filters-field-min: 14rem;
+
+  display: block;
+}
+
+.filters {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.filters__fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-4);
+}
+
+.filters__field {
+  display: grid;
+  flex: 1 1 var(--filters-field-min);
+  gap: var(--space-2);
+  min-width: 0;
+
+  > label {
+    @include a.t-label;
+  }
+
+  // `[libIconField]` is an `inline-flex`, so it shrink-to-fits and sizes itself from the
+  // input's default character width instead of the column it sits in. Left alone it renders
+  // narrower than its label on one field and wider on the next, and the row stops lining up.
+  // `min-width: 0` is the other half: a grid item defaults to `min-width: auto`, which lets a
+  // control push its track past the flex item and over the field beside it.
+  > :not(label) {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+// Two lines inside one option row, so a place and the region that disambiguates it read as one
+// suggestion rather than two.
+.filters__place {
+  display: grid;
+  gap: var(--space-1);
+
+  small {
+    color: var(--text-muted);
+  }
+}
+
+.filters__note {
+  @include a.t-caption;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.filters__clear-origin {
+  padding: 0;
+  color: var(--accent-text);
+  background: none;
+  border: 0;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--accent);
+  }
+}
+
+.filters__locate-error {
+  @include a.t-caption;
+  margin: var(--space-1) 0 0;
+  color: var(--error-text);
+}
+
+// The caption and the geolocation refusal both arrive under a field the user has just used,
+// so they settle onto the line rather than being there already.
+.filters-note-enter {
+  animation: filters-note-enter var(--dur-fast) var(--ease-out);
+}
+
+@keyframes filters-note-enter {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--space-1)));
+  }
+}

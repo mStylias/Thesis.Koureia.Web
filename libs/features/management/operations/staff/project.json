@@ -1,0 +1,8 @@
+{
+  "name": "features-management-operations-staff",
+  "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/features/management/operations/staff/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["scope:app", "type:feature"]
+}

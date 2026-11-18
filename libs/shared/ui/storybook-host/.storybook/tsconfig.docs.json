@@ -1,0 +1,13 @@
+{
+  // Used only by compodoc to extract JSDoc from every design-system
+  // component into documentation.json, which feeds Storybook's autodocs
+  // API tables and component descriptions. Scans all libs/shared/ui/*
+  // sources; excludes specs and stories.
+  "extends": "../../../../../tsconfig.base.json",
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "emitDecoratorMetadata": true
+  },
+  "include": ["../../*/src/**/*.ts"],
+  "exclude": ["../../**/*.spec.ts", "../../**/*.stories.ts", "../../storybook-host/**"]
+}

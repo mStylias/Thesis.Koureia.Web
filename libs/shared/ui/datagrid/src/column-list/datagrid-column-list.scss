@@ -1,0 +1,80 @@
+@use 'abstracts' as a;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(3);
+}
+
+// A popover has no size of its own, so the list sets one.
+:host([data-presentation='popover']) {
+  width: 16rem;
+}
+
+// A panel does have one, and the list fills it: the columns scroll between a
+// search field and actions that stay put.
+:host([data-presentation='panel']) {
+  flex: 1;
+  min-height: 0;
+}
+
+.dg-chooser-search {
+  display: flex;
+}
+
+// Capped so a wide column set scrolls inside the popover instead of pushing
+// the actions off the bottom of the viewport.
+.dg-chooser-list {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(2);
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+
+  :host([data-presentation='popover']) & {
+    max-height: 15rem;
+  }
+
+  :host([data-presentation='panel']) & {
+    flex: 1;
+    min-height: 0;
+  }
+}
+
+// Indented by how many bands are above the column, so the nesting reads
+// without a line or a box around it.
+.dg-chooser-list > li {
+  padding-inline-start: calc(var(--dg-chooser-depth, 0) * #{a.space(3)});
+}
+
+.dg-chooser-band {
+  @include a.t-caption;
+
+  color: var(--text-muted);
+}
+
+// A band heading belongs to what follows it, not to what came before.
+.dg-chooser-band:not(:first-child) {
+  margin-block-start: a.space(1);
+}
+
+.dg-chooser-empty {
+  @include a.t-body-sm;
+
+  margin: 0;
+  color: var(--text-secondary);
+
+  :host([data-presentation='panel']) & {
+    flex: 1;
+  }
+}
+
+.dg-chooser-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: a.space(2);
+  padding-block-start: a.space(2);
+  border-block-start: var(--border-width-hairline) solid var(--border-subtle);
+}

@@ -1,0 +1,354 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.dg-cards-loading {
+  position: sticky;
+  top: 0;
+  z-index: a.z(sticky);
+  height: var(--border-width-strong);
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.dg-cards-loading::after {
+  content: '';
+  display: block;
+  width: 40%;
+  height: 100%;
+  background: var(--accent);
+  animation: dg-cards-indeterminate var(--dur-indeterminate) var(--ease-standard) infinite;
+}
+
+@keyframes dg-cards-indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(350%);
+  }
+}
+
+// Opacity only: the bar holds an edge and must not move while it fades.
+.dg-cards-loading-enter {
+  animation: dg-cards-loading-in var(--dur-base) var(--ease-out);
+}
+
+.dg-cards-loading-leave {
+  animation: dg-cards-loading-out var(--dur-fast) var(--ease-out);
+}
+
+@keyframes dg-cards-loading-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dg-cards-loading-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+// A forced-colors palette drops the accent, and the bar is state carried by
+// colour alone.
+@media (forced-colors: active) {
+  .dg-cards-loading::after {
+    background: Highlight;
+  }
+}
+
+// The column count follows the container, not the viewport: `auto-fill` fits as
+// many cards of at least the declared width as the grid is wide, so a card list
+// inside a narrow panel behaves like one on a phone without a second rule. The
+// inner `min()` keeps a single card from overflowing a container narrower than
+// the declared minimum.
+// One gutter drives the space between the cards and the space around them, so
+// a card sits the same distance from its neighbour as from every edge and the
+// two cannot drift apart.
+.dg-cards {
+  --dg-cards-gutter: #{a.space(3)};
+
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(var(--dg-card-min-width, 280px), 100%), 1fr));
+  gap: var(--dg-cards-gutter);
+  align-content: start;
+  padding: var(--dg-cards-gutter);
+}
+
+// A phone spends its width on the content, not on the frame around it.
+@include a.respond-down(sm) {
+  .dg-cards {
+    --dg-cards-gutter: #{a.space(2)};
+  }
+}
+
+// `article.dg-card` rather than `.dg-card`: `libCard` decorates this same
+// element and its `:host` rules carry the same specificity, so a bare class
+// would leave the layout depending on stylesheet order.
+article.dg-card {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(2);
+  min-width: 0;
+  padding: a.space(3);
+  // The card is the tab stop and the press target. The global `:focus-visible`
+  // rule draws the ring; nothing is restated here.
+  cursor: default;
+  transition: background var(--dur-fast) var(--ease-standard);
+}
+
+:host-context(lib-datagrid[data-hover]) article.dg-card:hover {
+  background: var(--surface-sunken);
+}
+
+article.dg-card[data-selected] {
+  background: var(--surface-sunken);
+  border-color: var(--accent);
+}
+
+.dg-card-header {
+  display: flex;
+  align-items: start;
+  gap: a.space(2);
+  min-width: 0;
+}
+
+.dg-card-heading {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+// The card's own type, rather than `@ui/card`'s: that scale is built for a
+// standalone content card, and this one is a row of a list a reader scans a
+// page of. It is still the heading — weight and colour carry that — at the
+// size the rest of the card is read at.
+.dg-card-title {
+  margin: 0;
+  min-width: 0;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-base);
+  line-height: var(--leading-snug);
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.dg-card-subtitle,
+.dg-card-meta {
+  @include a.t-body-sm;
+
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.dg-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.space(1) a.space(3);
+  margin: 0;
+}
+
+.dg-card-select {
+  flex: none;
+  margin-block-start: a.space(1);
+}
+
+.dg-card-expander {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  padding: a.space(1);
+  border: 0;
+  border-radius: a.radius(sm);
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.dg-card-chevron {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+
+.dg-card-chevron[data-expanded] {
+  transform: rotate(90deg);
+}
+
+// A field is two rows: the caption over its value. Side by side, the caption
+// takes width from the value on the screen that has the least of it, and a
+// description or an address then wraps into a column a few words wide. Stacked,
+// every value gets the whole card and the captions line up down the edge.
+// Two fields abreast at every width. A card is read as a block of facts rather
+// than a list of them, and two short values sitting on one line is what keeps
+// the card from growing a row per field. `minmax(0, 1fr)` is what lets a long
+// value wrap inside its column instead of widening it.
+.dg-card-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: a.space(2) a.space(3);
+  margin: 0;
+  min-width: 0;
+}
+
+// For the value that needs the whole card rather than half of it.
+.dg-card-field[data-wide] {
+  grid-column: 1 / -1;
+}
+
+.dg-card-field {
+  min-width: 0;
+}
+
+.dg-card-label {
+  @include a.t-caption;
+
+  color: var(--text-muted);
+}
+
+// Out of flow rather than hidden: the caption is the value's only name, so a
+// field that draws without one still has to carry it to a screen reader.
+.dg-card-label[data-clipped] {
+  position: absolute;
+  clip-path: inset(50%);
+}
+
+.dg-card-value {
+  @include a.t-body-sm;
+
+  margin: 0;
+  min-width: 0;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.dg-card-empty {
+  color: var(--text-muted);
+}
+
+.dg-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.space(2);
+  padding-block-start: a.space(2);
+}
+
+// A heading is not a card, so it takes the whole row of the flow rather than a
+// track of its own.
+.dg-card-group,
+.dg-card-detail {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.dg-card-group {
+  @include a.t-body-sm;
+
+  display: flex;
+  align-items: center;
+  gap: a.space(2);
+  position: sticky;
+  top: 0;
+  z-index: a.z(sticky);
+  margin: 0;
+  padding-block: a.space(2);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-weight: var(--weight-bold);
+}
+
+.dg-card-group-value {
+  color: var(--text-primary);
+}
+
+.dg-card-group-count,
+.dg-card-group-summary {
+  @include a.t-caption;
+
+  color: var(--text-muted);
+}
+
+.dg-summary-label {
+  color: var(--text-muted);
+}
+
+.dg-card-detail {
+  padding: a.space(3) a.space(4);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(lg);
+  background: var(--surface-2);
+}
+
+.dg-card-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(2);
+  padding: a.space(4);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(lg);
+}
+
+.dg-skeleton-bar {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  width: 60%;
+  height: 0.75em;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+}
+
+.dg-skeleton-title {
+  width: 45%;
+  height: 1.1em;
+}
+
+// A highlight crossing the placeholder, not a placeholder that pulses: a page
+// of cards changing opacity together reads as a blink. Matches the table's.
+.dg-skeleton-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, var(--surface-2), transparent);
+  animation: dg-card-skeleton-sweep var(--dur-indeterminate) linear infinite;
+}
+
+@keyframes dg-card-skeleton-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
+}
+
+// No entrance animation. A page of cards is what the screen is for, it is
+// drawn on first paint and on every page change, and motion there is a
+// sequence the reader waits out rather than a response to anything they did.
+
+@media (forced-colors: active) {
+  article.dg-card[data-selected] {
+    border-color: Highlight;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dg-card-chevron {
+    transition: none;
+  }
+}

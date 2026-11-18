@@ -1,0 +1,60 @@
+<lib-dialog
+  size="sm"
+  [(visible)]="visible"
+  [header]="'managementAppointments.cancel.title' | transloco"
+>
+  <div class="cancel-body">
+    <p class="cancel-summary">
+      {{ 'managementAppointments.cancel.message' | transloco: summary() }}
+    </p>
+
+    <label class="cancel-field" for="cancel-appointment-reason">
+      <span class="cancel-label">{{ 'managementAppointments.cancel.reason' | transloco }}</span>
+      <textarea
+        libTextarea
+        id="cancel-appointment-reason"
+        rows="3"
+        size="sm"
+        autoResize
+        aria-describedby="cancel-appointment-reason-hint"
+        [attr.maxlength]="reasonMaxLength"
+        [value]="reason()"
+        (input)="onReason($event)"
+      ></textarea>
+      <span class="cancel-hint" id="cancel-appointment-reason-hint">
+        {{ 'managementAppointments.cancel.reasonHint' | transloco }}
+      </span>
+    </label>
+
+    @if (hasEmail()) {
+      <div class="cancel-field">
+        <lib-checkbox ariaDescribedby="cancel-appointment-notify-hint" [(value)]="notify">
+          {{ 'managementAppointments.cancel.notify' | transloco }}
+        </lib-checkbox>
+        <span class="cancel-hint" id="cancel-appointment-notify-hint">
+          {{ 'managementAppointments.cancel.notifyHint' | transloco }}
+        </span>
+      </div>
+      <!-- Disabled rather than hidden: it says the reason can reach the email once there is one. -->
+      <lib-checkbox [disabled]="!includeEnabled()" [(value)]="includeReason">
+        {{ 'managementAppointments.cancel.includeReason' | transloco }}
+      </lib-checkbox>
+    }
+  </div>
+
+  <ng-template libDialogFooter>
+    <button
+      libButton
+      type="button"
+      severity="secondary"
+      variant="text"
+      [disabled]="busy()"
+      (click)="visible.set(false)"
+    >
+      {{ 'managementAppointments.cancel.back' | transloco }}
+    </button>
+    <button libButton type="button" severity="error" [loading]="busy()" (click)="confirm()">
+      {{ 'managementAppointments.cancel.confirm' | transloco }}
+    </button>
+  </ng-template>
+</lib-dialog>

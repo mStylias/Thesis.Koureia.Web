@@ -1,0 +1,131 @@
+// Token emission. Core owns which custom properties exist. A theme owns what values they hold,
+// and calls both mixins inside its own `:root` block. See `libs/themes/<brand>/src/_root.scss`.
+//
+// `scale-vars` is structural. Every map defaults to the core scale and every map is
+// overridable, so a brand that wants tighter spacing passes only that map.
+//
+// `brand-vars` is identity, and it has no defaults. A theme that forgets a ramp must fail to
+// compile instead of inheriting another brand's colors.
+@use '../abstracts/scale' as scale;
+
+@mixin scale-vars(
+  $spacing: scale.$spacing,
+  $radius: scale.$radius,
+  $border-width: scale.$border-width,
+  $text: scale.$text,
+  $duration: scale.$duration,
+  $easing: scale.$easing,
+  $container: scale.$container,
+  $dialog-size: scale.$dialog-size,
+  $dialog-height: scale.$dialog-height,
+  $component-size: scale.$component-size,
+  $opacity: scale.$opacity,
+  $icon-stroke: scale.$icon-stroke,
+  $icon-size: scale.$icon-size,
+  $z-index: scale.$z-index
+) {
+  @each $step, $value in $spacing {
+    --space-#{$step}: #{$value};
+  }
+
+  @each $size, $value in $radius {
+    --radius-#{$size}: #{$value};
+  }
+
+  // `--border-width-*`, not `--border-*`. The short name collides with the semantic border
+  // colors in a theme.
+  @each $name, $value in $border-width {
+    --border-width-#{$name}: #{$value};
+  }
+
+  // Sizes only. Leading, weight and tracking are brand character.
+  @each $size, $value in $text {
+    --text-#{$size}: #{$value};
+  }
+
+  @each $name, $value in $duration {
+    --dur-#{$name}: #{$value};
+  }
+  @each $name, $value in $easing {
+    --ease-#{$name}: #{$value};
+  }
+
+  @each $name, $value in $container {
+    --container-#{$name}: #{$value};
+  }
+  @each $size, $value in $dialog-size {
+    --dialog-size-#{$size}: #{$value};
+  }
+  @each $size, $value in $dialog-height {
+    --dialog-height-#{$size}: #{$value};
+  }
+
+  @each $name, $value in $component-size {
+    --#{$name}: #{$value};
+  }
+  // Breakpoints are not emitted, because `var()` is illegal inside `@media`. Use the
+  // `respond()` mixin or a Tailwind variant.
+
+  @each $name, $value in $opacity {
+    --opacity-#{$name}: #{$value};
+  }
+
+  --icon-stroke: #{$icon-stroke};
+  @each $size, $value in $icon-size {
+    --icon-size-#{$size}: #{$value};
+  }
+
+  @each $layer, $value in $z-index {
+    --z-#{$layer}: #{$value};
+  }
+}
+
+@mixin brand-vars(
+  $brand,
+  $neutral,
+  $paper,
+  $semantic,
+  $swatch,
+  $shadow,
+  $font-display,
+  $font-sans,
+  $font-mono,
+  $leading,
+  $weight,
+  $tracking
+) {
+  --font-display: #{$font-display};
+  --font-sans: #{$font-sans};
+  --font-mono: #{$font-mono};
+
+  @each $step, $value in $brand {
+    --brand-#{$step}: #{$value};
+  }
+
+  @each $step, $value in $neutral {
+    --neutral-#{$step}: #{$value};
+  }
+  --paper: #{$paper};
+
+  @each $name, $value in $semantic {
+    --#{$name}: #{$value};
+  }
+
+  @each $step, $value in $swatch {
+    --swatch-#{$step}: #{$value};
+  }
+
+  @each $name, $value in $leading {
+    --leading-#{$name}: #{$value};
+  }
+  @each $name, $value in $weight {
+    --weight-#{$name}: #{$value};
+  }
+  @each $name, $value in $tracking {
+    --tracking-#{$name}: #{$value};
+  }
+
+  @each $level, $value in $shadow {
+    --shadow-#{$level}: #{$value};
+  }
+}

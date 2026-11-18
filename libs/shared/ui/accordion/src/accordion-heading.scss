@@ -1,0 +1,10 @@
+// The divider above each item is NOT here: the element separating one item
+// from the next belongs to the consumer (the documented `<section>` wrapper,
+// or the heading itself in an unwrapped layout), so it lives in the global
+// partial `styles/src/components/_accordion.scss`.
+
+:host {
+  display: block;
+  margin: 0;
+  font: inherit;
+}

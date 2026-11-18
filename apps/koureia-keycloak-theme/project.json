@@ -1,0 +1,70 @@
+{
+  "name": "koureia-keycloak-theme",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "kc",
+  "sourceRoot": "apps/koureia-keycloak-theme/src",
+  "tags": ["type:app", "scope:auth"],
+  "targets": {
+    "build": {
+      "executor": "@analogjs/platform:vite",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "dist/apps/koureia-keycloak-theme",
+        "main": "apps/koureia-keycloak-theme/src/main.ts",
+        "tsConfig": "apps/koureia-keycloak-theme/tsconfig.app.json",
+        "configFile": "apps/koureia-keycloak-theme/vite.config.ts"
+      },
+      "configurations": {
+        "production": {
+          "mode": "production",
+          "sourcemap": false
+        },
+        "development": {
+          "mode": "development"
+        }
+      }
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@analogjs/platform:vite-dev-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "koureia-keycloak-theme:build",
+        "port": 4300
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "koureia-keycloak-theme:build:production"
+        },
+        "development": {
+          "buildTarget": "koureia-keycloak-theme:build:development"
+        }
+      }
+    },
+    "test": {
+      "executor": "@nx/vitest:test",
+      "options": {
+        "configFile": "apps/koureia-keycloak-theme/vitest.config.mts",
+        "watch": false
+      }
+    },
+    "build-keycloak-theme": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "outputs": ["{workspaceRoot}/dist/apps/koureia-keycloak-theme_keycloak"],
+      "options": {
+        "command": "node tools/keycloak-theme/build.mjs"
+      }
+    },
+    "deploy-local": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "dependsOn": ["build-keycloak-theme"],
+      "options": {
+        "command": "node tools/keycloak-theme/deploy-local.mjs"
+      }
+    }
+  }
+}

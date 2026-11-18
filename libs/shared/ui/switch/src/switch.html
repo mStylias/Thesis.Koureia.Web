@@ -1,0 +1,27 @@
+<label class="switch">
+  <!--
+    Required is exposed as aria-required, never the native attribute: the
+    native one blocks the submit event outright and raises an OS-locale
+    bubble over the form's own translated message.
+  -->
+  <input
+    #nativeInput
+    class="switch-input"
+    type="checkbox"
+    role="switch"
+    [checked]="value()"
+    [disabled]="disabled()"
+    [attr.id]="inputId() || null"
+    [attr.name]="name() || null"
+    [attr.aria-label]="ariaLabel() || null"
+    [attr.aria-labelledby]="ariaLabelledby() || null"
+    [attr.aria-describedby]="ariaDescribedby() || null"
+    [attr.aria-required]="required() ? true : null"
+    [attr.aria-invalid]="invalid() ? true : null"
+    (change)="onChange($event)"
+  />
+  <span class="switch-track" aria-hidden="true">
+    <span class="switch-thumb"></span>
+  </span>
+  <span class="switch-label"><ng-content /></span>
+</label>

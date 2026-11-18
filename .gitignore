@@ -33,7 +33,6 @@ yarn-error.log
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-!.vscode/mcp.json
 .history/*
 
 # Miscellaneous
@@ -54,15 +53,6 @@ Thumbs.db
 
 vitest.config.*.timestamp*
 
-# Claude skills symlinks
-/.claude/skills/
-
 # Local environment files â€” Nx loads them, and they hold development secrets
 .env.local
 .env.*.local
-
-# Claude Code instructions symlink to AGENTS.md
-/CLAUDE.md
-
-# Per-developer Claude Code files
-personal.claude.md

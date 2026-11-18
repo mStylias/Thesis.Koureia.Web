@@ -1,0 +1,114 @@
+@use 'abstracts' as a;
+
+// Consumes the design-system CSS custom properties emitted by the
+// shared @ui styles. Keyboard focus styling is
+// on the rows (menu-node.scss); reduced motion is handled by the base
+// layer, which neutralises the CSS animations below.
+
+// The metrics live on the host so a row can read them: `lib-menu-node` is a
+// child component, and a submenu's panel is in an overlay of its own, which is
+// why density is also an input rather than only these properties.
+:host {
+  display: block;
+  --menu-width: var(--menu-min-width);
+  --menu-gap: var(--space-1);
+  --menu-row-pad-y: var(--space-2);
+  --menu-row-pad-x: var(--space-3);
+  --menu-row-gap: var(--space-2);
+  --menu-text: var(--text-base);
+}
+
+// One control's options rather than a command list: the rows lose the height
+// that separates unrelated commands, and the panel stops reserving width for
+// shortcut columns it does not have.
+:host([data-density='compact']) {
+  --menu-width: var(--menu-min-width-compact);
+  --menu-gap: 0px;
+  --menu-row-pad-y: var(--space-1);
+  --menu-row-pad-x: var(--space-2);
+  --menu-row-gap: var(--space-2);
+  --menu-text: var(--text-sm);
+}
+
+.menu {
+  box-sizing: border-box;
+  min-width: var(--menu-width);
+  padding: var(--space-1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--menu-gap);
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--menu-text);
+  line-height: var(--leading-snug);
+  outline: none;
+  // The panel grows out of the corner it was anchored to; top left is
+  // the common case (context menus open below-right of the pointer).
+  transform-origin: top left;
+  // Plain CSS animation instead of `animate.enter`: submenus re-show
+  // by toggling `data-visible` (display) without re-entering the DOM,
+  // and the animation restarts on every display change either way.
+  animation: menu-in var(--dur-fast) var(--ease-out);
+
+  // The aria pattern toggles submenu visibility with this attribute.
+  &[data-visible='false'] {
+    display: none;
+  }
+}
+
+// Exit plays while the hosting overlay waits on `animateOut()`;
+// exits run ~20% faster than the enter.
+:host([data-closing]) .menu {
+  animation: menu-out calc(var(--dur-fast) * 0.8) var(--ease-out) forwards;
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+@keyframes menu-out {
+  to {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+.menu-separator {
+  margin: var(--menu-row-pad-y) 0;
+  border-top: var(--border-width-hairline) solid var(--border);
+}
+
+.menu-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--menu-row-gap);
+  padding: var(--menu-row-pad-y) var(--menu-row-pad-x) var(--space-1);
+  @include a.t-label;
+  user-select: none;
+}
+
+// A heading and its rows. The column repeats the panel's, so the rows keep their spacing.
+.menu-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--menu-gap);
+}
+
+// Tighten the top padding when a heading is the first row.
+.menu-group:first-child > .menu-heading {
+  padding-top: var(--space-1);
+}
+
+.menu-heading-icon {
+  flex-shrink: 0;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  stroke-width: var(--icon-stroke);
+}

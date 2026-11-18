@@ -1,0 +1,27 @@
+<lib-chart-grid>
+  <lib-chart-card
+    [heading]="'managementDashboard.charts.services.bookingsPerService.title' | transloco"
+    [skeleton]="{ kind: 'bars-horizontal', count: bookingsRows(), legend: 3 }"
+    [set]="bookingsSet()"
+    [option]="bookings()"
+    [context]="context()"
+    [labels]="bookingsLabels()"
+    [height]="height()"
+    [loading]="entry().loading"
+    [failed]="entry().failed"
+    (retry)="retry.emit()"
+  />
+
+  <lib-chart-card
+    [heading]="'managementDashboard.charts.services.revenuePerService.title' | transloco"
+    [skeleton]="{ kind: 'treemap' }"
+    [set]="data()?.revenuePerService"
+    [option]="revenue()"
+    [context]="context()"
+    [labels]="revenueLabels()"
+    [height]="height()"
+    [loading]="entry().loading"
+    [failed]="entry().failed"
+    (retry)="retry.emit()"
+  />
+</lib-chart-grid>

@@ -1,0 +1,41 @@
+:host {
+  display: contents;
+}
+
+.link-email-actions {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: stretch;
+}
+
+.link-email-actions p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  text-align: center;
+}
+
+a[libButton] {
+  width: 100%;
+}
+
+/* Quieter than the resend, which is what most people on this page actually need. */
+a[libButton][data-variant='text'] {
+  justify-self: center;
+  width: auto;
+}
+
+.message {
+  margin-bottom: var(--space-3);
+}
+
+@media (min-width: 64rem) and (min-height: 48rem) {
+  .link-email-actions {
+    gap: var(--space-3);
+  }
+
+  .message {
+    margin-bottom: var(--space-5);
+  }
+}

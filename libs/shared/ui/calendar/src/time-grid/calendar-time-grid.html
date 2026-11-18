@@ -1,0 +1,133 @@
+@let todayLabel = 'calendar.today' | uiCopy | transloco;
+@let closedLabel = 'calendar.closed' | uiCopy | transloco;
+@let moreTitle = 'calendar.moreTitle' | uiCopy | transloco;
+@let slotMinutes = selectedSlotMinutes();
+@let now = clock();
+
+<div #scroller class="tg-scroller" (scroll)="onScroll()">
+  <div class="tg-table">
+    <div class="tg-corner" aria-hidden="true"></div>
+    @for (column of rows(); track column.key) {
+      <div class="tg-head" [attr.data-today]="column.today ? '' : null">
+        @if (column.resource; as resource) {
+          <span class="tg-head-dot" [attr.data-swatch]="resource.swatch" aria-hidden="true"></span>
+        }
+        <span class="tg-head-text">{{ column.heading }}</span>
+        @if (column.closed) {
+          <span class="tg-head-closed">{{ closedLabel }}</span>
+        }
+      </div>
+    }
+
+    <!-- Hour labels. Hidden from the tree: each tile and each slot already
+         says its own time. -->
+    <div #gutter class="tg-gutter" aria-hidden="true">
+      @for (hour of hourLabels(); track hour.hour) {
+        <span class="tg-hour" [style.--tg-hour-index]="hour.hour">{{ hour.label }}</span>
+      }
+    </div>
+
+    @for (column of rows(); track column.key) {
+      @let selectedHere = hasSelectedSlot(column);
+      <!-- A focusable group rather than a grid: the slots are not cells the
+           reader walks, they are a time the arrow keys pick. -->
+      <div
+        class="tg-col"
+        role="group"
+        tabindex="0"
+        [attr.aria-label]="
+          column.label +
+          (column.today ? ', ' + todayLabel : '') +
+          (column.closed ? ', ' + closedLabel : '')
+        "
+        [attr.aria-describedby]="hintId"
+        [attr.data-today]="column.today ? '' : null"
+        [attr.data-closed]="column.closed ? '' : null"
+        (click)="onColumnClick(column, $event)"
+        (dblclick)="onColumnDoubleClick(column, $event)"
+        (keydown)="onColumnKeydown(column, $event)"
+      >
+        @for (band of column.bands; track band.start) {
+          <div
+            class="tg-band"
+            aria-hidden="true"
+            [style.--band-start]="band.start"
+            [style.--band-end]="band.end"
+          ></div>
+        }
+        @if (selectedHere && slotMinutes !== null) {
+          <!-- A click fades the band in; the arrow keys move it without motion. -->
+          <div
+            #slotBand
+            class="tg-slot"
+            aria-hidden="true"
+            [attr.data-fade]="slotFade()"
+            [style.--band-start]="slotMinutes"
+            [style.--band-end]="slotMinutes + timeScale()"
+          ></div>
+        }
+        @if (column.today) {
+          <div class="tg-now" aria-hidden="true" [style.--now]="now.minutes"></div>
+        }
+        @for (tile of column.tiles; track tile.event.id) {
+          <button
+            #tileRef="libCalendarTile"
+            type="button"
+            libCalendarTile
+            [attr.aria-label]="tileRef.label()"
+            [event]="tile.event"
+            [resource]="tile.resource"
+            [locale]="locale()"
+            [selected]="tile.event.id === selectedEventId()"
+            [showResource]="column.resourceId === null"
+            [showTime]="showTime()"
+            [resourceLabel]="resourceLabel()"
+            [style.--tile-start]="tile.layout.start"
+            [style.--tile-end]="tile.layout.end"
+            [style.--tile-column]="tile.layout.column"
+            [style.--tile-columns]="tile.layout.columns"
+            animate.enter="tile-enter"
+            (click)="onTileClick(tile, $event)"
+            (dblclick)="onTileDoubleClick($event)"
+          ></button>
+        }
+        @for (chip of column.overflow; track chip.key) {
+          <button
+            #moreTrigger="libPopoverTrigger"
+            type="button"
+            class="tg-more"
+            [libPopoverTriggerFor]="moreList"
+            [popoverAriaLabel]="moreTitle"
+            [attr.aria-label]="
+              'calendar.moreLabel'
+                | uiCopy
+                | transloco
+                  : {
+                      count: chip.events.length,
+                      start: timeText(chip.start),
+                      end: timeText(chip.end),
+                    }
+            "
+            [style.--band-start]="chip.start"
+            (dblclick)="onTileDoubleClick($event)"
+          >
+            {{ 'calendar.more' | uiCopy | transloco: { count: chip.events.length } }}
+          </button>
+          <ng-template #moreList>
+            <lib-calendar-more-popover
+              [events]="chip.events"
+              [resources]="resources()"
+              [locale]="locale()"
+              [selectedEventId]="selectedEventId()"
+              [resourceLabel]="resourceLabel()"
+              (eventOpen)="onMoreOpen($event, moreTrigger)"
+            />
+          </ng-template>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+<p class="tg-sr" [id]="hintId">{{ 'calendar.columnHint' | uiCopy | transloco }}</p>
+<div class="tg-sr" aria-live="polite">{{ liveText() }}</div>

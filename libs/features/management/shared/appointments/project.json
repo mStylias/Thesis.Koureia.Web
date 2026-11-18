@@ -1,0 +1,8 @@
+{
+  "name": "features-management-shared-appointments",
+  "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/features/management/shared/appointments/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["scope:app", "type:feature"]
+}

@@ -1,0 +1,95 @@
+// The narrowest rows that hold 2, 3 and 6 tiles with their gaps, where 123.456,70 € fills a tile
+// at the smallest figure size. The row width counts, not the viewport: the sidebar takes its part.
+// A 360px phone has a row of 19.2rem at the 17px root size, so it holds 2 tiles.
+$kpi-row-2: 17.25rem;
+$kpi-row-3: 26.25rem;
+$kpi-row-6: 53rem;
+
+// The page scrolls inside the shell's main area, as the other management pages do. The shell
+// pads the page, so the inline padding only keeps the focus rings inside the scroll box.
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  height: 100%;
+  padding: var(--space-1) var(--space-1) var(--space-6);
+  overflow-y: auto;
+}
+
+.dashboard-kpis {
+  container: dashboard-kpis / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+// The row puts as many tiles on a line as their figures let it: 1, 2, 3 or all 6.
+.kpi-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  transition: opacity var(--dur-base) var(--ease-standard);
+
+  &.is-dim {
+    opacity: 0.55;
+  }
+
+  > li {
+    min-width: 0;
+  }
+}
+
+@container dashboard-kpis (width >= #{$kpi-row-2}) {
+  .kpi-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container dashboard-kpis (width >= #{$kpi-row-3}) {
+  .kpi-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@container dashboard-kpis (width >= #{$kpi-row-6}) {
+  .kpi-row {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+.dashboard-tabs {
+  display: block;
+  min-width: 0;
+}
+
+// A shorter strip than the default. A tab stays 2.1rem tall, above the 24px target size.
+lib-tab {
+  padding-block: var(--space-2);
+}
+
+// The cards start right under the strip.
+lib-tab-panel {
+  display: block;
+  padding: var(--space-3) 0 0;
+}
+
+.dashboard-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+// The global ring is a shadow, which the forced palette drops.
+@media (forced-colors: active) {
+  .dashboard-kpis:focus-visible {
+    outline: 2px solid Highlight;
+  }
+}

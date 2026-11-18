@@ -1,0 +1,77 @@
+<lib-chart-grid>
+  <lib-chart-card
+    [heading]="'managementDashboard.charts.demand.appointmentsByStatus.title' | transloco"
+    [skeleton]="{ kind: 'bars', count: 12, legend: 5 }"
+    [height]="chartHeight"
+    [set]="data()?.appointmentsByStatus"
+    [option]="byStatus()"
+    [context]="context()"
+    [loading]="entry().loading"
+    [failed]="entry().failed"
+    (retry)="retry.emit()"
+  />
+
+  <lib-chart-card
+    [heading]="'managementDashboard.charts.demand.bookingSource.title' | transloco"
+    [skeleton]="{ kind: 'donut', legend: 2 }"
+    [height]="chartHeight"
+    [set]="data()?.bookingSource"
+    [option]="source()"
+    [context]="context()"
+    [loading]="entry().loading"
+    [failed]="entry().failed"
+    (retry)="retry.emit()"
+  />
+
+  <lib-chart-card
+    [heading]="'managementDashboard.charts.demand.upcomingLoad.title' | transloco"
+    [note]="'managementDashboard.charts.demand.upcomingLoad.note' | transloco"
+    [skeleton]="{ kind: 'bars', count: 14 }"
+    [height]="chartHeight"
+    [set]="data()?.upcomingLoad"
+    [option]="upcoming()"
+    [context]="context()"
+    [loading]="entry().loading"
+    [failed]="entry().failed"
+    (retry)="retry.emit()"
+  />
+
+  <lib-chart-card
+    [heading]="'managementDashboard.charts.demand.busiestHours.title' | transloco"
+    [skeleton]="{ kind: 'bars', count: 12 }"
+    [height]="chartHeight"
+    [set]="data()?.busiestHours"
+    [option]="busiest()"
+    [context]="context()"
+    [labels]="busiestLabels()"
+    [loading]="entry().loading"
+    [failed]="entry().failed"
+    (retry)="retry.emit()"
+  />
+
+  <lib-chart-card
+    [heading]="'managementDashboard.charts.demand.busyHeatmap.title' | transloco"
+    [skeleton]="{ kind: 'heatmap', count: 7 }"
+    [height]="heatmapRowHeight()"
+    [set]="data()?.busyHeatmap"
+    [option]="heatmap()"
+    [context]="context()"
+    [labels]="heatmapLabels()"
+    [seriesName]="heatmapColumns()"
+    [loading]="entry().loading"
+    [failed]="entry().failed"
+    (retry)="retry.emit()"
+  />
+
+  <lib-chart-card
+    [heading]="'managementDashboard.charts.demand.bookingLeadTime.title' | transloco"
+    [skeleton]="{ kind: 'bars-horizontal', count: leadTimeRows(), legend: 2 }"
+    [height]="heatmapRowHeight()"
+    [set]="data()?.bookingLeadTime"
+    [option]="leadTime()"
+    [context]="context()"
+    [loading]="entry().loading"
+    [failed]="entry().failed"
+    (retry)="retry.emit()"
+  />
+</lib-chart-grid>

@@ -1,0 +1,17 @@
+// The sidebar rules that must reach projected content, the app-authored brand template, which
+// emulated encapsulation cannot style from the component. They sit under the component's
+// selector. Every other rule is in the component's own SCSS.
+
+// The brand text fades with the rail, so it uses the same `--sidebar-copy-transition` the
+// component defines and redefines under `[data-collapsed]`. Paired elements must move as one.
+// The value inherits from the host, so nothing repeats it here.
+lib-sidebar .sidebar-brand [libSidebarBrandText] {
+  white-space: nowrap;
+  transition: var(--sidebar-copy-transition);
+}
+
+// In the collapsed rail the brand text fades out and the `.sidebar-brand` wrapper clips it.
+// The brand icon stays where it was, on the same column as the option icons below.
+lib-sidebar[data-collapsed] .sidebar-brand [libSidebarBrandText] {
+  opacity: 0;
+}

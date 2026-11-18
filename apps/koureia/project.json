@@ -1,0 +1,115 @@
+{
+  "name": "koureia",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "app",
+  "sourceRoot": "apps/koureia/src",
+  "tags": ["scope:app", "type:app"],
+  "generators": {
+    "@schematics/angular:component": {
+      "style": "scss"
+    }
+  },
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "dist/apps/koureia",
+        "browser": "apps/koureia/src/main.ts",
+        "tsConfig": "apps/koureia/tsconfig.app.json",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/koureia/public"
+          },
+          {
+            "glob": "maplibre-gl-worker.mjs*",
+            "input": "node_modules/maplibre-gl/dist",
+            "output": "maplibre"
+          },
+          {
+            "glob": "maplibre-gl-shared.mjs*",
+            "input": "node_modules/maplibre-gl/dist",
+            "output": "maplibre"
+          }
+        ],
+        "styles": ["libs/shared/styles/src/tailwind.css", "libs/themes/koureia/src/main.scss"],
+        "stylePreprocessorOptions": {
+          "includePaths": ["libs/shared/styles/src"]
+        },
+        "inlineStyleLanguage": "scss",
+        "allowedCommonJsDependencies": ["maplibre-gl"],
+        "server": "apps/koureia/src/main.server.ts",
+        "outputMode": "server",
+        "security": {
+          "allowedHosts": ["koureia.gr", "www.koureia.gr", "localhost", "127.0.0.1"]
+        },
+        "ssr": {
+          "entry": "apps/koureia/src/server.ts"
+        }
+      },
+      "configurations": {
+        "production": {
+          "fileReplacements": [
+            {
+              "replace": "apps/koureia/src/environments/environment.ts",
+              "with": "apps/koureia/src/environments/environment.prod.ts"
+            }
+          ],
+          "optimization": {
+            "scripts": true,
+            "fonts": true,
+            "styles": {
+              "minify": true,
+              "inlineCritical": false
+            }
+          },
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kB",
+              "maximumError": "1MB"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "4kB",
+              "maximumError": "8kB"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      }
+    },
+    "serve": {
+      "executor": "@angular/build:dev-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "port": 6100,
+        "host": "127.0.0.1",
+        "allowedHosts": ["localhost"]
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "koureia:build:production"
+        },
+        "development": {
+          "buildTarget": "koureia:build:development"
+        }
+      }
+    },
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "tsConfig": "apps/koureia/tsconfig.spec.json",
+        "buildTarget": "koureia:build:development"
+      }
+    }
+  }
+}

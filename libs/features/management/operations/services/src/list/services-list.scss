@@ -1,0 +1,13 @@
+// The grid owns the height and scrolls its own viewport. `min-height: 0` on both the host and
+// the grid lets it shrink inside the shell's flex column, so the header stays pinned.
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.services-grid {
+  flex: 1;
+  min-height: 0;
+}

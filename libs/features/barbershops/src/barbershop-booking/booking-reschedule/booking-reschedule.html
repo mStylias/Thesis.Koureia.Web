@@ -1,0 +1,33 @@
+<table class="compare">
+  <caption class="compare__caption">
+    {{
+      'barbershops.booking.reschedule.compare' | transloco
+    }}
+  </caption>
+  <thead>
+    <tr>
+      <td></td>
+      <th scope="col">{{ 'barbershops.booking.reschedule.before' | transloco }}</th>
+      <th scope="col">{{ 'barbershops.booking.reschedule.after' | transloco }}</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (row of rows(); track row.label) {
+      <tr [attr.data-changed]="row.before !== row.after ? '' : null">
+        <th scope="row">{{ row.label | transloco }}</th>
+        <td class="compare__before">{{ row.before }}</td>
+        <td class="compare__after">
+          @if (row.afterKey) {
+            {{ row.afterKey | transloco }}
+          } @else if (row.after) {
+            {{ row.after }}
+          } @else {
+            <span class="compare__empty">
+              {{ 'barbershops.booking.reschedule.notChosen' | transloco }}
+            </span>
+          }
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>

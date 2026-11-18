@@ -1,0 +1,69 @@
+@let title = 'datagrid.chooser.title' | uiCopy | transloco;
+@let label = title + ' (' + visibleCount() + '/' + totalCount() + ')';
+
+<!-- One body for both triggers. They differ only in what they open, and a
+     button cannot carry the popover's ARIA and the panel's at once. -->
+<ng-template #triggerContent>
+  <svg lucideColumns3 aria-hidden="true"></svg>
+  <!-- The caption and the count are text rather than an `aria-label`: a label
+       that replaces the visible one gives the button two different names. Icon
+       mode clips the same text instead of dropping it, so the button keeps one
+       name and the count keeps reporting the state the trigger exists to show.
+       It shows even at the full count, so the label does not gain and lose a
+       suffix. -->
+  <span class="dg-chooser-label" [class.dg-chooser-label-clipped]="iconOnly()">
+    {{ title }}
+    <span class="dg-chooser-count">({{ visibleCount() }}/{{ totalCount() }})</span>
+  </span>
+</ng-template>
+
+@if (resolvedPresentation() === 'panel') {
+  <button
+    libButton
+    type="button"
+    severity="secondary"
+    size="sm"
+    [variant]="variant()"
+    [iconOnly]="iconOnly()"
+    [libTooltip]="label"
+    [tooltipDisabled]="!iconOnly()"
+    [attr.aria-expanded]="panelOpen()"
+    [attr.aria-controls]="panelOpen() ? panelId : null"
+    (click)="togglePanel()"
+  >
+    <ng-container [ngTemplateOutlet]="triggerContent" />
+  </button>
+
+  @if (!hostPanel) {
+    <lib-floating-panel
+      [panelId]="panelId"
+      [(open)]="ownPanelOpen"
+      [header]="title"
+      [insetTop]="panelInsetTop"
+      [dockBelow]="hostElement"
+    >
+      <ng-template libFloatingPanelContent>
+        <lib-datagrid-column-list presentation="panel" [columns]="columns()" [(hidden)]="hidden" />
+      </ng-template>
+    </lib-floating-panel>
+  }
+} @else {
+  <button
+    libButton
+    type="button"
+    severity="secondary"
+    size="sm"
+    [variant]="variant()"
+    [iconOnly]="iconOnly()"
+    [libTooltip]="label"
+    [tooltipDisabled]="!iconOnly()"
+    [libPopoverTriggerFor]="popover"
+    [popoverAriaLabel]="title"
+  >
+    <ng-container [ngTemplateOutlet]="triggerContent" />
+  </button>
+}
+
+<ng-template #popover>
+  <lib-datagrid-column-list [columns]="columns()" [(hidden)]="hidden" />
+</ng-template>

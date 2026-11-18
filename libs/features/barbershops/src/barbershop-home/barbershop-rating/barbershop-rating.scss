@@ -1,0 +1,36 @@
+:host {
+  display: block;
+}
+
+.rating {
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.rating__visible {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+}
+
+.rating__star {
+  color: var(--accent-text);
+}
+
+.rating__average {
+  color: var(--text-primary);
+  font-weight: var(--weight-bold);
+}
+
+.rating__count {
+  color: var(--text-secondary);
+}
+
+// A label, not a score: the shop has too few reviews for an average to mean anything.
+.rating--new {
+  padding: 0 var(--space-2);
+  border: var(--border-width-hairline) solid var(--accent-subtle-border);
+  border-radius: var(--radius-pill);
+  background: var(--accent-subtle);
+  color: var(--accent-text);
+}

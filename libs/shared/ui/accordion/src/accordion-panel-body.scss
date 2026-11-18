@@ -1,0 +1,9 @@
+:host {
+  display: block;
+  min-block-size: 0;
+  overflow: hidden;
+}
+
+.accordion-panel-body-content {
+  padding: 0 var(--space-5) var(--space-5);
+}

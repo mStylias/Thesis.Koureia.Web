@@ -1,0 +1,188 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: var(--bg);
+}
+
+.shop-page {
+  display: block;
+}
+
+.hero {
+  @include a.container;
+  display: grid;
+  gap: var(--space-6);
+  padding-block: var(--space-6) var(--space-12);
+}
+
+// A shop with no photo at all still opens on something the size of a photo, not on a gap.
+.hero__placeholder {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  border-radius: a.radius(lg);
+  background: var(--surface-2);
+  color: var(--text-muted);
+
+  svg {
+    width: var(--icon-size-lg);
+    height: var(--icon-size-lg);
+  }
+}
+
+.hero__summary {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.hero__heading {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.hero__identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+// A square, as the API stores it, and the same tile as on My company.
+.hero__logo {
+  flex-shrink: 0;
+  inline-size: var(--company-logo-size);
+  block-size: var(--company-logo-size);
+  border-radius: a.radius(lg);
+  object-fit: cover;
+  background: var(--surface-2);
+}
+
+.hero__title {
+  @include a.t-h1;
+  min-inline-size: 0;
+}
+
+.hero__snapshot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-5);
+  color: var(--text-secondary);
+}
+
+.hero__place {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    color: var(--accent-text);
+  }
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.hero__cta,
+.hero__map,
+.shop-section__cta {
+  gap: var(--space-2);
+}
+
+// The hero's call to action again, where a reader who scrolled ends a section.
+.shop-section__cta {
+  justify-self: start;
+}
+
+// A band across the page. The landing page's sections set the rhythm: the band carries the
+// surface, and the content keeps to the page column.
+.shop-section {
+  padding-block: var(--space-12);
+  border-block-start: var(--border-width-hairline) solid var(--border);
+}
+
+.shop-section__inner {
+  @include a.container;
+  display: grid;
+  gap: var(--space-8);
+}
+
+// Left-aligned, unlike the landing page's centred headings: this page is read, not pitched.
+.shop-section__heading {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.shop-section__eyebrow {
+  @include a.t-label;
+  color: var(--accent-text);
+}
+
+.shop-section__title {
+  @include a.t-h2;
+  text-wrap: balance;
+}
+
+// The team sits on the alternate surface, so the three bands never read as one long list.
+.shop-section--barbers {
+  background: var(--surface-2);
+}
+
+// The last band closes the page with the room the landing sections leave below themselves.
+.shop-section--location {
+  padding-block-end: var(--space-16);
+}
+
+.shop-message {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: var(--space-4);
+  min-height: 100dvh;
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.shop-message__icon {
+  width: var(--icon-size-lg);
+  height: var(--icon-size-lg);
+  color: var(--text-muted);
+}
+
+.shop-message__title {
+  @include a.t-h2;
+}
+
+.shop-message__lead {
+  max-width: 42ch;
+  color: var(--text-secondary);
+}
+
+@include a.respond(md) {
+  .shop-section {
+    padding-block: var(--space-16);
+  }
+
+  .shop-section--location {
+    padding-block-end: var(--space-20);
+  }
+
+  .hero__placeholder {
+    aspect-ratio: auto;
+    height: var(--gallery-mosaic-height);
+  }
+
+  // The title and the call to action share one row: the name reads first, and the action sits
+  // where the eye ends the line.
+  .hero__summary {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
+}

@@ -1,0 +1,125 @@
+<lib-dialog
+  size="md"
+  [(visible)]="visible"
+  [header]="'managementCustomers.merge.title' | transloco"
+>
+  @if (step() === 1) {
+    <div class="merge-step">
+      <p class="merge-text" id="merge-pick-label">
+        {{ 'managementCustomers.merge.pick' | transloco: { name: customer().displayName } }}
+      </p>
+      <lib-autocomplete
+        size="sm"
+        showClear
+        [key]="'id'"
+        ariaLabelledby="merge-pick-label"
+        [source]="candidates"
+        [displayWith]="displayName"
+        [placeholder]="'managementCustomers.merge.search' | transloco"
+        [noDataMessage]="'managementCustomers.merge.none' | transloco"
+        [(value)]="search"
+        (selectionChange)="onPick($event)"
+      >
+        <ng-template libAutocompleteOption let-candidate>
+          <span class="merge-option">
+            {{ candidate.displayName }}
+            <span class="merge-meta">
+              @if (candidate.phoneNumber) {
+                {{ candidate.phoneNumber }} ·
+              }
+              @if (candidate.email) {
+                {{ candidate.email }} ·
+              }
+              {{ 'managementCustomers.merge.visits' | transloco: { count: candidate.visitCount } }}
+            </span>
+          </span>
+        </ng-template>
+      </lib-autocomplete>
+      @if (otherFailed()) {
+        <lib-banner tone="error" role="alert">{{ otherFailed() }}</lib-banner>
+      }
+    </div>
+  } @else if (other(); as removed) {
+    <div class="merge-step">
+      <p class="merge-text">{{ 'managementCustomers.merge.choose' | transloco }}</p>
+
+      @for (row of rows(); track row.field) {
+        <fieldset class="merge-row">
+          <legend class="merge-legend">
+            {{ 'managementCustomers.merge.fields.' + row.field | transloco }}
+          </legend>
+          <lib-radio-group
+            variant="card"
+            size="sm"
+            orientation="horizontal"
+            [options]="options(row)"
+            [value]="choices()[row.field]"
+            [ariaLabel]="'managementCustomers.merge.fields.' + row.field | transloco"
+            (valueChange)="choose(row.field, $event)"
+          />
+        </fieldset>
+      }
+
+      @if (note()) {
+        <section class="merge-section" aria-labelledby="merge-note-title">
+          <h3 class="merge-legend" id="merge-note-title">
+            {{ 'managementCustomers.merge.note' | transloco }}
+          </h3>
+          <p class="merge-note">{{ note() }}</p>
+        </section>
+      }
+
+      <p class="merge-text">
+        {{
+          'managementCustomers.merge.moves'
+            | transloco: { visits: removed.visitCount, upcoming: removed.upcomingCount }
+        }}
+      </p>
+
+      @if (staysBlocked()) {
+        <p class="merge-text">{{ 'managementCustomers.merge.staysBlocked' | transloco }}</p>
+      }
+
+      @if (noteTooLong()) {
+        <p class="merge-error" role="alert">
+          {{ 'managementCustomers.merge.noteTooLong' | transloco }}
+        </p>
+      }
+
+      <lib-banner tone="error" role="note">
+        {{ 'managementCustomers.merge.irreversible' | transloco }}
+      </lib-banner>
+    </div>
+  }
+
+  <ng-template libDialogFooter>
+    @if (step() === 2 && !otherId()) {
+      <button
+        libButton
+        type="button"
+        class="merge-back"
+        severity="secondary"
+        variant="text"
+        [disabled]="submitting()"
+        (click)="back()"
+      >
+        {{ 'managementCustomers.merge.back' | transloco }}
+      </button>
+    }
+    <button
+      libButton
+      type="button"
+      severity="secondary"
+      variant="text"
+      [disabled]="submitting()"
+      (click)="close()"
+    >
+      {{ 'managementCustomers.merge.cancel' | transloco }}
+    </button>
+    @if (step() === 2) {
+      <button libButton type="button" severity="error" [loading]="submitting()" (click)="merge()">
+        {{ 'managementCustomers.merge.confirm' | transloco }}
+      </button>
+    }
+  </ng-template>
+</lib-dialog>

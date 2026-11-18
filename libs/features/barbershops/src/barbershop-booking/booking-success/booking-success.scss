@@ -1,0 +1,155 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+.success {
+  @include a.container;
+  display: flex;
+  flex-direction: column;
+  gap: a.space(6);
+  max-inline-size: 36rem;
+  padding-block: a.space(10);
+}
+
+.success__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: a.space(3);
+  text-align: center;
+}
+
+.success__icon {
+  display: grid;
+  place-items: center;
+  inline-size: a.space(12);
+  block-size: a.space(12);
+  border-radius: a.radius(pill);
+  background: var(--accent-subtle);
+  color: var(--accent-text);
+
+  svg {
+    inline-size: var(--icon-size-lg);
+    block-size: var(--icon-size-lg);
+    stroke-width: var(--icon-stroke);
+  }
+}
+
+.success__title {
+  @include a.t-h2;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.success__lead {
+  @include a.t-body;
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.success__details {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(4);
+  margin: 0;
+  padding: a.space(5);
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(lg);
+}
+
+.success__row {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(1);
+
+  dt {
+    @include a.t-caption;
+    margin: 0;
+    color: var(--text-muted);
+  }
+
+  dd {
+    @include a.t-body;
+    margin: 0;
+    color: var(--text-primary);
+  }
+}
+
+.success__service {
+  display: block;
+}
+
+.success__total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: a.space(4);
+  margin: 0;
+
+  span:first-child {
+    @include a.t-caption;
+    color: var(--text-muted);
+  }
+}
+
+.success__total-value {
+  @include a.t-title;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+}
+
+.success__policy,
+.success__state {
+  @include a.t-body-sm;
+  margin: 0;
+  color: var(--text-muted);
+}
+
+// The arrival.
+//
+// `--success-step` numbers the lines, so one rule staggers them all and adding a row is a
+// number rather than a second selector. `backwards` holds a waiting line at its start state;
+// without it a delayed line paints settled until its delay elapses and the sequence inverts
+// into a flicker.
+:host {
+  --success-lead: 60ms;
+}
+
+.success__reminders {
+  --reminder-card-delay: calc(7 * var(--success-lead));
+}
+
+.success-mark-enter {
+  animation: success-mark-enter var(--dur-slower) var(--ease-spring);
+}
+
+.success-line-enter {
+  animation: success-line-enter var(--dur-base) var(--ease-out)
+    calc(var(--success-step, 0) * var(--success-lead)) backwards;
+}
+
+@keyframes success-mark-enter {
+  from {
+    opacity: 0;
+    scale: 0.6;
+  }
+}
+
+@keyframes success-line-enter {
+  from {
+    opacity: 0;
+    transform: translateY(a.space(2));
+  }
+}
+
+// The base layer zeroes every animation's duration, but not its delay — a waiting line would
+// sit invisible behind `backwards` for its whole lead. Zeroing what feeds the delay clears
+// both, and stays correct when another line is added.
+@media (prefers-reduced-motion: reduce) {
+  :host {
+    --success-lead: 0s;
+  }
+}

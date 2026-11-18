@@ -1,0 +1,51 @@
+<div libIconField class="dg-chooser-search">
+  <span libInputIcon><svg lucideSearch></svg></span>
+  <input
+    libInputText
+    size="sm"
+    type="search"
+    [value]="search()"
+    [attr.aria-label]="'datagrid.chooser.search' | uiCopy | transloco"
+    (input)="onSearch($event)"
+  />
+</div>
+
+@if (empty()) {
+  <p class="dg-chooser-empty">{{ 'datagrid.chooser.empty' | uiCopy | transloco }}</p>
+} @else {
+  <ul class="dg-chooser-list">
+    @for (section of sections(); track $index) {
+      <!-- The band caption is a heading over the run, not a control: a
+           band has no visibility of its own, and a checkbox here would
+           offer one. It stays readable rather than `aria-hidden`, because
+           two columns captioned the same in different bands are one row
+           twice without it. -->
+      @for (heading of section.headings; track $index) {
+        <li class="dg-chooser-band" [style.--dg-chooser-depth]="heading.depth">
+          {{ heading.caption }}
+        </li>
+      }
+      @for (entry of section.entries; track entry.id) {
+        <li [style.--dg-chooser-depth]="section.depth">
+          <lib-checkbox
+            size="sm"
+            [value]="entry.visible"
+            [disabled]="!entry.hideable"
+            (valueChange)="onToggle(entry, $event)"
+          >
+            {{ entry.caption }}
+          </lib-checkbox>
+        </li>
+      }
+    }
+  </ul>
+}
+
+<div class="dg-chooser-actions">
+  <button libButton type="button" severity="secondary" size="sm" (click)="onSetAll(true)">
+    {{ 'datagrid.chooser.selectAll' | uiCopy | transloco }}
+  </button>
+  <button libButton type="button" severity="secondary" size="sm" (click)="onSetAll(false)">
+    {{ 'datagrid.chooser.clearAll' | uiCopy | transloco }}
+  </button>
+</div>

@@ -1,0 +1,155 @@
+@use 'abstracts' as a;
+
+:host {
+  @include a.detail-panel;
+}
+
+// Why online customers cannot book this member.
+.profile-callout {
+  margin: var(--space-5) var(--space-6) 0;
+}
+
+.profile-callout-list {
+  margin: 0;
+  padding-inline-start: var(--space-4);
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-6);
+}
+
+.profile-errors:not(:empty) {
+  display: block;
+}
+
+// Lines the label up with a `sm` field's horizontal padding. The wrapper inherits the property.
+.profile-field {
+  --field-label-inset: var(--space-2);
+
+  min-width: 0;
+}
+
+.profile-switch {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.profile-switch-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.profile-switch-label {
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+}
+
+.profile-hint {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  color: var(--text-muted);
+}
+
+.profile-section {
+  @include a.detail-section;
+}
+
+.profile-heading {
+  @include a.detail-heading;
+}
+
+.profile-heading-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+}
+
+.profile-managed {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+  }
+}
+
+.profile-grid {
+  @include a.detail-grid;
+}
+
+.profile-row {
+  @include a.detail-row;
+}
+
+.profile-caption {
+  @include a.detail-caption;
+}
+
+.profile-value {
+  @include a.detail-value;
+}
+
+.profile-number {
+  font-variant-numeric: tabular-nums;
+}
+
+// The value, then its actions at the end of the row. The actions wrap below on a narrow panel.
+.profile-contact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.profile-contact-value {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-contact-link {
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--accent-text);
+    text-decoration: underline;
+  }
+}
+
+.profile-contact-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--space-2);
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+  }
+}
+
+// The rating's star, after the value on its tile.
+.profile-star {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  stroke-width: var(--icon-stroke);
+  color: var(--accent);
+  fill: currentColor;
+}

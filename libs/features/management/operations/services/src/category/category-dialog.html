@@ -1,0 +1,67 @@
+@let fields = editor.form;
+
+<lib-dialog size="sm" [(visible)]="visible" [header]="title() | transloco">
+  <form class="category-form" [libForm]="editor">
+    <lib-form-errors />
+
+    <!-- One name per language, labelled by the language: the dialog's title already says what. -->
+    @for (translation of fields.translations; track $index) {
+      <lib-field
+        class="category-form-field"
+        [label]="'managementServices.languages.' + translation.languageCode().value()"
+        [field]="translation.name"
+      >
+        <ng-template libFieldEditor>
+          <input
+            libInputText
+            libFieldControl
+            type="text"
+            size="sm"
+            autocomplete="off"
+            placeholder=" "
+            [formField]="translation.name"
+          />
+        </ng-template>
+      </lib-field>
+    }
+  </form>
+
+  <ng-template libDialogFooter>
+    @if (canDelete()) {
+      <button
+        libButton
+        type="button"
+        class="category-delete"
+        severity="error"
+        variant="text"
+        [loading]="deleting()"
+        [disabled]="editor.submitting()"
+        (click)="remove()"
+      >
+        <svg lucideTrash2 libButtonIcon aria-hidden="true"></svg>
+        {{ 'managementServices.category.delete' | transloco }}
+      </button>
+    }
+    <button
+      libButton
+      type="button"
+      severity="secondary"
+      variant="text"
+      [disabled]="editor.submitting() || deleting()"
+      (click)="close()"
+    >
+      {{ 'managementServices.category.cancel' | transloco }}
+    </button>
+    <!-- Never disabled by validity: the first press is what reveals it. -->
+    <button
+      libButton
+      type="button"
+      severity="primary"
+      [loading]="editor.submitting()"
+      [disabled]="deleting()"
+      (click)="save()"
+    >
+      {{ 'managementServices.category.save' | transloco }}
+    </button>
+  </ng-template>
+</lib-dialog>

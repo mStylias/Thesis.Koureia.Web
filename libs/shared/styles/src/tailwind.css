@@ -1,0 +1,149 @@
+/* Tailwind entry point — kept as .css because Tailwind v4 runs through
+   PostCSS, not Sass. Design tokens are defined in the SCSS design system
+   (src/styles/) as CSS custom properties; `@theme inline` maps them into
+   Tailwind so utilities stay theme-aware at runtime. */
+
+@import 'tailwindcss';
+
+/* NOTE: Tailwind v4 auto-detects sources by scanning the repo, which includes
+   MARKDOWN. Every utility spelled out in prose — in the
+   styles READMEs — is harvested as a real candidate and shipped, whether
+   or not any template uses it. Currently ~0.6 kB of the bundle. To make source
+   scanning explicit instead: `@import 'tailwindcss' source(none);` followed by
+   `@source` globs for apps/ and libs/ templates only. */
+
+/* Dark mode matches the design system's theme logic: explicit
+   `data-theme="dark"` on <html>, or OS dark preference when no
+   `data-theme` attribute is set (see src/styles/themes/_dark.scss). */
+@custom-variant dark {
+  &:where([data-theme='dark'], [data-theme='dark'] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme]), :root:not([data-theme]) *) {
+      @slot;
+    }
+  }
+}
+
+@theme inline {
+  /* ---- Brand ramp → bg-brand-500, text-brand-700, … ---- */
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+
+  /* ---- Neutral ramp → bg-neutral-800, text-neutral-500, … ----
+     `initial` first drops Tailwind's OWN `neutral` palette. Without it our
+     ramp (50–900) would merge with Tailwind's (50–950), leaving
+     `bg-neutral-950` silently resolving to a cold grey that is not in this
+     design system. Cleared, it resolves to nothing at all — a missing style
+     you can see, rather than a wrong colour you cannot. */
+  --color-neutral-*: initial;
+  --color-neutral-50: var(--neutral-50);
+  --color-neutral-100: var(--neutral-100);
+  --color-neutral-200: var(--neutral-200);
+  --color-neutral-300: var(--neutral-300);
+  --color-neutral-400: var(--neutral-400);
+  --color-neutral-500: var(--neutral-500);
+  --color-neutral-600: var(--neutral-600);
+  --color-neutral-700: var(--neutral-700);
+  --color-neutral-800: var(--neutral-800);
+  --color-neutral-900: var(--neutral-900);
+  --color-paper: var(--paper);
+
+  /* ---- Semantic hues → bg-success, text-success-text, …
+     The bare hue is a fill or a border. Text takes `-text`, which is AA on every surface. ---- */
+  --color-success: var(--success);
+  --color-success-hover: var(--success-hover);
+  --color-success-active: var(--success-active);
+  --color-success-bg: var(--success-bg);
+  --color-success-text: var(--success-text);
+  --color-warning: var(--warning);
+  --color-warning-hover: var(--warning-hover);
+  --color-warning-active: var(--warning-active);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-text: var(--warning-text);
+  --color-error: var(--error);
+  --color-error-hover: var(--error-hover);
+  --color-error-active: var(--error-active);
+  --color-error-bg: var(--error-bg);
+  --color-error-text: var(--error-text);
+  --color-info: var(--info);
+  --color-info-hover: var(--info-hover);
+  --color-info-active: var(--info-active);
+  --color-info-bg: var(--info-bg);
+  --color-info-text: var(--info-text);
+
+  /* ---- Theme-level (light/dark) aliases → bg-surface, text-primary, … ---- */
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-overlay: var(--surface-overlay);
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  --color-primary: var(--text-primary);
+  --color-secondary: var(--text-secondary);
+  --color-muted: var(--text-muted);
+  --color-inverse: var(--text-inverse);
+  --color-accent: var(--accent);
+  --color-accent-text: var(--accent-text);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-active: var(--accent-active);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-accent-subtle-border: var(--accent-subtle-border);
+  --color-focus-ring: var(--focus-ring);
+
+  /* ---- Type → font-display, text-xl, … ---- */
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  /* Sizes carry the design's leading as their default line-height:
+     body sizes → normal, headings → snug, display → tight. */
+  --text-xs: var(--text-xs);
+  --text-xs--line-height: var(--leading-snug);
+  --text-sm: var(--text-sm);
+  --text-sm--line-height: var(--leading-normal);
+  --text-base: var(--text-base);
+  --text-base--line-height: var(--leading-normal);
+  --text-md: var(--text-md);
+  --text-md--line-height: var(--leading-normal);
+  --text-lg: var(--text-lg);
+  --text-lg--line-height: var(--leading-snug);
+  --text-xl: var(--text-xl);
+  --text-xl--line-height: var(--leading-snug);
+  --text-2xl: var(--text-2xl);
+  --text-2xl--line-height: var(--leading-snug);
+  --text-3xl: var(--text-3xl);
+  --text-3xl--line-height: var(--leading-tight);
+  --text-4xl: var(--text-4xl);
+  --text-4xl--line-height: var(--leading-tight);
+  --leading-tight: var(--leading-tight);
+  --leading-snug: var(--leading-snug);
+  --leading-normal: var(--leading-normal);
+  --tracking-tight: var(--tracking-tight);
+  --tracking-wide: var(--tracking-wide);
+
+  /* ---- Shape & depth → rounded-md, shadow-accent, … ---- */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-pill: var(--radius-pill);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-accent: var(--shadow-accent);
+
+  /* ---- Motion → ease-standard, ease-out ---- */
+  --ease-standard: var(--ease-standard);
+  --ease-out: var(--ease-out);
+}

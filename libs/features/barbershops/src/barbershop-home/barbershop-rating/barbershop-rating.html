@@ -1,0 +1,16 @@
+@if (average(); as average) {
+  @let reviews = reviewsKey() | transloco: { count: rating().count };
+  <p class="rating">
+    <!-- Read as one sentence instead, so a screen reader does not announce "black star". -->
+    <span class="rating__visible" aria-hidden="true">
+      <span class="rating__star">★</span>
+      <strong class="rating__average">{{ average }}</strong>
+      <span class="rating__count">({{ reviews }})</span>
+    </span>
+    <span class="sr-only">
+      {{ 'barbershops.home.ratingLabel' | transloco: { average, reviews } }}
+    </span>
+  </p>
+} @else {
+  <p class="rating rating--new">{{ 'barbershops.home.new' | transloco }}</p>
+}

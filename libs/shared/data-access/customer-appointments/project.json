@@ -1,0 +1,8 @@
+{
+  "name": "shared-data-access-customer-appointments",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/shared/data-access/customer-appointments/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["scope:shared", "type:data-access"]
+}

@@ -1,0 +1,77 @@
+@use 'abstracts' as a;
+
+// The card's frame and rows, drawn as bars. The whole card pulses as one surface. Opacity only,
+// so the base layer's reduced-motion rule stops it.
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  height: 100%;
+  padding: var(--space-4);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(lg);
+  background: var(--surface);
+  animation: staff-card-skeleton-pulse 1.6s var(--ease-standard) infinite;
+}
+
+.skeleton-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+// The size of `lib-staff-avatar` at its default size.
+.skeleton-avatar {
+  flex-shrink: 0;
+  width: var(--space-10);
+  height: var(--space-10);
+  border-radius: 50%;
+  background: var(--surface-2);
+}
+
+.skeleton-who {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.skeleton-line {
+  display: block;
+  height: var(--space-3);
+  border-radius: a.radius(sm);
+  background: var(--surface-2);
+}
+
+.skeleton-name {
+  width: 60%;
+  height: var(--space-4);
+}
+
+.skeleton-subtitle {
+  width: 40%;
+}
+
+.skeleton-today {
+  width: 55%;
+}
+
+.skeleton-facts {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.skeleton-fact {
+  width: var(--space-16);
+}
+
+.skeleton-fact-long {
+  width: var(--space-20);
+}
+
+@keyframes staff-card-skeleton-pulse {
+  50% {
+    opacity: 0.6;
+  }
+}

@@ -1,0 +1,39 @@
+<kc-auth-frame
+  [title]="i18n.msgStr('confirmLinkIdpTitle')"
+  [description]="i18n.msgStr('idpLinkConfirmDescription')"
+>
+  <!-- Fixed to `info`, not bound to `message.type`. Keycloak states this page's premise — an
+       account with this address exists — through `setError`, so it arrives typed as a failure.
+       Nothing has failed: that sentence is why the page is here, and it names the address the
+       heading does not. `status` for the same reason, because an `alert` interrupts a reader to
+       report trouble. -->
+  @if (kcContext.message; as message) {
+    <lib-banner class="message" tone="info" role="status">
+      <span [innerHTML]="message.summary"></span>
+    </lib-banner>
+  }
+
+  <form
+    class="auth-form"
+    method="post"
+    [action]="kcContext.url.loginAction"
+    (submit)="submitting.set(true)"
+  >
+    <!-- `linkAccount` only. Keycloak also accepts `submitAction=updateProfile`, which is the
+         detour that overwrites the stored name with the provider's. -->
+    <button
+      libButton
+      type="submit"
+      name="submitAction"
+      value="linkAccount"
+      size="lg"
+      [disabled]="submitting()"
+    >
+      {{ i18n.msgStr('idpLinkConfirmSubmit') }}
+    </button>
+  </form>
+
+  <p class="auth-switch">
+    <a [href]="kcContext.url.loginRestartFlowUrl">{{ i18n.msgStr('idpLinkConfirmCancel') }}</a>
+  </p>
+</kc-auth-frame>

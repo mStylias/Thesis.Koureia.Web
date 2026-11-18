@@ -1,0 +1,37 @@
+<lib-chart-grid>
+  <lib-chart-card
+    [heading]="'managementDashboard.charts.team.appointmentsPerStaff.title' | transloco"
+    [skeleton]="{ kind: 'bars-horizontal', count: appointmentsRows(), legend: 5 }"
+    [set]="data()?.appointmentsPerStaff"
+    [option]="appointments()"
+    [context]="context()"
+    [height]="appointmentsHeight()"
+    [loading]="entry().loading"
+    [failed]="entry().failed"
+    (retry)="retry.emit()"
+  />
+
+  <lib-chart-card
+    [heading]="'managementDashboard.charts.team.staffUtilization.title' | transloco"
+    [skeleton]="{ kind: 'bars-horizontal', count: utilizationRows() }"
+    [set]="utilizationSet()"
+    [option]="utilization()"
+    [context]="context()"
+    [height]="utilizationHeight()"
+    [loading]="entry().loading"
+    [failed]="entry().failed"
+    (retry)="retry.emit()"
+  />
+
+  <lib-chart-card
+    [heading]="'managementDashboard.charts.team.ratingPerStaff.title' | transloco"
+    [skeleton]="{ kind: 'bars-horizontal', count: ratingRows() }"
+    [set]="ratingSet()"
+    [option]="rating()"
+    [context]="context()"
+    [height]="ratingHeight()"
+    [loading]="entry().loading"
+    [failed]="entry().failed"
+    (retry)="retry.emit()"
+  />
+</lib-chart-grid>

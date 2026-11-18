@@ -1,0 +1,15 @@
+// The grid owns the height and scrolls its own viewport. `min-height: 0` on both the host and
+// the grid is what lets it: a flex child defaults to `min-height: auto`, which refuses to
+// shrink below its content, and the grid would then grow past the shell and hand its scrolling
+// to `.management-content` — losing the pinned header the virtualized viewport draws.
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.roles-grid {
+  flex: 1;
+  min-height: 0;
+}

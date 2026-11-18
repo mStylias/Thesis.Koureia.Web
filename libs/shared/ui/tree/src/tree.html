@@ -1,0 +1,172 @@
+<span class="tree-sr-only" [id]="fallbackLabelId">{{ 'tree.label' | uiCopy | transloco }}</span>
+
+@if (treeModel().children().length > 0) {
+  <ul
+    #treeRoot
+    ngTree
+    #ariaTree="ngTree"
+    class="tree-root"
+    [id]="inputId() || generatedTreeId"
+    [orientation]="orientation()"
+    [multi]="selectionMode() !== 'single'"
+    [disabled]="disabled()"
+    [selectionMode]="effectiveSelectionBehavior()"
+    [focusMode]="focusMode()"
+    [wrap]="wrap()"
+    [softDisabled]="softDisabled()"
+    [typeaheadDelay]="safeTypeaheadDelay()"
+    [value]="ariaValue()"
+    [attr.aria-label]="effectiveAriaLabel()"
+    [attr.aria-labelledby]="effectiveAriaLabelledby()"
+    [attr.aria-describedby]="effectiveAriaDescribedby()"
+    [attr.aria-required]="required() ? true : null"
+    [attr.aria-invalid]="invalid() ? true : null"
+    [attr.aria-readonly]="readonly() ? true : null"
+    (valueChange)="onAriaValueChange($event)"
+    (focusout)="onFocusout($event)"
+  >
+    <ng-container
+      [ngTemplateOutlet]="renderNodes"
+      [ngTemplateOutletContext]="{ nodes: treeModel().children(), parent: ariaTree }"
+    />
+  </ul>
+
+  <ng-template #renderNodes let-nodes="nodes" let-parent="parent">
+    @for (node of nodes; track node.key) {
+      <li
+        ngTreeItem
+        #ariaItem="ngTreeItem"
+        class="tree-item"
+        animate.enter="tree-item-enter"
+        [parent]="parent"
+        [value]="node.key"
+        [label]="node.label()"
+        [disabled]="node.disabled()"
+        [selectable]="itemSelectable(node)"
+        [expanded]="node.expanded()"
+        [attr.aria-selected]="selectionMode() === 'checkbox' ? null : isSelected(node)"
+        [attr.aria-checked]="selectionMode() === 'checkbox' ? ariaChecked(node) : null"
+        [attr.data-selected]="isSelected(node) ? '' : null"
+        [attr.data-partial]="isPartiallySelected(node) ? '' : null"
+        [attr.data-branch]="node.leaf() ? null : ''"
+        [attr.data-readonly]="readonly() ? '' : null"
+        [attr.data-motion]="hasPointerMotion(node) ? 'pointer' : null"
+        [attr.data-children-loading]="isLoadingChildren(node) ? '' : null"
+        [attr.data-children-error]="hasChildrenError(node) ? '' : null"
+        [attr.aria-busy]="isLoadingChildren(node) ? true : null"
+        (expandedChange)="onExpandedChange(node, $event)"
+        (click)="onNodeClick(node, ariaItem, $event)"
+        (keydown)="onNodeKeydown(node, $event)"
+        (contextmenu)="onNodeContextMenu(node, $event)"
+      >
+        <div class="tree-row" [style.--tree-level]="ariaItem.level()">
+          <span class="tree-indent" aria-hidden="true"></span>
+
+          <span
+            class="tree-chevron"
+            [class.tree-chevron-placeholder]="node.leaf()"
+            aria-hidden="true"
+          >
+            @if (isLoadingChildren(node)) {
+              <svg lucideLoaderCircle class="tree-spinner" />
+            } @else if (!node.leaf()) {
+              <svg lucideChevronRight (transitionend)="onChevronTransitionEnd(node, $event)" />
+            }
+          </span>
+
+          @if (selectionMode() === 'checkbox') {
+            <span
+              class="tree-indicator"
+              [class.tree-status]="readonly() && readonlyIndicator() === 'status'"
+              [attr.data-state]="selectionState(node)"
+              data-tree-selection-hit
+              aria-hidden="true"
+            >
+              @if (readonly() && readonlyIndicator() === 'status') {
+                @switch (selectionState(node)) {
+                  @case ('selected') {
+                    <svg lucideCheck />
+                  }
+                  @case ('partial') {
+                    <svg lucideMinus />
+                  }
+                }
+              } @else {
+                <svg
+                  class="tree-checkbox-mark"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <path class="tree-checkbox-check" d="M5 13l5 5L19.5 6.5" />
+                  <path class="tree-checkbox-dash" d="M6 12h12" />
+                </svg>
+              }
+            </span>
+          }
+
+          <span class="tree-content">
+            <span class="tree-label-hit" data-tree-selection-hit>
+              @if (nodeTemplate(); as customTemplate) {
+                <ng-container
+                  [ngTemplateOutlet]="customTemplate.template"
+                  [ngTemplateOutletContext]="nodeContext(node, ariaItem.active(), ariaItem.level())"
+                />
+              } @else {
+                {{ node.label() }}
+              }
+            </span>
+          </span>
+
+          @if (hasChildrenError(node)) {
+            <!-- A sibling of `.tree-content`, so the message is never a selection
+                 target: clicking it retries the level. -->
+            <span class="tree-node-error">
+              {{ childrenErrorMessage() || ('tree.childrenError' | uiCopy | transloco) }}
+            </span>
+          }
+        </div>
+
+        @if (!node.leaf()) {
+          <ul
+            class="tree-group"
+            role="group"
+            [hidden]="!node.expanded()"
+            [attr.aria-hidden]="node.expanded() ? null : true"
+            [attr.inert]="node.expanded() ? null : ''"
+            [attr.data-motion]="hasDisclosureMotion(node) ? 'pointer' : null"
+          >
+            <ng-template ngTreeItemGroup [ownedBy]="ariaItem" #group="ngTreeItemGroup">
+              <ng-container
+                [ngTemplateOutlet]="renderNodes"
+                [ngTemplateOutletContext]="{ nodes: node.children(), parent: group }"
+              />
+            </ng-template>
+          </ul>
+        }
+      </li>
+    }
+  </ng-template>
+} @else if (rootLoading()) {
+  <div class="tree-empty" role="status">{{ 'tree.loading' | uiCopy | transloco }}</div>
+} @else if (rootLoadFailed()) {
+  <div class="tree-empty tree-empty-error" role="status">
+    {{ loadErrorMessage() || ('tree.loadError' | uiCopy | transloco) }}
+  </div>
+} @else {
+  <div class="tree-empty">
+    @if (emptyTemplate(); as customEmpty) {
+      <ng-container [ngTemplateOutlet]="customEmpty.template" />
+    } @else {
+      {{ emptyMessage() || ('tree.empty' | uiCopy | transloco) }}
+    }
+  </div>
+}
+
+@if (unresolvedKeys().length; as unresolved) {
+  <!-- The keys are kept, not dropped: a key the source cannot display is still a
+       key the form has to save back. One note, not one row each. -->
+  <p class="tree-note" role="status" [id]="unresolvedNoteId">
+    {{ unavailableMessage() || ('tree.unavailable' | uiCopy | transloco) }} ({{ unresolved }})
+  </p>
+}

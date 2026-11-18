@@ -1,0 +1,423 @@
+<!-- Deferred, and referenced nowhere else, so a grid with no toolbar never
+     loads the column chooser, the search field or the overflow surface. -->
+@defer (when hasToolbar()) {
+  @if (hasToolbar()) {
+    <lib-datagrid-toolbar
+      [entries]="toolbarEntries()"
+      [columns]="resolvedColumns()"
+      [ariaLabel]="ariaLabel()"
+      [(hiddenColumns)]="hiddenColumns"
+      [(search)]="search"
+    />
+  }
+}
+
+@if (showGroupPanel()) {
+  <lib-datagrid-group-panel
+    #groupPanel
+    [chips]="groupChips()"
+    [dropActive]="groupDropActive()"
+    (directionToggled)="onGroupDirectionToggled($event)"
+    (removed)="setColumnGrouped($event, false)"
+    (moved)="onGroupLevelMoved($event)"
+  />
+}
+
+@if (showFilterPanelTop()) {
+  <ng-container [ngTemplateOutlet]="filterPanelBar" />
+}
+
+@if (showFilterBuilderBarTop()) {
+  <ng-container [ngTemplateOutlet]="filterBuilderBar" />
+}
+
+<!-- One scroll container for both presentations: it is what gives the grid a
+     height that follows its parent, and what the auto-load sentinel is
+     measured against. In the card view it carries no table ARIA at all —
+     `aria-colcount` over a list of cards would describe a table that is not
+     there, to the only users who read it. -->
+<div
+  class="dg-viewport"
+  #viewport
+  [attr.role]="cardView() ? null : gridRole()"
+  [attr.tabindex]="focusStore.cell() ? -1 : 0"
+  [attr.aria-label]="
+    ariaLabelledby() ? null : ariaLabel() || ('datagrid.label' | uiCopy | transloco)
+  "
+  [attr.aria-labelledby]="ariaLabelledby() || null"
+  [attr.aria-describedby]="ariaDescribedby() || null"
+  [attr.aria-rowcount]="cardView() ? null : ariaRowCount()"
+  [attr.aria-colcount]="cardView() ? null : ariaColCount()"
+  [attr.aria-multiselectable]="
+    !cardView() && resolvedSelectionMode() === 'multiple' ? 'true' : null
+  "
+  [attr.aria-busy]="loading() ? 'true' : null"
+  (scroll)="onScroll($event)"
+  (keydown)="onKeydown($event)"
+  (focus)="onViewportFocus($event)"
+  (click)="onViewportClick($event)"
+  (dblclick)="onViewportDoubleClick($event)"
+  (mousedown)="onViewportMousedown($event)"
+>
+  @if (cardView()) {
+    <lib-datagrid-cards
+      [items]="cardItems()"
+      [loading]="loading() && !initialLoading()"
+      [focusedKey]="focusStore.cell()?.key ?? null"
+      [selectable]="resolvedSelectionMode() !== 'none'"
+      [grouped]="group().length > 0"
+      [minWidth]="cardMinWidth()"
+      [ariaLabel]="ariaLabel() || ('datagrid.cards.label' | uiCopy | transloco)"
+      [selectRowLabel]="'datagrid.selection.selectRow' | uiCopy | transloco"
+      [expandRowLabel]="'datagrid.detail.toggle' | uiCopy | transloco"
+      [skeletonCards]="skeletonCards()"
+      [skeletonFields]="skeletonFields()"
+    />
+    @if (hasGridFooter()) {
+      <p class="dg-card-totals">
+        <span class="dg-card-totals-label">{{
+          'datagrid.summary.total' | uiCopy | transloco
+        }}</span>
+        @for (summary of cardSummaries(); track $index) {
+          <span class="dg-card-total">
+            <span class="dg-card-total-label">{{ summary.labelKey | uiCopy | transloco }}</span>
+            {{ summary.text }}
+          </span>
+        }
+      </p>
+    }
+  } @else {
+    <lib-datagrid-header
+      [cells]="headerCells()"
+      [bands]="headerBands()"
+      [loading]="loading() && !initialLoading()"
+      [sortable]="sortable()"
+      [groupable]="groupable()"
+      [showRowNumbers]="showRowNumbers()"
+      [allowRowNumbers]="allows('hiding')"
+      [selectable]="resolvedSelectionMode() === 'multiple'"
+      [suppressReorder]="groupDropActive()"
+      [translate]="translate"
+      (sortToggled)="onSortToggled($event)"
+      (resized)="onColumnResized($event)"
+      (resizeEnded)="onResizeEnded()"
+      (reordered)="onColumnReordered($event)"
+      (reorderEnded)="onReorderEnded()"
+      (dragStarted)="onHeaderDragStarted($event)"
+      (dragMoved)="onHeaderDragMoved($event)"
+      (moved)="onColumnMoved($event)"
+      (pinned)="onColumnPinned($event)"
+      (hidden)="onColumnHidden($event)"
+      (grouped)="setColumnGrouped($event.columnId, $event.grouped)"
+      (groupingCleared)="clearGrouping()"
+      (rowNumbersToggled)="onRowNumbersToggled($event)"
+      (selectAllToggled)="onSelectAllToggled($event)"
+      (headerFilterRequested)="onHeaderFilterRequested($event)"
+      (filterCleared)="clearColumnFilter($event.columnId)"
+    />
+    <!-- Deferred, and referenced nowhere else, so a grid that offers no filter
+       row never loads the number, date and select editors it draws. -->
+    @defer (when showFilterRow()) {
+      @if (showFilterRow()) {
+        <lib-datagrid-filter-row
+          [cells]="filterCells()"
+          [translate]="translate"
+          (changed)="onFilterChanged($event)"
+          (committed)="onFilterCommitted($event)"
+          (relativeSelected)="onRelativeSelected($event)"
+          (cleared)="clearColumnFilter($event.columnId)"
+        />
+      }
+    }
+    <lib-datagrid-body
+      [items]="renderItems()"
+      [totalHeight]="totalHeight()"
+      [rowHeight]="resolvedRowHeight()"
+      [focused]="focusStore.cell()"
+      [skeletonRows]="skeletonRows()"
+      [skeletonColumns]="ariaColCount()"
+      [selectable]="resolvedSelectionMode() !== 'none'"
+      [selectRowLabel]="'datagrid.selection.selectRow' | uiCopy | transloco"
+      [expandRowLabel]="'datagrid.detail.toggle' | uiCopy | transloco"
+      [animateReorder]="animateReorder()"
+    />
+    @if (hasGridFooter()) {
+      <lib-datagrid-footer
+        [cells]="footerCells()"
+        [height]="resolvedRowHeight()"
+        [ariaRowIndex]="footerRowIndex()"
+        [label]="'datagrid.summary.total' | uiCopy | transloco"
+      />
+    }
+  }
+
+  <!-- Inside the scroller, because that is what the observer measures
+       against. Present only while a next page exists, so the observer is torn
+       down the moment there is nothing left to fetch. -->
+  @if (showLoadSentinel()) {
+    <div class="dg-load-sentinel" #loadSentinel aria-hidden="true"></div>
+  }
+</div>
+
+@if (initialLoadingVisible() && hasRenderer(loadingRenderer())) {
+  <div class="dg-state">
+    <ng-container [ngTemplateOutlet]="loadingRenderer().template" />
+    @if (loadingRenderer().component; as component) {
+      <ng-container [ngComponentOutlet]="component" />
+    }
+  </div>
+}
+
+@switch (stateKind()) {
+  @case ('error') {
+    @if (errorContextValue(); as context) {
+      <div class="dg-state" animate.enter="dg-state-enter" data-state="error">
+        @if (hasRenderer(errorRenderer())) {
+          <ng-container
+            [ngTemplateOutlet]="errorRenderer().template"
+            [ngTemplateOutletContext]="context"
+          />
+          @if (errorRenderer().component; as component) {
+            <ng-container [ngComponentOutlet]="component" [ngComponentOutletInputs]="{ context }" />
+          }
+        } @else {
+          <p class="dg-state-title">{{ 'datagrid.error.title' | uiCopy | transloco }}</p>
+          <p class="dg-state-text">{{ context.$implicit.message }}</p>
+          <button libButton type="button" severity="secondary" size="sm" (click)="reload()">
+            {{ 'datagrid.error.retry' | uiCopy | transloco }}
+          </button>
+        }
+      </div>
+    }
+  }
+  @case ('empty') {
+    <div class="dg-state" animate.enter="dg-state-enter" data-state="empty">
+      @if (hasRenderer(emptyRenderer())) {
+        <ng-container [ngTemplateOutlet]="emptyRenderer().template" />
+        @if (emptyRenderer().component; as component) {
+          <ng-container [ngComponentOutlet]="component" />
+        }
+      } @else {
+        <p class="dg-state-title">{{ 'datagrid.empty.title' | uiCopy | transloco }}</p>
+        <p class="dg-state-text">{{ 'datagrid.empty.description' | uiCopy | transloco }}</p>
+      }
+    </div>
+  }
+  @case ('noResults') {
+    <div class="dg-state" animate.enter="dg-state-enter" data-state="no-results">
+      @if (hasRenderer(noResultsRenderer())) {
+        <ng-container [ngTemplateOutlet]="noResultsRenderer().template" />
+        @if (noResultsRenderer().component; as component) {
+          <ng-container [ngComponentOutlet]="component" />
+        }
+      } @else {
+        <p class="dg-state-title">{{ 'datagrid.noResults.title' | uiCopy | transloco }}</p>
+        <p class="dg-state-text">{{ 'datagrid.noResults.description' | uiCopy | transloco }}</p>
+        <button libButton type="button" severity="secondary" size="sm" (click)="onClearFilters()">
+          {{ 'datagrid.noResults.clear' | uiCopy | transloco }}
+        </button>
+      }
+    </div>
+  }
+}
+
+@if (showLoadMore()) {
+  <div class="dg-load-more" animate.enter="dg-fade-enter">
+    <button
+      libButton
+      type="button"
+      severity="secondary"
+      size="sm"
+      [disabled]="loading()"
+      (click)="loadMore()"
+    >
+      {{ 'datagrid.loadMore' | uiCopy | transloco }}
+    </button>
+  </div>
+}
+
+@if (showPager()) {
+  <div class="dg-pager-row" [attr.data-page-size]="showPageSizes() ? '' : null">
+    @if (showPageSizes()) {
+      @if (inlinePageSizes()) {
+        <div
+          class="dg-page-sizes"
+          role="group"
+          [attr.aria-label]="'datagrid.pageSize.label' | uiCopy | transloco"
+        >
+          @for (option of pageSizeOptions(); track option.value) {
+            <button
+              libButton
+              type="button"
+              size="sm"
+              [variant]="option.value === page().pageSize ? 'filled' : 'text'"
+              [attr.aria-pressed]="option.value === page().pageSize"
+              (click)="onPageSizeChange(option.value)"
+            >
+              {{ option.label }}
+            </button>
+          }
+        </div>
+      } @else {
+        <lib-select
+          class="dg-page-size"
+          size="sm"
+          [options]="pageSizeOptions()"
+          [value]="page().pageSize"
+          [ariaLabel]="'datagrid.pageSize.label' | uiCopy | transloco"
+          (valueChange)="onPageSizeChange($event)"
+        />
+      }
+    }
+    <!-- Never disabled while a load runs. Every request would dim the whole
+         bar, and most answer faster than the eye reads the change; a press
+         that lands mid-load supersedes the query in flight. -->
+    <lib-paginator
+      class="dg-pager"
+      [page]="page().pageIndex + 1"
+      [rows]="page().pageSize"
+      [totalRecords]="page().total ?? 0"
+      (paginate)="onPaginate($event)"
+    />
+  </div>
+}
+
+<!-- Deferred, and referenced nowhere else, so a grid that never exports loads
+     neither the progress bar nor the writers behind it. -->
+@defer (when exportState() !== null) {
+  @if (exportState(); as progress) {
+    <lib-datagrid-export-bar
+      [loaded]="progress.loaded"
+      [total]="progress.total"
+      [format]="progress.format"
+      animate.enter="dg-fade-enter"
+      animate.leave="dg-fade-leave"
+      (canceled)="cancelExport()"
+    />
+  }
+}
+
+<!-- The auto-refresh indicator. State is carried in text as well as in the
+     icon, so "running" is never colour alone. -->
+@if (showAutoRefresh()) {
+  <div class="dg-auto-refresh">
+    <span class="dg-auto-refresh-state" [attr.data-running]="autoRefresh() ? '' : null">
+      <svg lucideRefreshCw aria-hidden="true"></svg>
+      @if (autoRefresh()) {
+        {{
+          refreshSuspended() ? ('datagrid.refresh.paused' | uiCopy | transloco) : autoRefreshLabel()
+        }}
+      } @else {
+        {{ 'datagrid.refresh.off' | uiCopy | transloco }}
+      }
+    </span>
+    @if (resolvedRefreshIntervals().length > 0) {
+      <button
+        libButton
+        type="button"
+        severity="secondary"
+        size="sm"
+        (click)="onRefreshIntervalMenu($event)"
+      >
+        {{ 'datagrid.refresh.interval' | uiCopy | transloco }}
+      </button>
+    }
+    <button libButton type="button" severity="secondary" size="sm" (click)="toggleAutoRefresh()">
+      {{
+        (autoRefresh() ? 'datagrid.refresh.pause' : 'datagrid.refresh.resume') | uiCopy | transloco
+      }}
+    </button>
+    <button
+      libButton
+      type="button"
+      severity="secondary"
+      size="sm"
+      [disabled]="loading()"
+      (click)="refreshNow()"
+    >
+      {{ 'datagrid.refresh.now' | uiCopy | transloco }}
+    </button>
+  </div>
+  <lib-context-menu #refreshMenu density="compact" [items]="refreshMenuItems()" />
+}
+
+<!-- Against the bottom edge, under the pager. One template for both
+     placements: the bindings are the same and only the edge differs. -->
+@if (showFilterPanelBottom()) {
+  <ng-container [ngTemplateOutlet]="filterPanelBar" />
+}
+
+@if (showFilterBuilderBarBottom()) {
+  <ng-container [ngTemplateOutlet]="filterBuilderBar" />
+}
+
+<ng-template #filterPanelBar>
+  <lib-datagrid-filter-panel
+    [chips]="filterChips()"
+    [position]="filterPanelPosition()"
+    [panelLabel]="'datagrid.filterPanel.label' | uiCopy | transloco"
+    [showReset]="allows('stateChange')"
+    [showBuilder]="showFilterBuilder()"
+    (removed)="onFilterChipRemoved($event)"
+    (clearedAll)="onClearFilters()"
+    (resetRequested)="resetArrangement()"
+    (builderRequested)="onFilterBuilderRequested($event)"
+  />
+</ng-template>
+
+<!-- Only reached while the filter panel is hidden, which is whenever nothing
+     filters the grid — the one moment the panel cannot carry the trigger. -->
+<ng-template #filterBuilderBar>
+  <div class="dg-filter-builder-bar" [attr.data-position]="filterBuilderPosition()">
+    <button
+      libButton
+      type="button"
+      severity="secondary"
+      size="sm"
+      (click)="onFilterBuilderRequested($event)"
+    >
+      {{ 'datagrid.filterBuilder.open' | uiCopy | transloco }}
+    </button>
+  </div>
+</ng-template>
+
+<!-- Drawn by the shell, not by the filter row: the row lives inside the scroll
+     viewport and is as wide as every column, so an element pinned to its
+     trailing edge would sit off screen the moment the grid scrolls. -->
+@if (showApplyFilters()) {
+  <button
+    class="dg-filter-apply"
+    libButton
+    type="button"
+    size="sm"
+    animate.enter="dg-fade-enter"
+    animate.leave="dg-fade-leave"
+    (click)="applyPendingFilters()"
+  >
+    {{ 'datagrid.filterRow.apply' | uiCopy | transloco }}
+  </button>
+}
+
+<!-- The dragged column, redrawn under the pointer. Purely decorative: the real
+     cells have already taken the slot the drop will settle on. -->
+@if (dragGhost(); as ghost) {
+  <div
+    class="dg-drag-ghost"
+    aria-hidden="true"
+    animate.enter="dg-ghost-enter"
+    animate.leave="dg-ghost-leave"
+    [style.left.px]="ghost.left"
+    [style.top.px]="ghost.top"
+    [style.width.px]="ghost.width"
+  >
+    {{ ghost.caption }}
+  </div>
+}
+
+<p class="dg-live" role="status" aria-live="polite">
+  @if (error()) {
+    {{ 'datagrid.error.title' | uiCopy | transloco }}
+  } @else {
+    {{ liveMessage() }}
+  }
+</p>

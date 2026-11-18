@@ -1,0 +1,128 @@
+// Consumes the design-system CSS custom properties emitted by the global
+// shared @ui styles; reduced motion is handled by the base
+// layer. `tone` picks the fill colour through a private `--_fill` var; `size`
+// sets the track height. The host carries `role="progressbar"` and the ARIA
+// value attributes.
+
+:host {
+  // Only so the screen-reader-only name below positions against the bar.
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  inline-size: 100%;
+  // Copper accent by default; semantic tones override below. One accent —
+  // no arbitrary colours are exposed.
+  --_fill: var(--accent);
+}
+
+:host([data-tone='success']) {
+  --_fill: var(--success);
+}
+:host([data-tone='warning']) {
+  --_fill: var(--warning);
+}
+:host([data-tone='error']) {
+  --_fill: var(--error);
+}
+:host([data-tone='info']) {
+  --_fill: var(--info);
+}
+
+.progress-bar-track {
+  position: relative;
+  flex: 1 1 auto;
+  overflow: hidden;
+  block-size: var(--space-2);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-pill);
+}
+
+:host([data-size='sm']) .progress-bar-track {
+  block-size: var(--space-1);
+}
+:host([data-size='lg']) .progress-bar-track {
+  block-size: var(--space-3);
+}
+
+.progress-bar-fill {
+  block-size: 100%;
+  inline-size: 100%;
+  background: var(--_fill);
+  // GPU-only per the golden rule: scale from the leading edge. The track's
+  // `overflow: hidden` pill clips the corners, so no border-radius is needed
+  // on the fill itself. `--ease-standard` is the on-screen-movement curve.
+  transform-origin: left center;
+  transform: scaleX(var(--_scale, 0));
+  transition: transform var(--dur-slow) var(--ease-standard);
+}
+
+// Indeterminate: a travelling segment. GPU-only `transform`.
+:host([data-mode='indeterminate']) .progress-bar-fill {
+  inline-size: 40%;
+  transform-origin: left center;
+  transition: none;
+  animation: progress-bar-indeterminate var(--dur-indeterminate) var(--ease-standard) infinite;
+}
+
+@keyframes progress-bar-indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+.progress-bar-label {
+  flex: 0 0 auto;
+  min-inline-size: 3ch;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  // Tabular figures so the label width doesn't jitter as the value ticks up.
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  text-align: end;
+}
+
+// The fallback accessible name: referenced by `aria-labelledby`, so it must
+// stay in the layout tree — clipped rather than `display: none`.
+.progress-bar-a11y-text {
+  position: absolute;
+  inline-size: var(--border-width-hairline);
+  block-size: var(--border-width-hairline);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+// A forced palette repaints both the track and the fill in the same system
+// colour, which would leave the bar reading as empty at every value. State is
+// never colour alone here — the fill's *length* is the signal — so the two
+// only need to stay distinguishable.
+@media (forced-colors: active) {
+  .progress-bar-track {
+    border: var(--border-width-hairline) solid CanvasText;
+  }
+
+  .progress-bar-fill {
+    background: Highlight;
+    forced-color-adjust: none;
+  }
+}
+
+// Reduced motion: the determinate fill snaps to its value (no transition),
+// and the travelling segment — which can't convey position when still —
+// degrades to a static, dimmed full track.
+@media (prefers-reduced-motion: reduce) {
+  .progress-bar-fill {
+    transition: none;
+  }
+
+  :host([data-mode='indeterminate']) .progress-bar-fill {
+    inline-size: 100%;
+    transform: none;
+    animation: none;
+    opacity: 0.5;
+  }
+}

@@ -1,0 +1,8 @@
+@use 'abstracts' as a;
+
+:host {
+  @include a.t-body-sm;
+
+  display: block;
+  margin: var(--space-1) 0 0;
+}

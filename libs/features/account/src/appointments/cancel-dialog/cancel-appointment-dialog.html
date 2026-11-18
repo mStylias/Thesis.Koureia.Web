@@ -1,0 +1,45 @@
+@let fields = editor.form;
+
+<lib-dialog size="sm" [(visible)]="visible" [header]="'account.cancel.title' | transloco">
+  <form class="cancel-form" [libForm]="editor">
+    <p class="cancel-text">{{ 'account.cancel.message' | transloco: summary() }}</p>
+
+    <lib-form-errors />
+
+    <lib-field [field]="fields.reason">
+      <ng-template libFieldEditor>
+        <textarea
+          libTextarea
+          libFieldControl
+          rows="3"
+          autoResize
+          placeholder=" "
+          [formField]="fields.reason"
+        ></textarea>
+      </ng-template>
+    </lib-field>
+  </form>
+
+  <ng-template libDialogFooter>
+    <button
+      libButton
+      type="button"
+      severity="secondary"
+      variant="text"
+      [disabled]="editor.submitting()"
+      (click)="close()"
+    >
+      {{ 'account.cancel.keep' | transloco }}
+    </button>
+    <!-- Never disabled by validity: the first press is what reveals it. -->
+    <button
+      libButton
+      type="button"
+      severity="error"
+      [loading]="editor.submitting()"
+      (click)="confirm()"
+    >
+      {{ 'account.cancel.confirm' | transloco }}
+    </button>
+  </ng-template>
+</lib-dialog>

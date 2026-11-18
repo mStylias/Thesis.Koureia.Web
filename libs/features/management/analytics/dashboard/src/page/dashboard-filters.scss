@@ -1,0 +1,63 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.filter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.filter-label {
+  @include a.t-field-label;
+}
+
+// The longest option sets the width. The select's own minimum is a form field's.
+.filter-compare lib-select {
+  --select-min-width: 0;
+
+  width: 14rem;
+}
+
+.filter-granularity lib-select {
+  --select-min-width: 0;
+
+  width: 9rem;
+}
+
+.filter-staff lib-select {
+  --select-min-width: 0;
+
+  width: 13rem;
+}
+
+.filter-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+// One control per line on a phone, each as wide as the screen.
+@include a.respond-down(sm) {
+  .filter {
+    flex: 1 1 100%;
+  }
+
+  .filter lib-select {
+    width: 100%;
+  }
+}

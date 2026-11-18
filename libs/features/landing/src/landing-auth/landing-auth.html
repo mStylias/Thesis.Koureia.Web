@@ -1,0 +1,11 @@
+@if (!session.isSignedIn()) {
+  <section id="account" class="landing-auth" aria-labelledby="landing-auth-title">
+    <div class="landing-auth-inner">
+      <p class="eyebrow">{{ 'landing.auth.eyebrow' | transloco }}</p>
+      <h2 id="landing-auth-title">{{ 'landing.auth.title' | transloco }}</h2>
+      <p class="lead">{{ 'landing.auth.lead' | transloco }}</p>
+
+      <auth-entry class="landing-auth-actions" size="lg" signUp />
+    </div>
+  </section>
+}

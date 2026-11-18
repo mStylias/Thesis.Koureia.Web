@@ -1,0 +1,33 @@
+<kc-auth-frame [title]="title()" [description]="description()">
+  <div class="info-outcome">
+    @if (link; as target) {
+      <!--
+        An anchor, not a button: it goes somewhere, so it takes a middle click and works without
+        the countdown. `innerHTML` because Keycloak writes two of the three labels with HTML
+        entities, and interpolation prints `&laquo; Back to Application` as those characters. A
+        plain string binding keeps Angular's sanitizer.
+      -->
+      <a libButton size="lg" [href]="target.href">
+        <span [innerHTML]="i18n.msgStr(target.labelKey)"></span>
+      </a>
+
+      @if (redirecting()) {
+        <!-- Not a live region: a number that changes each second talks over the outcome. Not
+             hidden either, because static text is silent until reached and this explains the
+             button below. -->
+        <p class="info-countdown">{{ countdown() }}</p>
+
+        <!-- The off switch WCAG 2.2.1 asks for, present from the first paint. -->
+        <button
+          libButton
+          type="button"
+          variant="text"
+          severity="secondary"
+          (click)="stopRedirect()"
+        >
+          {{ i18n.msgStr('infoStayOnPage') }}
+        </button>
+      }
+    }
+  </div>
+</kc-auth-frame>

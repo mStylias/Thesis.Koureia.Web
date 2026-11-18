@@ -1,0 +1,207 @@
+<div cdkOverlayOrigin #origin="cdkOverlayOrigin" class="autocomplete-field">
+  <svg
+    [lucideIcon]="leadingIcon() ?? searchIcon"
+    class="autocomplete-search-icon"
+    aria-hidden="true"
+  ></svg>
+
+  <input
+    #inputElement
+    ngCombobox
+    #combobox="ngCombobox"
+    type="text"
+    class="autocomplete-input"
+    [attr.id]="inputId() || fieldId"
+    [attr.name]="name() || null"
+    [attr.placeholder]="placeholder() || null"
+    [attr.autocomplete]="autocomplete() || null"
+    [attr.aria-label]="
+      ariaLabel() || (!ariaLabelledby() ? ('autocomplete.label' | uiCopy | transloco) : null)
+    "
+    [attr.aria-labelledby]="ariaLabelledby() || null"
+    [attr.aria-describedby]="describedBy() || null"
+    [attr.aria-invalid]="invalid() ? true : null"
+    [attr.aria-required]="required() ? true : null"
+    [attr.aria-busy]="isLoading() ? true : null"
+    [disabled]="disabled()"
+    [readOnly]="readonly()"
+    [value]="query()"
+    [expanded]="expanded()"
+    (valueChange)="onQueryChange($event)"
+    (expandedChange)="onExpandedChange($event)"
+    (focus)="onInputFocus()"
+    (click)="onInputClick()"
+    (keydown)="onInputKeydown($event)"
+    (compositionstart)="onCompositionStart()"
+    (compositionend)="onCompositionEnd()"
+  />
+
+  <!-- One reserved slot, so the field keeps its width whether it holds the
+       spinner, the clear button or nothing. The spinner takes it while a load
+       runs, as the chevron slot does in the select family. -->
+  <span class="autocomplete-adornment">
+    @if (isLoading()) {
+      <svg lucideLoaderCircle class="autocomplete-spinner" aria-hidden="true"></svg>
+    } @else if (showClear() && (value() !== '' || query()) && !disabled() && !readonly()) {
+      <button
+        type="button"
+        class="autocomplete-clear"
+        [attr.aria-label]="clearAriaLabel() || ('autocomplete.clear' | uiCopy | transloco)"
+        (pointerdown)="$event.preventDefault()"
+        (click)="clear($event)"
+      >
+        <svg lucideX aria-hidden="true"></svg>
+      </button>
+    }
+  </span>
+
+  <!-- Last, past the clear slot: the action belongs to the field, while the × belongs to the
+       text, so the × stays next to what it empties.
+
+       Outside the input, so it is outside the element `role="combobox"` restricts and can
+       carry a real accessible name — the same reasoning as the clear button above. The
+       tooltip repeats that name rather than replacing it; a tooltip is never an accessible
+       name. `pointerdown` is prevented so pressing it never pulls focus out of the input. -->
+  @if (showAction()) {
+    <button
+      type="button"
+      class="autocomplete-action"
+      [disabled]="actionDisabled() || actionPending()"
+      [attr.aria-label]="actionAriaLabel()"
+      [libTooltip]="actionTooltip() || actionAriaLabel()"
+      (pointerdown)="$event.preventDefault()"
+      (click)="onAction($event)"
+    >
+      @if (actionPending()) {
+        <svg lucideLoaderCircle class="autocomplete-spinner" aria-hidden="true"></svg>
+      } @else {
+        <svg [lucideIcon]="actionIcon()" aria-hidden="true"></svg>
+      }
+    </button>
+  }
+</div>
+
+@if (resolutionFailureState(); as failure) {
+  <div [id]="resolutionId" class="autocomplete-resolution" role="status">
+    @if (failure.reason === 'notFound' || failure.reason === 'unsupported') {
+      {{ unavailableMessage() || ('autocomplete.unavailable' | uiCopy | transloco) }}
+    } @else {
+      {{ resolutionErrorMessage() || ('autocomplete.resolutionError' | uiCopy | transloco) }}
+    }
+  </div>
+}
+
+@if (showError()) {
+  <div [id]="errorId" class="autocomplete-error" role="alert">
+    {{ firstError()?.message || 'autocomplete.invalid' | uiCopy | transloco }}
+  </div>
+}
+
+<div class="autocomplete-live" aria-live="polite" aria-atomic="true">
+  @if (announcement(); as message) {
+    @switch (message.kind) {
+      @case ('results') {
+        {{ 'autocomplete.results' | uiCopy | transloco: { count: message.count ?? 0 } }}
+      }
+      @case ('noData') {
+        {{ noDataMessage() || ('autocomplete.noData' | uiCopy | transloco) }}
+      }
+      @case ('loadError') {
+        {{ loadErrorMessage() || ('autocomplete.loadError' | uiCopy | transloco) }}
+      }
+    }
+  }
+</div>
+
+<ng-template
+  cdkConnectedOverlay
+  [cdkConnectedOverlayOrigin]="origin"
+  [cdkConnectedOverlayOpen]="expanded()"
+  [cdkConnectedOverlayPositions]="dropdownPositions"
+  [cdkConnectedOverlayMatchWidth]="true"
+  [cdkConnectedOverlayPush]="true"
+  [cdkConnectedOverlayFlexibleDimensions]="false"
+  [cdkConnectedOverlayGrowAfterOpen]="true"
+  cdkConnectedOverlayUsePopover="inline"
+  (overlayOutsideClick)="onOutsideClick($event)"
+>
+  <ng-template ngComboboxPopup [combobox]="combobox">
+    <div
+      #panelElement
+      class="autocomplete-panel"
+      animate.enter="autocomplete-panel-enter"
+      (scroll)="onPanelScroll($event)"
+    >
+      @if (searchLoading() && rows().length === 0) {
+        <div class="autocomplete-state" role="status">
+          {{ 'autocomplete.loading' | uiCopy | transloco }}
+        </div>
+      } @else if (loadError() && rows().length === 0) {
+        <div class="autocomplete-state" role="status">
+          {{ loadErrorMessage() || ('autocomplete.loadError' | uiCopy | transloco) }}
+        </div>
+      }
+
+      <!-- Focus remains in the input. The listbox represents its active option
+           through aria-activedescendant and is not a second tab stop. -->
+      <div
+        ngComboboxWidget
+        ngListbox
+        #listbox="ngListbox"
+        class="autocomplete-list"
+        focusMode="activedescendant"
+        selectionMode="explicit"
+        [tabindex]="-1"
+        [activeDescendant]="navigated() ? listbox.activeDescendant() : undefined"
+        [value]="listboxValue()"
+        (valueChange)="onListboxValueChange($event)"
+        (click)="onListClick($event)"
+        (keydown.enter)="onEnter()"
+      >
+        @for (item of rows(); track itemKey(item)) {
+          <div
+            ngOption
+            class="autocomplete-option"
+            [value]="itemKey(item)"
+            [label]="itemLabel(item)"
+            [disabled]="isOptionDisabled(item)"
+          >
+            @if (optionTemplate(); as template) {
+              <ng-container
+                *ngTemplateOutlet="
+                  template.templateRef;
+                  context: { $implicit: item, query: query() }
+                "
+              />
+            } @else {
+              {{ itemLabel(item) }}
+            }
+          </div>
+        }
+      </div>
+
+      @if (!searchLoading() && !loadError() && rows().length === 0) {
+        <div class="autocomplete-state">
+          {{ noDataMessage() || ('autocomplete.noData' | uiCopy | transloco) }}
+        </div>
+      }
+
+      @if (searchLoading() && rows().length > 0) {
+        <div class="autocomplete-more" role="status">
+          <svg lucideLoaderCircle aria-hidden="true"></svg>
+          {{ 'autocomplete.loading' | uiCopy | transloco }}
+        </div>
+      } @else if (loadError() && rows().length > 0) {
+        <div class="autocomplete-more" role="status">
+          {{ loadErrorMessage() || ('autocomplete.loadError' | uiCopy | transloco) }}
+        </div>
+      }
+
+      @if (footerTemplate(); as footer) {
+        <div class="autocomplete-footer" role="presentation">
+          <ng-container *ngTemplateOutlet="footer.templateRef; context: footerContext()" />
+        </div>
+      }
+    </div>
+  </ng-template>
+</ng-template>

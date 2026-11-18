@@ -1,0 +1,288 @@
+@use 'abstracts' as a;
+
+// An hour is the larger of its floor and its rows times the slot floor, so the
+// 60-minute scale keeps a readable hour and the 5-minute scale grows.
+:host {
+  --tg-hour: max(
+    var(--calendar-hour-min-height),
+    calc(var(--calendar-slot-min-height) * var(--tg-slots-per-hour, 2))
+  );
+  --tg-slot: calc(var(--tg-hour) / var(--tg-slots-per-hour, 2));
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+// One scroller for both axes, so the head, the gutter and the body pan as one.
+.tg-scroller {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(lg);
+  background: var(--surface);
+}
+
+// One grid for the head row and the body, so the two can never disagree on a
+// column's width. Columns keep their floor and the grid overflows into the pan.
+.tg-table {
+  display: grid;
+  grid-template-columns:
+    var(--calendar-gutter-width)
+    repeat(var(--tg-columns, 1), minmax(var(--calendar-column-min-width), 1fr));
+  grid-template-rows: auto calc(var(--tg-hour) * 24);
+}
+
+.tg-corner,
+.tg-head {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--surface);
+  border-block-end: var(--border-width-hairline) solid var(--border);
+}
+
+.tg-corner {
+  left: 0;
+  z-index: 4;
+  border-inline-end: var(--border-width-hairline) solid var(--border);
+}
+
+.tg-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: a.space(1);
+  min-width: 0;
+  padding: a.space(2);
+  border-inline-start: var(--border-width-hairline) solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+.tg-head[data-today] {
+  color: var(--accent-text);
+  font-weight: var(--weight-medium);
+}
+
+.tg-head-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tg-head-closed {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.tg-head-dot {
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: a.radius(pill);
+  background: var(--text-muted);
+}
+
+@for $step from 1 through 6 {
+  .tg-head-dot[data-swatch='#{$step}'] {
+    background: var(--swatch-#{$step});
+  }
+}
+
+.tg-gutter {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--surface);
+  border-inline-end: var(--border-width-hairline) solid var(--border);
+}
+
+.tg-hour {
+  position: absolute;
+  inset-inline-end: a.space(2);
+  top: calc(var(--tg-hour) * var(--tg-hour-index));
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+// The lines are two repeating gradients on a layer above the bands and below
+// the tiles: no nodes, and the shading never hides them.
+.tg-col {
+  position: relative;
+  border-inline-start: var(--border-width-hairline) solid var(--border-subtle);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background-image:
+      repeating-linear-gradient(
+        to bottom,
+        var(--border) 0 var(--border-width-hairline),
+        transparent var(--border-width-hairline) var(--tg-hour)
+      ),
+      repeating-linear-gradient(
+        to bottom,
+        var(--border-subtle) 0 var(--border-width-hairline),
+        transparent var(--border-width-hairline) var(--tg-slot)
+      );
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--focus-ring);
+  }
+}
+
+.tg-band,
+.tg-slot,
+.tg-now {
+  position: absolute;
+  inset-inline: 0;
+  pointer-events: none;
+}
+
+.tg-band,
+.tg-slot {
+  top: calc(var(--tg-hour) * var(--band-start) / 60);
+  height: calc(var(--tg-hour) * (var(--band-end) - var(--band-start)) / 60);
+}
+
+.tg-band {
+  background: var(--surface-sunken);
+}
+
+.tg-slot {
+  z-index: 1;
+  background: var(--accent-subtle);
+  box-shadow: inset 0 0 0 var(--border-width-hairline) var(--accent);
+}
+
+// The now line takes the accent, like every other emphasis, with a dot on the
+// gutter side so the eye finds its end.
+.tg-now {
+  top: calc(var(--tg-hour) * var(--now) / 60);
+  z-index: 3;
+  border-block-start: var(--border-width-strong) solid var(--accent);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: calc(var(--border-width-strong) * -1 - 0.1875rem);
+    inset-inline-start: calc(0.1875rem * -1);
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: a.radius(pill);
+    background: var(--accent);
+  }
+}
+
+.tg-more {
+  position: absolute;
+  top: calc(var(--tg-hour) * var(--band-start) / 60 + #{a.space(1)});
+  inset-inline-end: a.space(1);
+  z-index: 3;
+  padding: 0 a.space(2);
+  border: var(--border-width-hairline) solid var(--border-strong);
+  border-radius: a.radius(pill);
+  background: var(--surface-overlay);
+  box-shadow: var(--shadow-sm);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  line-height: 1.25rem;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text-primary);
+    border-color: var(--accent);
+  }
+}
+
+.tg-sr {
+  position: absolute;
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+// A clicked slot fades in. Moved by the keys, it is simply there. Two names,
+// so the next click restarts the fade on a band that stays mounted.
+.tg-slot[data-fade='a'] {
+  animation: tg-fade-a var(--dur-fast) var(--ease-out);
+}
+
+.tg-slot[data-fade='b'] {
+  animation: tg-fade-b var(--dur-fast) var(--ease-out);
+}
+
+@each $name in (tg-fade-a, tg-fade-b) {
+  @keyframes #{$name} {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
+// A step slides the day columns and their heads, never the hour labels. Two
+// names per direction, so the next step restarts the animation.
+$tg-slides: (
+  'next-0': tg-slide-next-a,
+  'next-1': tg-slide-next-b,
+  'previous-0': tg-slide-previous-a,
+  'previous-1': tg-slide-previous-b,
+);
+
+@each $key, $name in $tg-slides {
+  :host([data-slide='#{$key}']) :is(.tg-head, .tg-col) {
+    animation: #{$name} var(--dur-base) var(--ease-out);
+  }
+}
+
+@each $name in (tg-slide-next-a, tg-slide-next-b) {
+  @keyframes #{$name} {
+    from {
+      opacity: 0;
+      transform: translateX(var(--calendar-slide-distance, 0.875rem));
+    }
+  }
+}
+
+@each $name in (tg-slide-previous-a, tg-slide-previous-b) {
+  @keyframes #{$name} {
+    from {
+      opacity: 0;
+      transform: translateX(calc(-1 * var(--calendar-slide-distance, 0.875rem)));
+    }
+  }
+}
+
+@media (forced-colors: active) {
+  .tg-band {
+    background: Canvas;
+    border-block: 1px dashed GrayText;
+  }
+
+  .tg-slot {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+
+  .tg-now {
+    border-color: Highlight;
+  }
+}

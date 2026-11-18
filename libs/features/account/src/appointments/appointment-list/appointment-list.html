@@ -1,0 +1,75 @@
+@let current = list();
+
+@switch (current.status) {
+  @case ('failed') {
+    <lib-banner tone="error" role="alert">
+      {{ 'account.common.failed' | transloco }}
+      <button
+        libButton
+        libBannerAction
+        type="button"
+        variant="outlined"
+        severity="secondary"
+        size="sm"
+        (click)="retry.emit()"
+      >
+        {{ 'account.common.retry' | transloco }}
+      </button>
+    </lib-banner>
+  }
+  @case ('ready') {
+    @if (current.items.length === 0) {
+      <div class="list-state">
+        @if (period() === 'Upcoming') {
+          <p>{{ 'account.appointments.emptyUpcoming' | transloco }}</p>
+          <a libButton langLink="/barbershops">
+            {{ 'account.appointments.findBarbershop' | transloco }}
+          </a>
+        } @else {
+          <p>{{ 'account.appointments.emptyPast' | transloco }}</p>
+        }
+      </div>
+    } @else {
+      <ul class="list">
+        @for (appointment of current.items; track appointment.id) {
+          <li>
+            <lib-appointment-card [appointment]="appointment" (rate)="rate.emit($event)" />
+          </li>
+        }
+      </ul>
+
+      @if (current.moreFailed) {
+        <lib-banner tone="error" role="alert">
+          {{ 'account.common.failed' | transloco }}
+          <button
+            libButton
+            libBannerAction
+            type="button"
+            size="sm"
+            variant="outlined"
+            severity="secondary"
+            (click)="more.emit()"
+          >
+            {{ 'account.common.retry' | transloco }}
+          </button>
+        </lib-banner>
+      } @else if (current.hasMore) {
+        <div class="list-more">
+          <button
+            libButton
+            type="button"
+            variant="outlined"
+            severity="secondary"
+            [loading]="current.loadingMore"
+            (click)="more.emit()"
+          >
+            {{ 'account.common.showMore' | transloco }}
+          </button>
+        </div>
+      }
+    }
+  }
+  @default {
+    <p class="list-state" role="status">{{ 'account.common.loading' | transloco }}</p>
+  }
+}

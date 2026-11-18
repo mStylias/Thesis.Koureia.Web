@@ -1,0 +1,413 @@
+// Consumes the design-system CSS custom properties emitted by the
+// shared @ui styles. Keyboard focus comes from
+// the global `:focus-visible` rule; reduced motion is handled by the
+// base layer. The panel renders inline (absolutely positioned under
+// the trigger), so the host is the positioning context.
+
+:host {
+  position: relative;
+  display: inline-block;
+  min-width: var(--select-min-width);
+  font-family: var(--font-sans);
+}
+
+:host([data-disabled]) {
+  opacity: var(--opacity-disabled);
+}
+
+// ---- Trigger ----
+
+.select-trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  // Explicit so trigger and panel measure identically even without a
+  // global box-sizing reset (e.g. inside Storybook).
+  box-sizing: border-box;
+  width: 100%;
+  // The label wrappers override the top inset via --field-pad-top to
+  // make room for in/IFTA labels.
+  padding: var(--field-pad-top, var(--select-pad-y)) var(--select-pad-x) var(--select-pad-y);
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border-strong);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--select-text);
+  line-height: var(--leading-snug);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    border-color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard);
+
+  &:hover:not([aria-disabled='true']) {
+    border-color: var(--accent);
+  }
+
+  &[aria-expanded='true'] {
+    border-color: var(--accent);
+  }
+
+  // Form fields replace the global 3px focus glow with a 2px accent
+  // border so the focus indicator stays clearly visible (WCAG 2.4.7).
+  &:focus-visible {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+
+  &[aria-disabled='true'] {
+    cursor: default;
+  }
+}
+
+// Composed into a frame the parent draws. The parent owns the border, the
+// background, the focus ring and the invalid state for the whole group; two
+// frames a hairline apart read as two controls. The border goes transparent
+// rather than away, so toggling it never changes the height.
+:host([data-frameless]) .select-trigger {
+  border-color: transparent;
+  background: transparent;
+  // The parent's frame supplies the leading inset; ours on top of it opens a
+  // gap the value looks lost in. The trailing inset stays for the chevron.
+  padding-inline-start: 0;
+
+  &:hover:not([aria-disabled='true']),
+  &[aria-expanded='true'],
+  &:focus-visible {
+    border-color: transparent;
+    box-shadow: none;
+  }
+}
+
+:host([data-invalid]) .select-trigger {
+  border-color: var(--error);
+
+  &:focus-visible {
+    border-color: var(--error);
+    box-shadow: 0 0 0 1px var(--error);
+  }
+}
+
+// The parent's frame carries the invalid state too. A red hairline around the
+// trigger alone draws a box the composed control does not otherwise have,
+// inside a frame that stays neutral.
+:host([data-frameless][data-invalid]) .select-trigger {
+  border-color: transparent;
+
+  &:focus-visible {
+    border-color: transparent;
+    box-shadow: none;
+  }
+}
+
+// ---- Sizes → private properties ----
+
+:host([data-size='sm']) {
+  --select-pad-y: var(--space-1);
+  --select-pad-x: var(--space-2);
+  --select-text: var(--text-sm);
+}
+
+:host([data-size='md']) {
+  --select-pad-y: var(--space-2);
+  --select-pad-x: var(--space-3);
+  --select-text: var(--text-base);
+}
+
+:host([data-size='lg']) {
+  --select-pad-y: var(--space-3);
+  --select-pad-x: var(--space-4);
+  --select-text: var(--text-lg);
+}
+
+// ---- Trigger parts ----
+
+.select-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  // Keeps the trigger height when there is no value and no placeholder.
+  min-height: calc(var(--select-text) * var(--leading-snug));
+  // Room a consumer reserves for something it draws over the closed field.
+  // It shortens the line box, so the ellipsis lands in front of that thing
+  // rather than under it — and it does so for everything this element can
+  // hold: the selected item, the placeholder and the unavailable message. A
+  // consumer padding its own `libSelectedItem` content covers only the first
+  // of the three.
+  padding-inline-end: var(--select-value-inset-end, 0);
+}
+
+.select-placeholder {
+  color: var(--text-muted);
+}
+
+.select-clear,
+.select-chevron,
+.select-spinner {
+  flex-shrink: 0;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  stroke-width: var(--icon-stroke);
+  color: var(--text-muted);
+}
+
+.select-clear {
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}
+
+.select-trigger[aria-expanded='true'] .select-chevron {
+  transform: rotate(180deg);
+}
+
+.select-chevron {
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+
+// Functional loading indicator — the design system's "no infinite
+// animation" rule targets decoration; the base layer still stops this
+// under prefers-reduced-motion.
+.select-spinner {
+  animation: select-spin 1s linear infinite;
+}
+
+@keyframes select-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ---- Panel ----
+
+.select-panel {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  left: 0;
+  box-sizing: border-box;
+  min-width: 100%;
+  z-index: var(--z-overlay);
+  // `--surface-overlay` and not `--surface`: this panel renders *inline*, so unlike the
+  // portaled menu and dialog it stays inside whatever `data-surface` context wraps the
+  // trigger — and in a dark band `--surface` is deliberately translucent so a control over
+  // a photograph reads as glass. A list of choices floating above that photograph cannot be
+  // glass; it has to be opaque to be readable.
+  background: var(--surface-overlay);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  max-height: var(--select-panel-max-height);
+  overflow-y: auto;
+  padding: var(--space-1);
+  // Origin-aware: the panel grows out of the trigger above it.
+  transform-origin: top center;
+}
+
+// Opened upward, because the room under the trigger would have cut the panel
+// off. The class is written by the component, which is the only thing that can
+// measure the room; the origin follows the side, so the panel still grows out
+// of the trigger.
+.select-panel-above {
+  top: auto;
+  bottom: calc(100% + var(--space-1));
+  transform-origin: bottom center;
+}
+
+// Enter animation, applied by `animate.enter` while the panel mounts.
+// A visible starting shape (never scale(0)) with a fast ease-out start.
+// Closing is intentionally instant: selects are high-frequency,
+// keyboard-driven controls, so the exit never gets in the way.
+.select-panel-enter {
+  animation: select-panel-in var(--dur-fast) var(--ease-out);
+}
+
+@keyframes select-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--space-1))) scale(0.97);
+  }
+}
+
+// The same entrance, rising instead of dropping.
+.select-panel-above.select-panel-enter {
+  animation-name: select-panel-in-above;
+}
+
+@keyframes select-panel-in-above {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-1)) scale(0.97);
+  }
+}
+
+.select-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  outline: none;
+}
+
+.select-option {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--select-text);
+  cursor: pointer;
+
+  &:hover:not([aria-disabled='true']) {
+    background: var(--surface-2);
+  }
+
+  // Keyboard-active option (aria-activedescendant target). Matches the
+  // global focus-ring mixin (--focus-ring is a color token). Rendered
+  // only during keyboard interaction (the host's data-modality mirrors
+  // :focus-visible) — a clicked option already shows its selected
+  // state, so the ring would just shadow the pointer.
+  :host([data-navigated]) &[data-active='true'] {
+    box-shadow: inset 0 0 0 2px var(--focus-ring);
+  }
+
+  :host([data-modality='pointer']) &[data-active='true'] {
+    box-shadow: none;
+  }
+
+  &[aria-selected='true'] {
+    background: var(--accent-subtle);
+    color: var(--accent-text);
+    font-weight: var(--weight-bold);
+  }
+
+  &[aria-disabled='true'] {
+    opacity: var(--opacity-disabled);
+    cursor: default;
+  }
+}
+
+.select-empty {
+  padding: var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+// ---- Source-backed panel ----
+// The search row displays the query; it never takes focus, so the trigger keeps
+// the combobox role and the relayed keys keep arriving.
+
+.select-search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--border-width-hairline) solid var(--border);
+  margin-bottom: var(--space-1);
+  font-size: var(--text-sm);
+  cursor: default;
+}
+
+.select-search-icon,
+.select-search-clear {
+  flex-shrink: 0;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  stroke-width: var(--icon-stroke);
+  color: var(--text-muted);
+}
+
+.select-search-clear {
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}
+
+.select-search-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+
+  // The row is the field; a ring around the bare input would draw a second one
+  // inside it. The panel is only ever open because the user opened it.
+  &:focus,
+  &:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+}
+
+// Next-page indicator under the loaded rows.
+.select-more {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+    animation: select-spin 1s linear infinite;
+  }
+}
+
+// A value the source kept but could not display.
+.select-unavailable {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+// Result counts and load failures, announced once rather than per keystroke.
+.select-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+// ---- Forced colors ----
+// A forced palette drops our backgrounds and every box-shadow, which is
+// what marks the focused trigger and the keyboard-active option.
+// Selection also carries a bold weight, so it never rests on colour
+// alone — but re-state the rest with system colors.
+
+@media (forced-colors: active) {
+  :host(:not([data-frameless])) .select-trigger {
+    border-color: CanvasText;
+  }
+
+  .select-trigger:focus-visible,
+  .select-trigger[aria-expanded='true'] {
+    outline: 2px solid Highlight;
+    outline-offset: 1px;
+  }
+
+  // Keyboard-only, like the box-shadow ring it replaces.
+  :host([data-navigated]:not([data-modality='pointer'])) .select-option[data-active='true'] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+
+  .select-option[aria-selected='true'] {
+    background: Highlight;
+    color: HighlightText;
+    forced-color-adjust: none;
+  }
+}

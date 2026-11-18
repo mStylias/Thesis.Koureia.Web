@@ -1,0 +1,120 @@
+<lib-page-section
+  sectionId="shop"
+  skeletonRows="5"
+  [heading]="'managementCompany.shop.title' | transloco"
+  [hint]="canEdit() ? '' : ('managementCompany.readOnly' | transloco)"
+  [state]="state()"
+  (retry)="retry()"
+>
+  @if (settings(); as shop) {
+    <div class="shop-identity">
+      <div class="shop-logo">
+        @if (shop.logoUrl) {
+          <img class="shop-logo-image" alt="" [src]="shop.logoUrl" />
+        } @else {
+          <svg class="shop-logo-icon" lucideStore aria-hidden="true"></svg>
+        }
+      </div>
+      <div class="shop-name-block">
+        <p class="shop-name">{{ shop.name }}</p>
+        <address class="shop-address">
+          @for (line of addressLines(); track $index) {
+            <span>{{ line }}</span>
+          }
+        </address>
+      </div>
+    </div>
+
+    @if (canEdit()) {
+      <!-- The native chooser, behind a button. "accept" makes iOS convert a HEIC photo to JPEG. -->
+      <input
+        #chooser
+        class="sr-only"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        tabindex="-1"
+        aria-hidden="true"
+        (change)="onChosen($event)"
+      />
+      <div class="shop-logo-actions">
+        <button
+          libButton
+          type="button"
+          size="sm"
+          variant="outlined"
+          severity="secondary"
+          (click)="choose()"
+        >
+          <svg libButtonIcon lucideImageUp aria-hidden="true"></svg>
+          {{ 'managementCompany.shop.logo.change' | transloco }}
+        </button>
+        @if (shop.logoUrl) {
+          <button
+            libButton
+            type="button"
+            size="sm"
+            variant="text"
+            severity="error"
+            [loading]="removing()"
+            (click)="remove()"
+          >
+            <svg libButtonIcon lucideTrash2 aria-hidden="true"></svg>
+            {{ 'managementCompany.shop.logo.remove' | transloco }}
+          </button>
+        }
+      </div>
+    }
+
+    <dl class="shop-details">
+      <div class="shop-row">
+        <dt class="shop-caption">{{ 'managementCompany.shop.phone' | transloco }}</dt>
+        <dd class="shop-value">
+          <a class="shop-link" [href]="'tel:' + shop.phone">{{ phone() }}</a>
+        </dd>
+      </div>
+      <div class="shop-row">
+        <dt class="shop-caption">{{ 'managementCompany.shop.email' | transloco }}</dt>
+        <dd class="shop-value">
+          <a class="shop-link" [href]="'mailto:' + shop.email">{{ shop.email }}</a>
+        </dd>
+      </div>
+      @if (shop.website) {
+        <div class="shop-row">
+          <dt class="shop-caption">{{ 'managementCompany.shop.website' | transloco }}</dt>
+          <dd class="shop-value">
+            <a class="shop-link" target="_blank" rel="noopener noreferrer" [href]="websiteHref()"
+              >{{ websiteText() }}
+              <span class="sr-only">{{ 'managementCompany.shop.newTab' | transloco }}</span></a
+            >
+          </dd>
+        </div>
+      }
+    </dl>
+
+    <div class="shop-footer">
+      @if (publicHref(); as href) {
+        <a
+          libButton
+          size="sm"
+          variant="outlined"
+          severity="secondary"
+          target="_blank"
+          rel="noopener"
+          [href]="href"
+        >
+          <svg libButtonIcon lucideExternalLink aria-hidden="true"></svg>
+          {{ 'managementCompany.shop.publicPage' | transloco }}
+          <span class="sr-only">{{ 'managementCompany.shop.newTab' | transloco }}</span>
+        </a>
+      }
+      <p class="shop-support">
+        {{ 'managementCompany.shop.support' | transloco }}
+        @if (shop.supportEmail) {
+          <a class="shop-link" [href]="'mailto:' + shop.supportEmail">{{ shop.supportEmail }}</a>
+        }
+      </p>
+    </div>
+  }
+
+  <lib-logo-crop-dialog [(visible)]="cropping" [file]="file()" (saved)="onSaved($event)" />
+</lib-page-section>

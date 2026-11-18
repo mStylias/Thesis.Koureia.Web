@@ -1,0 +1,87 @@
+// Consumes the design-system CSS custom properties. Focus ring comes from
+// the global `:focus-visible` rule. The active underline is drawn by the
+// shared sliding indicator in `lib-tab-list`, not per-tab. The `tab` class
+// is on the component HOST, so it is styled via `:host`.
+
+:host {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    color var(--dur-fast) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard);
+}
+
+:host(:hover) {
+  color: var(--text-primary);
+  background: var(--surface-2);
+}
+
+// aria drives selection state via `aria-selected`.
+:host([aria-selected='true']) {
+  color: var(--accent-text);
+}
+
+:host([aria-disabled='true']) {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+:host([aria-disabled='true']:hover) {
+  background: transparent;
+}
+
+// Vertical tab lists round the inline-start corners instead of the top.
+:host-context([data-orientation='vertical']) {
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+}
+
+.tab-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  // Let clicks fall through to the tab host: `@angular/aria` resolves the
+  // clicked tab with `e.target.closest('[role="tab"]')` but first bails when
+  // the target is not an `HTMLElement` — a projected SVG icon (SVGElement)
+  // would otherwise swallow the click and the tab wouldn't select.
+  pointer-events: none;
+}
+
+// A pointer-only affordance (a `span`, not a control — `role="tab"` has
+// presentational children; see `tab.ts`).
+.tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  margin-inline-start: var(--space-1);
+  border-radius: var(--radius-pill);
+  color: currentColor;
+  cursor: pointer;
+  opacity: 0.7;
+  transition:
+    opacity var(--dur-fast) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard);
+
+  &:hover {
+    opacity: 1;
+    background: var(--surface-sunken);
+  }
+
+  svg {
+    width: 0.85em;
+    height: 0.85em;
+    stroke-width: var(--icon-stroke);
+  }
+}

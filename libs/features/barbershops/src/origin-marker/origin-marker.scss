@@ -1,0 +1,67 @@
+@use 'abstracts' as a;
+
+// The host box IS the dot, and nothing else may widen it.
+//
+// MapLibre centres the whole marker element on the coordinate. A label in the flow would make
+// that box `[dot][label]` wide, putting the dot half the box to the left of the point it marks
+// — a constant pixel error, so zooming out turns it into kilometres. The label is therefore
+// positioned out of flow, and the size is stated rather than left to shrink-to-fit.
+:host {
+  --origin-dot: var(--space-4);
+
+  display: block;
+  position: relative;
+  width: var(--origin-dot);
+  height: var(--origin-dot);
+  // Informational only. Left live it would swallow drags that start on the label.
+  pointer-events: none;
+}
+
+.origin {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+// A ringed dot, not the shops' filled pin. Shape carries the difference as well as color does,
+// which is what keeps the two apart for a color-blind reader and under forced colors.
+.origin__dot {
+  position: absolute;
+  inset: 0;
+  background: var(--info);
+  border: var(--border-width-strong) solid var(--surface);
+  border-radius: a.radius(pill);
+  box-shadow:
+    0 0 0 var(--space-1) color-mix(in oklab, var(--info) 25%, transparent),
+    var(--shadow-sm);
+}
+
+// Beside the dot, out of flow, vertically centred on it.
+.origin__label {
+  @include a.t-caption;
+  position: absolute;
+  inset-inline-start: calc(100% + var(--space-2));
+  top: 50%;
+  transform: translateY(-50%);
+  max-width: 12rem;
+  padding: var(--space-1) var(--space-2);
+  overflow: hidden;
+  color: var(--text-primary);
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(sm);
+  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@media (forced-colors: active) {
+  .origin__dot {
+    background: Highlight;
+    forced-color-adjust: none;
+  }
+
+  .origin__label {
+    border-color: CanvasText;
+  }
+}

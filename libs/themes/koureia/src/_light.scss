@@ -1,0 +1,73 @@
+// The light theme, the default: warm paper surfaces with a copper accent.
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: var(--paper);
+  --surface: #ffffff;
+  // 4 L* below `--bg`, so a tile is visible on the page. At 2 L* it was not.
+  --surface-2: var(--neutral-50);
+  // 3 L* below `--surface-2`, so a hover or a track on a tile is visible.
+  --surface-sunken: var(--neutral-100);
+  // The ground under floating content, such as a dropdown or an inline popover. It holds its
+  // own value and is not an alias of `--surface`, because the dark surface context turns
+  // `--surface` translucent so a chip over a photograph reads as glass. A list of choices
+  // above that photograph must stay opaque or it is unreadable. `_surface-dark.scss` is the
+  // one file that must not re-point this token.
+  --surface-overlay: #ffffff;
+
+  --border: #e6dece;
+  --border-subtle: #ece5d8;
+  --border-strong: #d8cdb8;
+
+  // A neutral tag: a service, a cancelled status. The white of a card with a strong edge, so it
+  // stands off every row, stripe, hover and tile tint beneath it. See `a.tag`.
+  --tag-bg: var(--surface);
+  --tag-border: var(--border-strong);
+
+  // The thumb of a switch, on its off track and on the accent.
+  --switch-thumb: var(--surface);
+
+  --text-primary: var(--neutral-900);
+  --text-secondary: var(--neutral-600);
+  // At least 4.5:1 on every light surface, `--surface-sunken` included.
+  --text-muted: var(--neutral-500);
+  --text-inverse: var(--paper);
+
+  --accent: var(--brand-500);
+  --accent-hover: var(--brand-600);
+  --accent-active: var(--brand-700);
+  // Between brand 500 and 600, so the text is AA on `--surface-sunken`. The 500 fill stays.
+  --accent-text: #915724;
+  --accent-fg: #ffffff; // text on copper
+  --accent-subtle: var(--brand-50);
+  --accent-subtle-border: var(--brand-200);
+  // Four accent steps under `--text-primary`, weakest first. A level scale uses 1 to 3, and its
+  // hover goes one step up. `--accent-text` fails AA on step 3, so a tinted cell sets primary text.
+  --accent-tint-1: var(--brand-50);
+  --accent-tint-2: var(--brand-100);
+  --accent-tint-3: var(--brand-200);
+  --accent-tint-4: var(--brand-300);
+
+  // The foreground on a filled semantic surface. Each value is a contrast pairing with the
+  // hue above it and not a fixed color, so each brand decides it. Re-point a hue and its
+  // foreground can have to move too.
+  --on-success: #ffffff;
+  --on-info: #ffffff;
+  --on-warning: #ffffff;
+  --on-error: #ffffff;
+
+  // A semantic hue as text, on any surface or on its own `-bg` tint. The fill hues are too
+  // light for text on `--surface-2`, so each step is darker until it is AA on
+  // `--surface-sunken`. The error fill passes already.
+  --success-text: #446e47;
+  --warning-text: #815f08;
+  --error-text: var(--error);
+  --info-text: #3f6985;
+
+  // A solid accent. The focus indicator is a crisp 2px ring and not a glow.
+  --focus-ring: var(--accent-text);
+
+  // The modal backdrop: warm ink, like the shadows.
+  --scrim: rgba(28, 24, 20, 0.5);
+}

@@ -1,0 +1,8 @@
+{
+  "name": "features-management-shared-staff-schedule",
+  "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/features/management/shared/staff-schedule/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["scope:app", "type:feature"]
+}

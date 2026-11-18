@@ -1,0 +1,86 @@
+@if (loading()) {
+  <p class="profile-state" role="status">{{ 'account.common.loading' | transloco }}</p>
+} @else if (failed()) {
+  <div class="profile-state" role="alert">
+    <p>{{ 'account.common.failed' | transloco }}</p>
+    <button libButton type="button" variant="outlined" severity="secondary" (click)="retry()">
+      {{ 'account.common.retry' | transloco }}
+    </button>
+  </div>
+} @else {
+  @let fields = editor.form;
+
+  <section class="profile-section" aria-labelledby="profile-details-title">
+    <h2 class="profile-heading" id="profile-details-title">
+      {{ 'account.profile.title' | transloco }}
+    </h2>
+
+    <form class="profile-form" [libForm]="editor">
+      <lib-form-errors />
+
+      <div class="profile-pair">
+        <lib-field [field]="fields.firstName">
+          <ng-template libFieldEditor>
+            <input
+              libInputText
+              libFieldControl
+              type="text"
+              autocomplete="given-name"
+              placeholder=" "
+              [formField]="fields.firstName"
+            />
+          </ng-template>
+        </lib-field>
+
+        <lib-field [field]="fields.lastName">
+          <ng-template libFieldEditor>
+            <input
+              libInputText
+              libFieldControl
+              type="text"
+              autocomplete="family-name"
+              placeholder=" "
+              [formField]="fields.lastName"
+            />
+          </ng-template>
+        </lib-field>
+      </div>
+
+      <lib-field labelStyle="plain" [field]="fields.phoneNumber">
+        <ng-template libFieldEditor let-id let-describedBy="describedBy">
+          <lib-phone-input
+            [inputId]="id"
+            [ariaDescribedby]="describedBy"
+            [formField]="fields.phoneNumber"
+          />
+        </ng-template>
+      </lib-field>
+
+      <div class="profile-readonly">
+        <span class="profile-caption">{{ 'account.profile.email' | transloco }}</span>
+        <span class="profile-value">{{ email() }}</span>
+        <span class="profile-hint">{{ 'account.profile.emailHint' | transloco }}</span>
+      </div>
+
+      <div class="profile-actions">
+        <button libButton type="submit" [loading]="editor.submitting()">
+          {{ 'account.profile.save' | transloco }}
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <section class="profile-section" aria-labelledby="profile-password-title">
+    <h2 class="profile-heading" id="profile-password-title">
+      {{ 'account.profile.password.title' | transloco }}
+    </h2>
+    <p class="profile-hint">{{ 'account.profile.password.body' | transloco }}</p>
+    <div class="profile-actions">
+      <!-- A plain `href`: the BFF route is a document load, not a page of this app. -->
+      <a libButton variant="outlined" severity="secondary" [href]="passwordHref()">
+        <svg libButtonIcon lucideKeyRound aria-hidden="true"></svg>
+        {{ 'account.profile.password.action' | transloco }}
+      </a>
+    </div>
+  </section>
+}

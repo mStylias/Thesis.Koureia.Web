@@ -1,0 +1,70 @@
+@use 'abstracts' as a;
+
+.merge-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.merge-text {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+}
+
+.merge-option {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.merge-meta {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.merge-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.merge-legend {
+  margin: 0;
+  padding: 0;
+  @include a.t-field-label;
+}
+
+.merge-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+// The joined note as it will be saved, line breaks kept.
+.merge-note {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.merge-error {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--error-text);
+}
+
+// Back sits at the start, away from the actions that close or merge.
+.merge-back {
+  margin-inline-end: auto;
+}

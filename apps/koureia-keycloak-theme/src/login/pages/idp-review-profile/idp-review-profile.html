@@ -1,0 +1,31 @@
+<kc-auth-frame
+  [title]="i18n.msgStr('loginIdpReviewProfileTitle')"
+  [description]="i18n.msgStr('updateProfileDescription')"
+>
+  @let message = kcContext.message;
+  @if (message && (message.type !== 'error' || showErrors()) && showGlobalMessage()) {
+    <lib-banner
+      class="message"
+      [tone]="message.type"
+      [attr.role]="message.type === 'error' ? 'alert' : 'status'"
+    >
+      <span [innerHTML]="message.summary"></span>
+    </lib-banner>
+  }
+
+  <form
+    #form
+    id="kc-idp-review-profile-form"
+    class="auth-form"
+    method="post"
+    [action]="kcContext.url.loginAction"
+    novalidate
+    (submit)="onSubmit($event)"
+  >
+    <kc-user-profile-fields [showErrors]="showErrors()" />
+
+    <button libButton type="submit" size="lg" [disabled]="submitting()">
+      {{ i18n.msgStr('updateProfileSubmit') }}
+    </button>
+  </form>
+</kc-auth-frame>

@@ -1,0 +1,6 @@
+:host {
+  display: grid;
+  min-width: 0;
+  gap: var(--card-gap);
+  padding: var(--card-padding);
+}

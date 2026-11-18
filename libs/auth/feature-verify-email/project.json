@@ -1,0 +1,8 @@
+{
+  "name": "auth-feature-verify-email",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/auth/feature-verify-email/src",
+  "prefix": "auth",
+  "projectType": "library",
+  "tags": ["scope:auth", "type:feature"]
+}

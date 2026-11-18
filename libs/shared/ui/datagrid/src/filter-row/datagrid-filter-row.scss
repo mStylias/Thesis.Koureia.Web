@@ -1,0 +1,238 @@
+@use 'abstracts' as a;
+
+// Sticks under the header, at the header's own height, so both stay put while
+// the body scrolls.
+//
+// The layer matters: a pinned body cell is sticky at `z-index: 2` and the body
+// host is no stacking context, so that 2 competes here at the root. At the
+// same value the body wins on document order, and rows scrolled straight
+// through the pinned ends of this row. The stack is body 2 < header 4 < filter
+// row 5.
+//
+// The filter row sits above the header even though the header is drawn after
+// it: an editor's validation message floats over the control, which means over
+// the header, and from inside a lower stacking context no z-index can reach
+// it. The two rows never overlap, so the order costs nothing.
+:host {
+  box-sizing: border-box;
+  display: block;
+  position: sticky;
+  // The whole header, not one row of it: a banded header is as many rows deep
+  // as it declares bands, and the filter row sticks under all of them.
+  top: calc(var(--dg-header-height) * var(--dg-header-rows, 1));
+  z-index: 5;
+  width: var(--dg-total-width, 100%);
+  min-width: 100%;
+}
+
+// One row height, taken from the header, so the field can fill it. `min-height`
+// rather than `height`: a date editor is the tallest thing the row draws, and
+// it must be allowed to push the row open rather than overflow it.
+.dg-filter-row {
+  --dg-row-bg: var(--surface);
+
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: var(--dg-template);
+  width: 100%;
+  min-height: var(--dg-header-height);
+  background: var(--dg-row-bg);
+  border-block-end: var(--border-width-hairline) solid var(--border);
+}
+
+// Separate the editors from the adjacent rows.
+.dg-filter-cell {
+  box-sizing: border-box;
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-1);
+}
+
+// The chooser and the editor read as one control: one border around the pair,
+// one focus ring for whichever of them the user is in. The inner editor drops
+// its own border so the two do not draw a line between themselves.
+.dg-filter-field {
+  box-sizing: border-box;
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(sm);
+  background: var(--surface);
+
+  &:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+}
+
+// One frame, so one invalid state: the editors inside are `frameless` and
+// hand it up rather than drawing a second red box around themselves.
+.dg-filter-field:has([data-invalid], [aria-invalid='true']) {
+  border-color: var(--error);
+
+  &:focus-within {
+    border-color: var(--error);
+    box-shadow: 0 0 0 1px var(--error);
+  }
+}
+
+// The field owns the frame, so every editor is `frameless`. These rules only
+// make the editor fill the column track.
+.dg-filter-editor {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+// `[libIconField]` is `inline-flex` at `height: fit-content` so it can size to
+// its input; here it has to grow both ways instead. The input then fills the
+// box, which makes the whole cell focus it — a single-line input still centers
+// its own text, so nothing moves.
+div.dg-filter-editor {
+  display: flex;
+  align-self: stretch;
+  height: auto;
+
+  > input {
+    height: 100%;
+  }
+}
+
+.dg-filter-op {
+  display: inline-flex;
+  flex: none;
+  align-self: stretch;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-2);
+  border: none;
+  border-start-start-radius: a.radius(sm);
+  border-end-start-radius: a.radius(sm);
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+  }
+
+  &:hover {
+    background: var(--surface-sunken);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -2px;
+  }
+}
+
+// A column that carries a filter says so with the icon's colour and with the
+// operation's own glyph, never with colour alone.
+.dg-filter-field[data-active] .dg-filter-op {
+  color: var(--accent-text);
+}
+
+// One field for both bounds. Two editors inside a 120px column track leave
+// neither of them usable.
+// A button centers its own content, so stretching it keeps the text in place
+// and keeps `text-overflow: ellipsis` working — a flex box here would break it.
+.dg-filter-range {
+  @include a.t-body-sm;
+
+  flex: 1 1 0;
+  align-self: stretch;
+  min-width: 0;
+  padding: 0 var(--space-2);
+  overflow: hidden;
+  border: none;
+  background: none;
+  color: var(--text);
+  text-align: start;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -2px;
+  }
+}
+
+.dg-filter-placeholder {
+  color: var(--text-muted);
+}
+
+.dg-filter-range-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 14rem;
+  padding: var(--space-3);
+}
+
+.dg-filter-range-row {
+  @include a.t-caption;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  color: var(--text-secondary);
+}
+
+// An edit the query has not seen yet. Carried by the border as well as the
+// dot, so it survives forced colours.
+.dg-filter-cell[data-pending] .dg-filter-field {
+  border-color: var(--accent);
+}
+
+// Stands in for an editor: a null test has no operand, a relative period is
+// the descriptor rather than a range, and an unsupported expression is one the
+// row must report instead of pretending to be empty.
+.dg-filter-note {
+  @include a.t-caption;
+
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dg-filter-cell[data-pinned] {
+  position: sticky;
+  z-index: 1;
+  background: var(--dg-row-bg);
+}
+
+.dg-filter-cell[data-pinned='start'][data-edge] {
+  border-inline-end: var(--border-width-hairline) solid var(--border);
+}
+
+.dg-filter-cell[data-pinned='end'][data-edge] {
+  border-inline-start: var(--border-width-hairline) solid var(--border);
+}
+
+:host-context([data-column-separators]) .dg-filter-cell {
+  border-inline-end: var(--border-width-hairline) solid var(--border-subtle);
+}
+
+@media (forced-colors: active) {
+  .dg-filter-cell[data-pinned] {
+    background: Canvas;
+  }
+
+  .dg-filter-field[data-active] .dg-filter-op {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+
+  .dg-filter-cell[data-pending] .dg-filter-field {
+    border-color: Highlight;
+  }
+}

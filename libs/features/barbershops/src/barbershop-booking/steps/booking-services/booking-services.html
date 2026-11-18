@@ -1,0 +1,47 @@
+<h2 class="step__title">{{ 'barbershops.booking.services.title' | transloco }}</h2>
+<p class="step__lead">{{ 'barbershops.booking.services.lead' | transloco }}</p>
+
+<div class="services__groups">
+  @for (group of state.groups(); track group.id) {
+    <section class="services__group">
+      <h3 class="services__heading">
+        {{ group.name ?? ('barbershops.booking.services.other' | transloco) }}
+      </h3>
+      <ul class="services__list">
+        @for (service of group.services; track service.id) {
+          @let chosen = chosenIds().has(service.id);
+          <li>
+            <!--
+              A toggle button, not a checkbox: the whole card is the target, and a checkbox
+              would have to sit inside it as a second interactive element.
+            -->
+            <button
+              class="services__card"
+              type="button"
+              [attr.aria-pressed]="chosen"
+              (click)="state.toggleService(service.id)"
+            >
+              <span class="services__mark" aria-hidden="true">
+                @if (chosen) {
+                  <svg lucideCheck></svg>
+                }
+              </span>
+              <span class="services__body">
+                <span class="services__name">{{ service.name }}</span>
+                @if (service.description) {
+                  <span class="services__description">{{ service.description }}</span>
+                }
+              </span>
+              <span class="services__meta">
+                <span class="services__price">{{ price(service.price) }}</span>
+                <span class="services__duration">{{ duration(service.durationMinutes) }}</span>
+              </span>
+            </button>
+          </li>
+        }
+      </ul>
+    </section>
+  } @empty {
+    <p class="step__empty">{{ 'barbershops.booking.services.none' | transloco }}</p>
+  }
+</div>

@@ -1,0 +1,8 @@
+{
+  "name": "shared-ui-file-upload",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/shared/ui/file-upload/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["scope:shared", "type:ui"]
+}

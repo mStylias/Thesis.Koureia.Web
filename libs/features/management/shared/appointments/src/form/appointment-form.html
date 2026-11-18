@@ -1,0 +1,428 @@
+@let fields = form();
+
+<!-- `libForm` carries the editor to the fields and sets `novalidate`. The toolbar's Save commits. -->
+<form class="appointment-form" [libForm]="editor()">
+  <lib-form-errors class="appointment-form-wide" />
+
+  <!-- The customer: picked on a create, fixed on an edit. -->
+  @if (!creating()) {
+    @if (appointment(); as booked) {
+      <p class="appointment-form-wide appointment-form-fixed">
+        <span class="appointment-form-caption">
+          {{ 'managementAppointments.form.customer' | transloco }}
+        </span>
+        {{ booked.customerDisplayName }}
+      </p>
+    }
+  } @else if (walkIn()) {
+    <fieldset class="appointment-form-wide appointment-form-group">
+      <legend class="appointment-form-caption">
+        {{ 'managementAppointments.form.newCustomerTitle' | transloco }}
+      </legend>
+
+      <lib-field inputId="appointment-first-name" [field]="fields.newCustomer.firstName">
+        <ng-template libFieldEditor>
+          <input
+            libInputText
+            libFieldControl
+            type="text"
+            size="sm"
+            autocomplete="off"
+            placeholder=" "
+            [formField]="fields.newCustomer.firstName"
+          />
+        </ng-template>
+      </lib-field>
+
+      <lib-field inputId="appointment-last-name" [field]="fields.newCustomer.lastName">
+        <ng-template libFieldEditor>
+          <input
+            libInputText
+            libFieldControl
+            type="text"
+            size="sm"
+            autocomplete="off"
+            placeholder=" "
+            [formField]="fields.newCustomer.lastName"
+          />
+        </ng-template>
+      </lib-field>
+
+      <lib-field labelStyle="plain" [field]="fields.newCustomer.phoneNumber">
+        <ng-template libFieldEditor let-id let-describedBy="describedBy">
+          <lib-phone-input
+            size="sm"
+            [inputId]="id"
+            [ariaDescribedby]="describedBy"
+            [formField]="fields.newCustomer.phoneNumber"
+          />
+        </ng-template>
+      </lib-field>
+
+      <lib-field inputId="appointment-email" [field]="fields.newCustomer.email">
+        <ng-template libFieldEditor>
+          <input
+            libInputText
+            libFieldControl
+            type="email"
+            size="sm"
+            autocomplete="off"
+            placeholder=" "
+            [formField]="fields.newCustomer.email"
+          />
+        </ng-template>
+      </lib-field>
+
+      @if (duplicate(); as match) {
+        <!-- An email match is booked for that customer whatever staff do, so it says so. -->
+        <p class="appointment-form-wide appointment-form-hint" role="status">
+          {{
+            (match.kind === 'email'
+              ? 'managementAppointments.form.duplicateEmail'
+              : 'managementAppointments.form.duplicatePhone'
+            ) | transloco: { name: match.customer.displayName }
+          }}
+          <button
+            libButton
+            type="button"
+            variant="text"
+            size="sm"
+            (click)="useExisting(match.customer)"
+          >
+            {{ 'managementAppointments.form.useExisting' | transloco }}
+          </button>
+        </p>
+      }
+
+      @if (accountHint()) {
+        <p class="appointment-form-wide appointment-form-hint" role="status">
+          <svg lucideInfo class="appointment-form-hint-icon" aria-hidden="true"></svg>
+          {{ 'managementAppointments.form.accountEmail' | transloco }}
+        </p>
+      }
+
+      <button
+        libButton
+        type="button"
+        class="appointment-form-switch"
+        variant="text"
+        severity="secondary"
+        size="sm"
+        (click)="useSearch()"
+      >
+        <svg lucideUserSearch libButtonIcon aria-hidden="true"></svg>
+        {{ 'managementAppointments.form.searchCustomer' | transloco }}
+      </button>
+    </fieldset>
+  } @else {
+    <lib-field class="appointment-form-wide" labelStyle="plain" [field]="fields.customerId">
+      <ng-template libFieldEditor let-id let-describedBy="describedBy">
+        <!-- The way to a walk-in sits beside the search, where it reads as the other choice. The
+             label above and the message below belong to the search, so they span both. -->
+        <div class="appointment-form-customer">
+          <lib-autocomplete
+            size="sm"
+            showClear
+            key="id"
+            [inputId]="id"
+            [ariaDescribedby]="describedBy"
+            [source]="customers()"
+            [displayWith]="customerName"
+            [placeholder]="'managementAppointments.form.customerSearch' | transloco"
+            [noDataMessage]="'managementAppointments.form.customerNone' | transloco"
+            [formField]="fields.customerId"
+            (selectionChange)="onCustomer($event)"
+          >
+            <ng-template libAutocompleteOption let-customer>
+              <span class="appointment-form-option">
+                <span class="appointment-form-option-name">
+                  {{ customer.displayName }}
+                  @if (customer.isBlocked) {
+                    <span class="appointment-form-tag">
+                      {{ 'managementAppointments.form.blockedTag' | transloco }}
+                    </span>
+                  }
+                </span>
+                @if (customerContact(customer); as contact) {
+                  <span class="appointment-form-meta">{{ contact }}</span>
+                }
+                @if (preferredName(customer); as barber) {
+                  <span class="appointment-form-meta">
+                    {{
+                      'managementAppointments.form.preferredBarber' | transloco: { name: barber }
+                    }}
+                  </span>
+                }
+              </span>
+            </ng-template>
+          </lib-autocomplete>
+          <button
+            libButton
+            type="button"
+            severity="secondary"
+            variant="outlined"
+            size="sm"
+            (click)="useWalkIn()"
+          >
+            <svg lucideUserPlus libButtonIcon aria-hidden="true"></svg>
+            {{ 'managementAppointments.form.newCustomer' | transloco }}
+          </button>
+        </div>
+      </ng-template>
+    </lib-field>
+    @if (customer(); as picked) {
+      @if (picked.isBlocked) {
+        <lib-banner class="appointment-form-wide" tone="warning" role="status">
+          {{ 'managementAppointments.form.customerBlocked' | transloco }}
+        </lib-banner>
+      }
+      @if (picked.hasNote) {
+        <lib-banner class="appointment-form-wide" tone="info" role="status">
+          {{ 'managementAppointments.form.customerHasNote' | transloco }}
+        </lib-banner>
+      }
+    }
+  }
+
+  @if (!noteOnly()) {
+    <lib-field class="appointment-form-wide" labelStyle="plain" [field]="fields.serviceIds">
+      <ng-template libFieldEditor let-id let-describedBy="describedBy">
+        <lib-multi-select
+          display="chip"
+          size="sm"
+          [inputId]="id"
+          [ariaDescribedby]="describedBy"
+          [options]="serviceOptions()"
+          [ariaLabel]="'managementAppointments.form.services' | transloco"
+          [placeholder]="'managementAppointments.form.servicesPlaceholder' | transloco"
+          [formField]="fields.serviceIds"
+        >
+          <ng-template libSelectOption let-option>
+            <span class="appointment-form-option">
+              {{ option.label }}
+              @if (categoryOf(option.value); as category) {
+                <span class="appointment-form-meta">{{ category }}</span>
+              }
+            </span>
+          </ng-template>
+        </lib-multi-select>
+      </ng-template>
+    </lib-field>
+
+    <lib-field class="appointment-form-wide" labelStyle="plain" [field]="fields.staffMemberId">
+      <ng-template libFieldEditor let-id let-describedBy="describedBy">
+        <lib-select
+          size="sm"
+          [inputId]="id"
+          [ariaDescribedby]="describedBy"
+          [options]="barberOptions()"
+          [ariaLabel]="'managementAppointments.form.barber' | transloco"
+          [placeholder]="'managementAppointments.form.barberPlaceholder' | transloco"
+          [formField]="fields.staffMemberId"
+        />
+      </ng-template>
+    </lib-field>
+
+    <!-- The date takes half a row. Start and end are read together, so they share the next. -->
+    <lib-field class="appointment-form-half" labelStyle="plain" [field]="fields.localDate">
+      <ng-template libFieldEditor let-id let-describedBy="describedBy">
+        <lib-date-picker
+          size="sm"
+          [inputId]="id"
+          [ariaDescribedby]="describedBy"
+          [locale]="language()"
+          [availability]="dayAvailability()"
+          [formField]="fields.localDate"
+          (visibleMonthChange)="monthShown.emit($event)"
+        />
+      </ng-template>
+    </lib-field>
+
+    @if (creating()) {
+      <lib-checkbox class="appointment-form-manual" [formField]="fields.manualTime">
+        {{ 'managementAppointments.form.manualTime' | transloco }}
+      </lib-checkbox>
+    }
+
+    @if (slotMode()) {
+      <lib-field class="appointment-form-wide" labelStyle="plain" [field]="fields.localStartTime">
+        <ng-template libFieldEditor let-id let-describedBy="describedBy">
+          @if (gridTimes(); as times) {
+            @if (times.length === 0) {
+              <p class="appointment-form-note">
+                {{
+                  (pastDay()
+                    ? 'managementAppointments.form.noSlotsPast'
+                    : 'managementAppointments.form.noSlots'
+                  ) | transloco
+                }}
+              </p>
+            } @else {
+              <!-- The last day's times stay while the next load, dimmed, so the grid does not jump. -->
+              <lib-time-picker
+                mode="inline"
+                excludedDisplay="hidden"
+                class="appointment-form-slots"
+                [class.appointment-form-slots-stale]="slotsLoading()"
+                [attr.aria-busy]="slotsLoading() || null"
+                [inputId]="id"
+                [ariaDescribedby]="describedBy"
+                [ariaLabel]="'managementAppointments.form.start' | transloco"
+                [validTimes]="times"
+                [formField]="fields.localStartTime"
+              />
+            }
+          } @else if (slotsFailed()) {
+            <p class="appointment-form-note" role="alert">
+              {{ 'managementAppointments.form.slotsFailed' | transloco }}
+            </p>
+          } @else if (fields.localDate().value() === '') {
+            <p class="appointment-form-note">
+              {{ 'managementAppointments.form.pickDateForSlots' | transloco }}
+            </p>
+          } @else {
+            <ul class="appointment-form-slots-loading" aria-hidden="true">
+              @for (placeholder of [1, 2, 3, 4, 5, 6, 7, 8]; track placeholder) {
+                <li></li>
+              }
+            </ul>
+            <p class="sr-only" role="status">
+              {{ 'managementAppointments.form.loadingSlots' | transloco }}
+            </p>
+          }
+        </ng-template>
+      </lib-field>
+    } @else {
+      <div class="appointment-form-wide appointment-form-times">
+        <lib-field labelStyle="plain" [field]="fields.localStartTime">
+          <ng-template libFieldEditor let-id let-describedBy="describedBy">
+            <lib-time-picker
+              size="sm"
+              [inputId]="id"
+              [ariaDescribedby]="describedBy"
+              [interval]="interval()"
+              [placeholder]="'managementAppointments.form.timePlaceholder' | transloco"
+              [formField]="fields.localStartTime"
+            />
+          </ng-template>
+        </lib-field>
+
+        <lib-field labelStyle="plain" [field]="fields.localEndTime">
+          <ng-template libFieldEditor let-id let-describedBy="describedBy">
+            <lib-time-picker
+              size="sm"
+              [inputId]="id"
+              [ariaDescribedby]="describedBy"
+              [interval]="interval()"
+              [placeholder]="'managementAppointments.form.timePlaceholder' | transloco"
+              [formField]="fields.localEndTime"
+              (valueChange)="endEdited()"
+            />
+          </ng-template>
+        </lib-field>
+      </div>
+    }
+
+    <div class="appointment-form-wide appointment-form-summary">
+      @if (summary(); as totals) {
+        <span>
+          {{
+            (totals.timed
+              ? 'managementAppointments.form.summaryTimed'
+              : 'managementAppointments.form.summary'
+            ) | transloco: totals
+          }}
+        </span>
+      }
+      @if (overridden()) {
+        <span class="appointment-form-meta">
+          {{ 'managementAppointments.form.customLength' | transloco }}
+        </span>
+        <button libButton type="button" variant="text" size="sm" (click)="resetLength()">
+          {{ 'managementAppointments.form.resetLength' | transloco }}
+        </button>
+      }
+    </div>
+  }
+
+  <lib-field
+    class="appointment-form-wide"
+    inputId="appointment-internal-note"
+    [field]="fields.internalNotes"
+  >
+    <ng-template libFieldEditor>
+      <textarea
+        libTextarea
+        libFieldControl
+        rows="3"
+        size="sm"
+        autoResize
+        placeholder=" "
+        [formField]="fields.internalNotes"
+      ></textarea>
+    </ng-template>
+  </lib-field>
+
+  @if (notifyOffered()) {
+    <!-- A disabled input takes no pointer events, so the wrapper carries the tooltip. The same
+         reason is in the description for a screen reader. -->
+    <span
+      class="appointment-form-wide appointment-form-notify"
+      [libTooltip]="'managementAppointments.form.notifyPast' | transloco"
+      [tooltipDisabled]="!pastDay()"
+    >
+      <lib-checkbox
+        [ariaDescribedby]="
+          pastDay() ? 'appointment-notify-hint appointment-notify-past' : 'appointment-notify-hint'
+        "
+        [formField]="fields.notifyCustomer"
+      >
+        {{ 'managementAppointments.form.notify' | transloco }}
+      </lib-checkbox>
+      <span id="appointment-notify-hint" class="appointment-form-notify-hint">
+        {{ 'managementAppointments.form.notifyHint' | transloco }}
+      </span>
+      @if (pastDay()) {
+        <span id="appointment-notify-past" class="sr-only">
+          {{ 'managementAppointments.form.notifyPast' | transloco }}
+        </span>
+      }
+    </span>
+  }
+
+  <!-- Last, so it is the thing read before Save. -->
+  @if (!noteOnly() && warnings().length > 0) {
+    <!-- Polite: the list follows the fields a moment after they change, and must not interrupt. -->
+    <lib-banner
+      class="appointment-form-wide appointment-form-warnings"
+      tone="warning"
+      aria-live="polite"
+      [heading]="'managementAppointments.warnings.title' | transloco"
+    >
+      <ul>
+        <!-- A code repeats when two appointments collide, so the index tracks. -->
+        @for (warning of warnings(); track $index) {
+          <li [attr.data-blocking]="warning.code === 'SLOT_TAKEN' ? '' : null">
+            <span class="appointment-form-warning">
+              {{ warningKey(warning) | transloco }}
+              @if (warning.appointment; as other) {
+                <span class="appointment-form-overlap">
+                  {{
+                    overlapKey(warning)
+                      | transloco
+                        : {
+                            customer: other.customerDisplayName,
+                            barber: other.staffDisplayName,
+                            start: other.localStartTime,
+                            end: other.localEndTime,
+                          }
+                  }}
+                </span>
+              }
+            </span>
+          </li>
+        }
+      </ul>
+    </lib-banner>
+  }
+</form>

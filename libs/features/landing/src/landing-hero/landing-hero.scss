@@ -1,0 +1,142 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+.hero {
+  position: relative;
+  display: grid;
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+// `fill` on NgOptimizedImage already positions the image absolutely.
+.hero-image {
+  z-index: -2;
+  object-fit: cover;
+  object-position: center;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--media-scrim);
+}
+
+.hero-content {
+  @include a.container;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 56rem;
+  padding-top: var(--space-16);
+  padding-bottom: var(--space-16);
+  text-align: center;
+
+  > a {
+    margin-top: var(--space-8);
+
+    svg {
+      width: var(--icon-size-sm);
+      height: var(--icon-size-sm);
+      stroke-width: var(--icon-stroke);
+    }
+  }
+}
+
+.eyebrow {
+  @include a.t-label;
+  margin: 0 0 var(--space-4);
+  color: var(--accent-text);
+}
+
+h1 {
+  max-width: 46rem;
+  margin: 0;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: clamp(var(--text-3xl), 7vw, var(--text-4xl));
+  font-weight: var(--weight-black);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}
+
+.lead {
+  max-width: 38rem;
+  margin: var(--space-5) 0 0;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+  text-wrap: pretty;
+}
+
+.scroll-cue {
+  position: absolute;
+  bottom: var(--space-6);
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-10);
+  height: var(--space-10);
+  color: var(--text-primary);
+  border: var(--border-width-hairline) solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  transform: translateX(-50%);
+
+  svg {
+    width: var(--icon-size-md);
+    height: var(--icon-size-md);
+    stroke-width: var(--icon-stroke);
+  }
+}
+
+// These classes are rendered by SSR, so the browser starts the entrance once
+// on first paint. Unlike `animate.enter`, hydration never removes and reapplies
+// them to the existing hero DOM.
+.hero-item-enter {
+  animation: hero-item-enter var(--dur-slow) var(--ease-out) both;
+}
+
+.hero-title-enter {
+  animation-delay: var(--dur-fast);
+}
+
+.hero-lead-enter {
+  animation-delay: var(--dur-base);
+}
+
+.hero-cta-enter {
+  animation-delay: var(--dur-slow);
+}
+
+@keyframes hero-item-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-4));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-item-enter {
+    animation: none;
+  }
+}
+
+@include a.respond(md) {
+  .hero-overlay {
+    background: var(--media-scrim-soft);
+  }
+}

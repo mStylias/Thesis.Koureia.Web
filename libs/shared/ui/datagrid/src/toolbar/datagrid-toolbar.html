@@ -1,0 +1,178 @@
+@let overflowLabel = 'datagrid.overflow.label' | uiCopy | transloco;
+@let moreLabel = 'datagrid.overflow.more' | uiCopy | transloco;
+
+<div
+  class="dg-toolbar"
+  role="group"
+  #bar
+  [attr.aria-label]="ariaLabel() || ('datagrid.toolbar' | uiCopy | transloco)"
+>
+  @for (region of regions(); track region.location) {
+    <div class="dg-toolbar-region" [attr.data-region]="region.location">
+      @for (entry of region.entries; track entry.id) {
+        <div class="dg-toolbar-item" [attr.data-toolbar-item]="entry.id">
+          <ng-container
+            [ngTemplateOutlet]="entryContent"
+            [ngTemplateOutletContext]="{ $implicit: entry }"
+          />
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Drawn only once something has collapsed, so a bar with room offers no
+       way into a menu that would be empty. -->
+  @if (collapsed().length > 0) {
+    <button
+      libButton
+      type="button"
+      severity="secondary"
+      variant="text"
+      size="sm"
+      iconOnly
+      #overflowTrigger
+      [attr.aria-label]="overflowLabel"
+      [libTooltip]="overflowLabel"
+      [libPopoverTriggerFor]="overflowPanel"
+      [popoverAriaLabel]="overflowLabel"
+    >
+      <svg lucideEllipsis aria-hidden="true"></svg>
+    </button>
+  }
+</div>
+
+<!-- Outside the bar, which is measured for the overflow split. The panel itself
+     renders in an overlay, and opens under the bar so it never covers the
+     button that closes it. -->
+@if (hostsColumnPanel()) {
+  <lib-floating-panel
+    [panelId]="columnPanel.id"
+    [(open)]="columnPanel.open"
+    [header]="'datagrid.chooser.title' | uiCopy | transloco"
+    [insetTop]="columnPanelInsetTop"
+    [dockBelow]="bar"
+  >
+    <ng-template libFloatingPanelContent>
+      <lib-datagrid-column-list
+        presentation="panel"
+        [columns]="columns()"
+        [(hidden)]="hiddenColumns"
+      />
+    </ng-template>
+  </lib-floating-panel>
+}
+
+<!-- A panel, not a menu: §13 requires a custom renderer to stay fully
+     interactive once collapsed, and `role="menu"` admits menu items alone. -->
+<ng-template #overflowPanel>
+  <div class="dg-toolbar-overflow" role="group" [attr.aria-label]="overflowLabel">
+    @for (entry of collapsed(); track entry.id) {
+      <div class="dg-toolbar-overflow-item" [attr.data-toolbar-item]="entry.id">
+        <ng-container
+          [ngTemplateOutlet]="entryContent"
+          [ngTemplateOutletContext]="{ $implicit: entry }"
+        />
+      </div>
+    }
+  </div>
+</ng-template>
+
+<!-- One definition for both places an entry can be drawn. A second copy for
+     the overflow surface would be the one nobody looks at until it is wrong. -->
+<ng-template #entryContent let-entry>
+  @switch (entry.kind) {
+    @case ('columnChooser') {
+      <lib-datagrid-column-chooser
+        [columns]="columns()"
+        [(hidden)]="hiddenColumns"
+        [iconOnly]="entry.iconOnly"
+        [variant]="variantOf(entry)"
+        [presentation]="chooserPresentation()"
+      />
+    }
+    @case ('search') {
+      <!-- The field names itself from the shared catalog; the entry's own key
+           would resolve to the same string twice. -->
+      <lib-datagrid-search [value]="search() ?? ''" (valueChange)="search.set($event)" />
+    }
+    @case ('template') {
+      <ng-container [ngTemplateOutlet]="entry.template" />
+    }
+    @case ('component') {
+      <ng-container
+        [ngComponentOutlet]="componentType(entry)"
+        [ngComponentOutletInputs]="componentInputs(entry)"
+      />
+    }
+    @case ('split') {
+      <span class="dg-toolbar-split">
+        <ng-container
+          [ngTemplateOutlet]="entryButton"
+          [ngTemplateOutletContext]="{ $implicit: entry, opensMenu: false }"
+        />
+        <button
+          libButton
+          type="button"
+          severity="secondary"
+          variant="outlined"
+          size="sm"
+          iconOnly
+          aria-haspopup="menu"
+          [disabled]="entry.disabled"
+          [attr.aria-label]="moreLabel"
+          (click)="openMenu(entry, $event)"
+        >
+          <svg lucideEllipsis aria-hidden="true"></svg>
+        </button>
+      </span>
+    }
+    @case ('menu') {
+      <ng-container
+        [ngTemplateOutlet]="entryButton"
+        [ngTemplateOutletContext]="{ $implicit: entry, opensMenu: true }"
+      />
+    }
+    @default {
+      <ng-container
+        [ngTemplateOutlet]="entryButton"
+        [ngTemplateOutletContext]="{ $implicit: entry, opensMenu: false }"
+      />
+    }
+  }
+</ng-template>
+
+<!-- A built-in entry carries a message key, not a translated string: the bar is
+     built on the first paint, and `translate` answers with the key until the
+     lazy scope arrives. The pipe re-renders when it does. -->
+<ng-template #entryButton let-entry let-opensMenu="opensMenu">
+  @let text = entry.labelKey ? (entry.labelKey | uiCopy | transloco) : entry.label;
+  <!-- An icon-only button carries its caption nowhere but the tooltip and the
+     accessible name, so neither is optional there. -->
+  <button
+    libButton
+    type="button"
+    size="sm"
+    [severity]="severityOf(entry)"
+    [variant]="variantOf(entry)"
+    [iconOnly]="entry.iconOnly"
+    [disabled]="entry.disabled"
+    [libTooltip]="entry.tooltip || text"
+    [tooltipDisabled]="entry.tooltip === '' && !entry.iconOnly"
+    [attr.aria-label]="entry.iconOnly ? text : null"
+    [attr.aria-busy]="entry.busy ? 'true' : null"
+    [attr.aria-haspopup]="opensMenu ? 'menu' : null"
+    (click)="opensMenu ? openMenu(entry, $event) : onCommand(entry, $event)"
+  >
+    @if (entry.icon) {
+      <svg [lucideIcon]="entry.icon" [libSpin]="entry.busy" aria-hidden="true"></svg>
+    }
+    @if (!entry.iconOnly) {
+      {{ text }}
+    }
+    @if (entry.badge) {
+      <span class="dg-toolbar-badge">{{ entry.badge }}</span>
+    }
+  </button>
+</ng-template>
+
+<lib-context-menu #entryMenu density="compact" [items]="menuItems()" [ariaLabel]="moreLabel" />

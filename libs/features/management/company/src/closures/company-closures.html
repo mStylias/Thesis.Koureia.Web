@@ -1,0 +1,167 @@
+<lib-page-section
+  sectionId="closures"
+  skeletonRows="3"
+  [heading]="'managementCompany.closures.title' | transloco"
+  [state]="state()"
+  (retry)="retry()"
+>
+  <!-- Static, so the section's slot matches it. The button inside comes and goes. -->
+  <div libPageSectionActions>
+    @if (canEdit()) {
+      <button
+        libButton
+        type="button"
+        size="sm"
+        variant="outlined"
+        severity="secondary"
+        (click)="create()"
+      >
+        <svg libButtonIcon lucideCalendarPlus aria-hidden="true"></svg>
+        {{ 'managementCompany.actions.add' | transloco }}
+      </button>
+    }
+  </div>
+
+  @if (conflicts().length > 0) {
+    <lib-staff-conflicts
+      class="closures-conflicts"
+      [heading]="
+        (conflicts().length === 1
+          ? 'managementCompany.conflicts.closuresOne'
+          : 'managementCompany.conflicts.closures'
+        ) | transloco: { count: conflicts().length }
+      "
+      [conflicts]="conflicts()"
+      [language]="language()"
+      (dismissed)="conflicts.set([])"
+    />
+  }
+
+  @if (current().length === 0) {
+    <p class="closures-empty">{{ 'managementCompany.closures.none' | transloco }}</p>
+  } @else {
+    <ul class="closures-list">
+      @for (row of current(); track row.item.id) {
+        <li class="closures-row">
+          <span class="closures-dates">{{ row.dates }}</span>
+          <span class="closures-detail">
+            <span class="closures-tags">
+              <span class="closures-tag" [attr.data-tone]="row.special ? 'info' : null">{{
+                row.kind
+              }}</span>
+              @if (row.inProgress) {
+                <span class="closures-tag" data-tone="warning">{{
+                  'managementCompany.closures.running' | transloco
+                }}</span>
+              }
+            </span>
+            @if (row.item.name) {
+              <span class="closures-name">{{ row.item.name }}</span>
+            }
+          </span>
+          @if (canEdit()) {
+            <span class="closures-actions">
+              <button
+                libButton
+                type="button"
+                severity="secondary"
+                variant="text"
+                size="sm"
+                iconOnly
+                [attr.aria-label]="
+                  'managementCompany.closures.edit' | transloco: { dates: row.dates }
+                "
+                [libTooltip]="'managementCompany.actions.edit' | transloco"
+                (click)="edit(row.item)"
+              >
+                <svg lucidePencil aria-hidden="true"></svg>
+              </button>
+              <button
+                libButton
+                type="button"
+                severity="error"
+                variant="text"
+                size="sm"
+                iconOnly
+                [attr.aria-label]="
+                  'managementCompany.closures.delete' | transloco: { dates: row.dates }
+                "
+                [libTooltip]="'managementCompany.actions.delete' | transloco"
+                (click)="remove(row.item, row.dates)"
+              >
+                <svg lucideTrash2 aria-hidden="true"></svg>
+              </button>
+            </span>
+          }
+        </li>
+      }
+    </ul>
+  }
+
+  <section class="closures-past" [attr.aria-busy]="pastLoading() || null">
+    <button
+      libButton
+      type="button"
+      size="sm"
+      variant="text"
+      severity="secondary"
+      [attr.aria-expanded]="showPast()"
+      aria-controls="closures-past-list"
+      (click)="togglePast()"
+    >
+      {{
+        (showPast() ? 'managementCompany.closures.hidePast' : 'managementCompany.closures.past')
+          | transloco
+      }}
+    </button>
+
+    <div id="closures-past-list">
+      @if (showPast()) {
+        @if (pastFailed()) {
+          <lib-banner tone="error" role="alert">
+            {{ 'managementCompany.closures.loadFailed' | transloco }}
+            <button
+              libButton
+              libBannerAction
+              type="button"
+              variant="outlined"
+              size="sm"
+              (click)="retryPast()"
+            >
+              {{ 'managementCompany.closures.retry' | transloco }}
+            </button>
+          </lib-banner>
+        } @else if (!pastLoading() && past().length === 0) {
+          <p class="closures-empty">{{ 'managementCompany.closures.pastNone' | transloco }}</p>
+        } @else {
+          <ul class="closures-list">
+            @for (row of past(); track row.item.id) {
+              <li class="closures-row" data-past>
+                <span class="closures-dates">{{ row.dates }}</span>
+                <span class="closures-detail">
+                  <span class="closures-tags">
+                    <span class="closures-tag" [attr.data-tone]="row.special ? 'info' : null">{{
+                      row.kind
+                    }}</span>
+                  </span>
+                  @if (row.item.name) {
+                    <span class="closures-name">{{ row.item.name }}</span>
+                  }
+                </span>
+              </li>
+            }
+          </ul>
+        }
+      }
+    </div>
+  </section>
+
+  <lib-closure-dialog
+    [(visible)]="dialogOpen"
+    [holiday]="editing()"
+    [today]="today()"
+    [language]="language()"
+    (saved)="onSaved($event)"
+    (closed)="onDialogClosed()"
+  />
+</lib-page-section>

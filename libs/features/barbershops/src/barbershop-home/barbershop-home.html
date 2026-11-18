@@ -1,0 +1,141 @@
+@if (shop(); as shop) {
+  <main class="shop-page">
+    <header class="hero">
+      @if (images().length > 0) {
+        <lib-gallery
+          class="hero__gallery"
+          [images]="images()"
+          [ariaLabel]="'barbershops.home.photos' | transloco: { name: shop.name }"
+        />
+      } @else {
+        <div class="hero__placeholder">
+          <svg lucideScissors aria-hidden="true"></svg>
+        </div>
+      }
+
+      <div class="hero__summary">
+        <div class="hero__heading">
+          <div class="hero__identity">
+            @if (shop.logoUrl) {
+              <!-- The name beside it says the same thing. -->
+              <img
+                class="hero__logo"
+                [src]="shop.logoUrl"
+                alt=""
+                width="64"
+                height="64"
+                decoding="async"
+              />
+            }
+            <h1 class="hero__title">{{ shop.name }}</h1>
+          </div>
+          <div class="hero__snapshot">
+            <p class="hero__place">
+              <svg lucideMapPin aria-hidden="true"></svg>
+              {{ shop.street }} • {{ area() }}
+            </p>
+            <lib-barbershop-rating [rating]="shop.rating" />
+          </div>
+        </div>
+
+        <div class="hero__actions">
+          <a libButton size="lg" class="hero__cta" [langLink]="bookingLink()">
+            <svg lucideCalendar aria-hidden="true"></svg>
+            {{ 'barbershops.home.book' | transloco }}
+          </a>
+          <button
+            libButton
+            size="lg"
+            variant="outlined"
+            severity="secondary"
+            type="button"
+            class="hero__map"
+            (click)="scrollToMap()"
+          >
+            <svg lucideMap aria-hidden="true"></svg>
+            {{ 'barbershops.home.seeOnMap' | transloco }}
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Each section is a full-width band with the content in the page column, the way the
+         landing page is built. Bands alternate `--bg` and `--surface-2`. -->
+    @if (hasServices()) {
+      <section class="shop-section shop-section--services" aria-labelledby="shop-services-title">
+        <div class="shop-section__inner">
+          <header class="shop-section__heading">
+            <p class="shop-section__eyebrow">
+              {{ 'barbershops.home.services.eyebrow' | transloco }}
+            </p>
+            <h2 id="shop-services-title" class="shop-section__title">
+              {{ 'barbershops.home.services.title' | transloco }}
+            </h2>
+          </header>
+          <lib-barbershop-services
+            [categories]="shop.serviceCategories"
+            [uncategorized]="shop.uncategorizedServices"
+            [currency]="shop.currency"
+          />
+          <a libButton size="lg" class="shop-section__cta" [langLink]="bookingLink()">
+            <svg lucideCalendar aria-hidden="true"></svg>
+            {{ 'barbershops.home.book' | transloco }}
+          </a>
+        </div>
+      </section>
+    }
+
+    @if (shop.barbers.length > 0) {
+      <section class="shop-section shop-section--barbers" aria-labelledby="shop-barbers-title">
+        <div class="shop-section__inner">
+          <header class="shop-section__heading">
+            <p class="shop-section__eyebrow">
+              {{ 'barbershops.home.barbers.eyebrow' | transloco }}
+            </p>
+            <h2 id="shop-barbers-title" class="shop-section__title">
+              {{ 'barbershops.home.barbers.title' | transloco }}
+            </h2>
+          </header>
+          <lib-barbershop-barbers [barbers]="shop.barbers" />
+        </div>
+      </section>
+    }
+
+    <section
+      #location
+      class="shop-section shop-section--location"
+      aria-labelledby="shop-location-title"
+    >
+      <div class="shop-section__inner">
+        <header class="shop-section__heading">
+          <p class="shop-section__eyebrow">
+            {{ 'barbershops.home.location.eyebrow' | transloco }}
+          </p>
+          <h2 id="shop-location-title" class="shop-section__title">
+            {{ 'barbershops.home.location.title' | transloco }}
+          </h2>
+        </header>
+        <lib-barbershop-location [shop]="shop">
+          <a libButton size="lg" class="shop-section__cta" [langLink]="bookingLink()">
+            <svg lucideCalendar aria-hidden="true"></svg>
+            {{ 'barbershops.home.book' | transloco }}
+          </a>
+        </lib-barbershop-location>
+      </div>
+    </section>
+  </main>
+} @else if (page().status === 'not-found') {
+  <main class="shop-message">
+    <svg class="shop-message__icon" lucideSearchX aria-hidden="true"></svg>
+    <h1 class="shop-message__title">{{ 'barbershops.home.notFound.title' | transloco }}</h1>
+    <p class="shop-message__lead">{{ 'barbershops.home.notFound.lead' | transloco }}</p>
+    <a libButton langLink="/barbershops">{{ 'barbershops.home.notFound.back' | transloco }}</a>
+  </main>
+} @else {
+  <main class="shop-message">
+    <h1 class="shop-message__title">{{ 'barbershops.home.error.title' | transloco }}</h1>
+    <button libButton type="button" (click)="retry()">
+      {{ 'barbershops.home.error.retry' | transloco }}
+    </button>
+  </main>
+}

@@ -1,0 +1,45 @@
+@use 'abstracts' as a;
+
+:host {
+  display: flex;
+  align-items: center;
+  gap: a.space(1);
+  min-width: 0;
+  overflow: hidden;
+}
+
+// In a table cell, as tall as the row, so `align-items` centres the tags in it. The cell centres
+// text with a `line-height` of the row's height, which a flex box of the tag's own height does not
+// take, so without this the tags sat at the top of the row.
+:host-context(.dg-cell) {
+  height: 100%;
+}
+
+// Cards give the tags room to wrap, so every tag shows there.
+:host([data-wrap]) {
+  flex-wrap: wrap;
+  row-gap: a.space(1);
+}
+
+// A tag may shrink, so the one that nearly fits ellipses rather than pushing `+n` out of the
+// cell. The `+n` tag never shrinks: it is the one that says something is hidden.
+.dg-tag {
+  @include a.t-caption;
+  @include a.tag;
+
+  display: inline-flex;
+  flex: 0 1 auto;
+  min-width: 0;
+  align-items: center;
+  max-width: 100%;
+  padding: 0 a.space(2);
+  font-weight: var(--weight-medium);
+  line-height: var(--datagrid-tag-height);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.dg-tag[data-more] {
+  flex: none;
+}

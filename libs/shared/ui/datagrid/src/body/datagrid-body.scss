@@ -1,0 +1,366 @@
+// Geometry comes from the shell as custom properties; colors and spacing come
+// from the token contract. Nothing here is brand-specific.
+
+:host {
+  // A flash marks a value that changed under the user, which is a status
+  // display and not a transition, so the 300ms cap on UI motion does not apply
+  // — the same exception the indeterminate progress cycle takes. At
+  // `--dur-slower` the wash was gone before the eye could reach the cell it
+  // marked, which reads as a glitch rather than as news. The value stays
+  // component-local: the shared scale is a transition scale, and a step this
+  // long in it would be reached for where it does not belong.
+  --dg-flash-duration: 800ms;
+
+  // The header is `--surface-2`. A stripe at that same value gives a striped
+  // row the header's own colour, so the band reads as a second header line.
+  // The midpoint is the ratio that makes the stripe equally far from the plain
+  // row and from the header — any other split shrinks one of the two gaps. The
+  // mix follows the theme, so the band stays the weaker step in light and dark.
+  --dg-stripe: color-mix(in srgb, var(--surface-2) 50%, var(--surface));
+
+  box-sizing: border-box;
+  display: block;
+  position: relative;
+  width: var(--dg-total-width, 100%);
+  min-width: 100%;
+}
+
+.dg-row {
+  --dg-row-bg: var(--surface);
+
+  box-sizing: border-box;
+  position: absolute;
+  left: 0;
+  display: grid;
+  grid-template-columns: var(--dg-template);
+  width: 100%;
+  background: var(--dg-row-bg);
+}
+
+:host-context([data-row-separators]) .dg-row {
+  border-block-end: var(--border-width-hairline) solid var(--border-subtle);
+}
+
+:host-context([data-striped]) .dg-row[data-odd] {
+  --dg-row-bg: var(--dg-stripe);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :host-context([data-hover]) .dg-row:hover {
+    --dg-row-bg: var(--surface-sunken);
+  }
+}
+
+// A block cell keeps the formatter fast path to one DOM node per cell and lets
+// `text-overflow` work, which a flex container cannot do. A renderer that needs
+// alignment sets its own `display` on the projected content.
+.dg-cell {
+  box-sizing: border-box;
+  position: relative;
+  min-width: 0;
+  padding-inline: var(--dg-cell-pad-x);
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: var(--dg-font-size);
+  line-height: var(--dg-row-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  outline: none;
+}
+
+// A value changed on a refresh. Drawn as an overlay whose opacity animates
+// rather than as a background-colour animation: opacity is the half of the
+// golden rule that a colour wash can still honour, and the wash must not
+// disturb the row's own striping or selection tint underneath.
+//
+// Two identical keyframes, picked by parity. A CSS animation restarts only
+// when its `animation-name` changes, so one name would leave a cell that
+// changes twice in a row flashing just once.
+.dg-cell[data-flash]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent-subtle);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dg-cell[data-flash='a']::after {
+  animation: dg-flash-a var(--dg-flash-duration) linear;
+}
+
+.dg-cell[data-flash='b']::after {
+  animation: dg-flash-b var(--dg-flash-duration) linear;
+}
+
+// The wash rises, holds long enough to be found, then leaves. It does not
+// start at full strength: an instant onset is what makes a flash sting, and
+// the eye reads the arrival as the event either way. `linear` because the
+// keyframes already carry the shape, and an eased tail leaves a faint wash
+// hanging over the cell after the news has been delivered.
+@keyframes dg-flash-a {
+  0% {
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  40% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes dg-flash-b {
+  0% {
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  40% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+:host-context([data-wrap]) .dg-cell {
+  align-content: center;
+  line-height: var(--line-height-normal, 1.5);
+  white-space: normal;
+}
+
+:host-context([data-column-separators]) .dg-cell {
+  border-inline-end: var(--border-width-hairline) solid var(--border-subtle);
+}
+
+// A pinned cell must be opaque, or the scrolling columns show through it. It
+// inherits the row's own background so striping and hover stay continuous.
+.dg-cell[data-pinned] {
+  position: sticky;
+  z-index: 2;
+  background: var(--dg-row-bg);
+}
+
+.dg-cell[data-pinned='start'][data-edge] {
+  border-inline-end: var(--border-width-hairline) solid var(--border);
+}
+
+.dg-cell[data-pinned='end'][data-edge] {
+  border-inline-start: var(--border-width-hairline) solid var(--border);
+}
+
+.dg-cell:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--focus-ring);
+}
+
+// The selection tint has to sit under the focus ring and over striping, and it
+// must keep enough contrast for text at every row background the grid paints.
+:host-context([data-selectable]) .dg-row[data-selected] {
+  --dg-row-bg: var(--accent-subtle, var(--surface-2));
+}
+
+// The grid's own columns center a control instead of laying out text, so they
+// opt out of the block-cell rules the data columns need.
+.dg-cell[data-kind] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: var(--space-1);
+  line-height: normal;
+}
+
+.dg-row-number {
+  color: var(--text-muted);
+  font-size: var(--dg-font-size);
+  font-variant-numeric: tabular-nums;
+}
+
+// --- Grouping, summaries and detail ------------------------------------
+
+.dg-group-row {
+  --dg-row-bg: var(--surface-2);
+
+  z-index: 1;
+  font-size: var(--dg-font-size);
+}
+
+.dg-group-footer {
+  --dg-row-bg: var(--surface);
+
+  font-size: var(--dg-font-size);
+}
+
+// The label spans its tracks, so its own content sticks to the start edge and
+// stays readable however far the body is scrolled sideways.
+.dg-group-label {
+  display: flex;
+  align-items: center;
+  overflow: visible;
+  cursor: pointer;
+  line-height: normal;
+}
+
+.dg-group-inner {
+  position: sticky;
+  inset-inline-start: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 100%;
+  padding-inline-end: var(--space-3);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.dg-group-chevron {
+  flex: none;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  color: var(--text-secondary);
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+
+.dg-group-chevron[data-expanded] {
+  transform: rotate(90deg);
+}
+
+.dg-group-caption {
+  color: var(--text-secondary);
+}
+
+.dg-group-value {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold, 600);
+}
+
+.dg-group-count,
+.dg-summary-label {
+  color: var(--text-muted);
+}
+
+.dg-group-summary {
+  display: inline-flex;
+  gap: var(--space-1);
+  margin-inline-start: var(--space-3);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.dg-summary-cell {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+// The detail region flows at the grid's full width rather than sticking, so
+// host content wider than the viewport scrolls with the columns it belongs to.
+.dg-detail-cell {
+  grid-column: 1 / -1;
+  padding: var(--space-3) var(--dg-cell-pad-x);
+  overflow: auto;
+  line-height: var(--line-height-normal, 1.5);
+  white-space: normal;
+}
+
+.dg-detail-row {
+  --dg-row-bg: var(--surface-sunken);
+}
+
+.dg-cell[data-kind='detailToggle'] {
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dg-group-chevron {
+    transition: none;
+  }
+}
+
+.dg-row-skeleton {
+  background: var(--surface);
+}
+
+.dg-skeleton-bar {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  width: 60%;
+  height: 0.75em;
+  margin-block: calc((var(--dg-row-height) - 0.75em) / 2);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+}
+
+// A highlight that crosses the placeholder, not a placeholder that pulses:
+// twenty rows changing opacity together read as a blink. The cycle is a status
+// display and not a transition, so it takes the same exception from the 300ms
+// cap as the indeterminate bar, and a traversal at constant speed is one of the
+// few places a linear curve belongs. `--surface-2` is lighter than the bar in
+// both themes.
+.dg-skeleton-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, var(--surface-2), transparent);
+  animation: dg-skeleton-sweep var(--dur-indeterminate) linear infinite;
+}
+
+// Each column starts behind the one before it, so the grid reads as one band
+// travelling across it rather than as a row of bars lighting up together. The
+// offsets repeat every six columns, so a wide grid keeps the same rhythm.
+@for $column from 1 through 6 {
+  .dg-row-skeleton .dg-cell:nth-child(6n + #{$column}) .dg-skeleton-bar::after {
+    animation-delay: ($column - 1) * 90ms;
+  }
+}
+
+@keyframes dg-skeleton-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dg-skeleton-bar::after {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  // The global rule collapses the duration to near zero, which still paints a
+  // frame of the wash. The preference wants no flash at all.
+  .dg-cell[data-flash]::after {
+    content: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .dg-cell[data-pinned] {
+    background: Canvas;
+  }
+
+  .dg-cell:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+
+  // Selection is a background tint, which forced-colors discards.
+  .dg-row[data-selected] {
+    outline: 1px solid Highlight;
+    outline-offset: -1px;
+  }
+}

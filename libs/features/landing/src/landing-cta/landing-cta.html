@@ -1,0 +1,20 @@
+<section id="for-barbers" class="cta" data-surface="dark" aria-labelledby="cta-title">
+  <div class="cta-inner">
+    <div>
+      <p class="eyebrow">{{ 'landing.cta.eyebrow' | transloco }}</p>
+      <!-- Brand-bearing: an app-owned root key, not a scope key. See `LandingBrandCopy`. -->
+      <h2 id="cta-title">{{ 'brand.landing.ctaTitle' | transloco }}</h2>
+      <p class="lead">{{ 'landing.cta.lead' | transloco }}</p>
+      <a libButton class="cta-button" langLink="/barbershops" size="lg">
+        {{ 'landing.cta.book' | transloco }}
+        <svg lucideArrowRight aria-hidden="true"></svg>
+      </a>
+    </div>
+
+    <ul>
+      <li><svg lucideCheck aria-hidden="true"></svg>{{ 'landing.cta.pointOne' | transloco }}</li>
+      <li><svg lucideCheck aria-hidden="true"></svg>{{ 'landing.cta.pointTwo' | transloco }}</li>
+      <li><svg lucideCheck aria-hidden="true"></svg>{{ 'landing.cta.pointThree' | transloco }}</li>
+    </ul>
+  </div>
+</section>

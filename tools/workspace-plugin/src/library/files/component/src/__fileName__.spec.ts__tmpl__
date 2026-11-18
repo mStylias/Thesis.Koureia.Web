@@ -1,0 +1,21 @@
+import { Component } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+
+import { <%= className %> } from './<%= fileName %>';
+
+@Component({
+  imports: [<%= className %>],
+  template: `<<%= selector %>>Content</<%= selector %>>`,
+})
+class Host {}
+
+describe('<%= className %>', () => {
+  it('projects its content', async () => {
+    const fixture = TestBed.createComponent(Host);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('<%= selector %>')?.textContent).toBe('Content');
+  });
+});

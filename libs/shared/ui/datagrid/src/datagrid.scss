@@ -1,0 +1,371 @@
+@use 'abstracts' as a;
+
+// The grid publishes its geometry as custom properties. The header and body are
+// separate components and read them by inheritance, so one write re-lays out
+// every part.
+:host {
+  --dg-cell-pad-x: var(--space-3);
+  --dg-font-size: var(--text-sm);
+  --dg-outer-radius: #{a.radius(lg)};
+
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  // Sizes to the container. Both minimums let the grid shrink inside a flex or
+  // grid parent instead of forcing that parent to grow.
+  min-height: 0;
+  min-width: 0;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+:host([data-outer-border]) {
+  overflow: hidden;
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: var(--dg-outer-radius);
+}
+
+// The part sitting against the rounded corner has to be rounded itself.
+// Clipping is enough for a background — it simply gets cut to the curve — but
+// not for an outline: the group panel marks itself as a drop target with an
+// inset box-shadow, and a square ring inside a rounded host loses both top
+// corners to the clip. The radius is the host's own, less the border it sits
+// inside of, so the ring follows the curve instead of being shaved by it.
+:host([data-outer-border]) > :first-child {
+  --dg-inner-radius: calc(var(--dg-outer-radius) - var(--border-width-hairline));
+
+  border-start-start-radius: var(--dg-inner-radius);
+  border-start-end-radius: var(--dg-inner-radius);
+}
+
+:host([data-density='compact']) {
+  --dg-cell-pad-x: var(--space-2);
+  --dg-font-size: var(--text-xs);
+}
+
+:host([data-density='comfortable']) {
+  --dg-cell-pad-x: var(--space-4);
+  --dg-font-size: var(--text-base);
+}
+
+// Regions above and below the scroll area. Both are `flex: none` so the
+// viewport keeps every pixel they do not claim.
+// The expression editor's way in while the filter panel is hidden. Its divider
+// faces the rows on either edge, for the reason the panel's does.
+.dg-filter-builder-bar {
+  display: flex;
+  flex: none;
+  justify-content: flex-end;
+  padding: a.space(2) a.space(3);
+  border-block-end: var(--border-width-hairline) solid var(--border);
+  background: var(--surface);
+}
+
+.dg-filter-builder-bar[data-position='bottom'] {
+  border-block-end: none;
+  border-block-start: var(--border-width-hairline) solid var(--border);
+}
+
+// The auto-refresh indicator. No spinner while it runs: an infinite loop in
+// product UI draws the eye away from the rows it exists to keep current.
+.dg-auto-refresh {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: a.space(2);
+  padding: a.space(2) a.space(3);
+  border-block-start: var(--border-width-hairline) solid var(--border);
+  background: var(--surface);
+}
+
+.dg-auto-refresh-state {
+  @include a.t-body-sm;
+
+  display: inline-flex;
+  align-items: center;
+  gap: a.space(2);
+  margin-inline-end: auto;
+  color: var(--text-secondary);
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+  }
+}
+
+.dg-auto-refresh-state[data-running] {
+  color: var(--accent-text);
+}
+
+@media (forced-colors: active) {
+  .dg-auto-refresh-state[data-running] {
+    color: Highlight;
+  }
+}
+
+// Zero height and no content: it exists to be crossed, and anything visible
+// here would be a second, silent load-more affordance.
+.dg-load-sentinel {
+  height: 1px;
+}
+
+// The totals of a card list. A footer row would need the column tracks a card
+// list does not have, so each total reads as a labelled value.
+.dg-card-totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.space(1) a.space(4);
+  margin: 0;
+  padding: a.space(3);
+  border-block-start: var(--border-width-hairline) solid var(--border);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.dg-card-totals-label {
+  color: var(--text-primary);
+  font-weight: var(--weight-bold);
+}
+
+.dg-card-total-label {
+  color: var(--text-muted);
+}
+
+.dg-load-more {
+  display: flex;
+  flex: none;
+  justify-content: center;
+  padding: a.space(3);
+  border-block-start: var(--border-width-hairline) solid var(--border);
+}
+
+// The grid's footer: the pager, and the page-size selector when one is
+// offered. The row carries the chrome, so the pager inside it is free to
+// shrink without the border and the background shrinking with it.
+.dg-pager-row {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.space(3);
+  padding: a.space(2) a.space(3);
+  border-block-start: var(--border-width-hairline) solid var(--border);
+  background: var(--surface);
+}
+
+// Spans the row and keeps that width: the pager is the grid's own footer, so
+// it must not resize as the page links change.
+.dg-pager {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+// With the selector beside it the pager takes the far side of the row and no
+// more than half of it. The two then read as two controls at two ends rather
+// than as one bar with a dropdown stuck to its edge.
+.dg-pager-row[data-page-size] .dg-pager {
+  flex: 0 1 auto;
+  max-width: 50%;
+}
+
+.dg-page-size {
+  flex: none;
+}
+
+// The sizes as buttons, which is what a row with the room for them should
+// spend it on: every size one press away instead of two.
+.dg-page-sizes {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: a.space(1);
+}
+
+.dg-viewport {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  // Keeps the header and pinned-column stacking order local to the grid.
+  isolation: isolate;
+  outline: none;
+}
+
+.dg-viewport:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--focus-ring);
+}
+
+// With no rows the viewport shrinks to its header and the state region takes
+// the remaining height, instead of leaving an empty scroll area above it.
+:host([data-empty]) .dg-viewport {
+  flex: 0 0 auto;
+}
+
+.dg-state {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: a.space(2);
+  min-height: var(--datagrid-state-min-height);
+  padding: a.space(6);
+  text-align: center;
+}
+
+.dg-state-title {
+  @include a.t-title;
+
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.dg-state-text {
+  @include a.t-body-sm;
+
+  margin: 0;
+  max-width: 40ch;
+  color: var(--text-secondary);
+}
+
+// A state region replaces the rows entirely, so it enters as its own surface:
+// out-curve, and a short rise that reads as arriving rather than appearing.
+// Safe to transform — these sit outside the scroll viewport, so nothing here
+// is in the pinned columns' sticky chain.
+.dg-state-enter {
+  animation: dg-state-in var(--dur-slow) var(--ease-out);
+}
+
+@keyframes dg-state-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Chrome that comes and goes with a load. Opacity only: a bar pinned to an
+// edge must not move while it fades.
+.dg-fade-enter {
+  animation: dg-fade-in var(--dur-base) var(--ease-out);
+}
+
+.dg-fade-leave {
+  animation: dg-fade-out var(--dur-fast) var(--ease-out);
+}
+
+@keyframes dg-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dg-fade-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+// The column travelling with the pointer.
+//
+// Drawn by the shell rather than by the header, because the header lives
+// inside the scroll viewport and `overflow: auto` would clip a ghost the
+// moment it left the header row — which is exactly the trip to the group
+// panel. Above every sticky layer, and transparent to hit-testing so it
+// cannot take an event meant for what is underneath it.
+// Floats over the trailing end of the filter row. Drawn by the shell because
+// the row scrolls horizontally with the columns, so anything pinned inside it
+// leaves the viewport. Offset by the header, which the row sits under.
+.dg-filter-apply {
+  position: absolute;
+  z-index: 20;
+  top: calc(var(--dg-header-height) * var(--dg-header-rows, 1) + var(--space-1));
+  inset-inline-end: var(--space-3);
+  box-shadow: var(--shadow-md);
+}
+
+.dg-drag-ghost {
+  box-sizing: border-box;
+  position: absolute;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  height: var(--dg-header-height);
+  padding-inline: var(--dg-cell-pad-x);
+  overflow: hidden;
+  border: var(--border-width-hairline) solid var(--accent);
+  border-radius: a.radius(sm);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  color: var(--text-primary);
+  font-size: var(--dg-font-size);
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  opacity: 0.9;
+  pointer-events: none;
+  user-select: none;
+}
+
+// Picked up: a spring at `--dur-slow`, because a spring spends its tail
+// settling and a short duration throws that shape away. The scale starts at
+// 0.96 rather than 0 — an element that grows from nothing reads as appearing,
+// not as being lifted.
+.dg-ghost-enter {
+  animation: dg-ghost-lift var(--dur-slow) var(--ease-spring);
+}
+
+// Dropped: out, and about 20% faster than the lift.
+.dg-ghost-leave {
+  animation: dg-ghost-drop var(--dur-base) var(--ease-out);
+}
+
+@keyframes dg-ghost-lift {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(2px);
+  }
+
+  to {
+    opacity: 0.9;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes dg-ghost-drop {
+  from {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+
+.dg-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

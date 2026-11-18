@@ -1,0 +1,232 @@
+// Consumes the design-system CSS custom properties emitted by the
+// shared @ui styles. Keyboard focus comes from
+// the global `:focus-visible` rule; reduced motion is handled by the
+// base layer.
+//
+// Each severity sets the private --btn-* properties; the variant
+// rules below consume them, so the severity × variant matrix stays
+// flat instead of combinatorial.
+
+:host {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--btn-pad-y, var(--btn-size-pad-y)) var(--btn-pad-x, var(--btn-size-pad-x));
+  font-family: var(--font-sans);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-snug);
+  border: var(--border-width-hairline) solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+// Press feedback: a subtle scale makes the interface feel like it's
+// listening. A state change, not an animation — under reduced motion
+// it simply applies instantly.
+:host(:active) {
+  transform: scale(0.97);
+}
+
+// `[aria-disabled]` covers `<a>` hosts, which have no native :disabled.
+// pointer-events blocks the mouse only — the component also drops a
+// disabled anchor out of the tab order and cancels its click, so
+// keyboard activation cannot follow the link.
+:host(:disabled),
+:host([aria-disabled='true']) {
+  opacity: var(--opacity-disabled);
+  box-shadow: none;
+  pointer-events: none;
+}
+
+// ---- Sizes ----
+
+// A size owns `--btn-size-pad-*`; `--btn-pad-*` is the consumer's override and is declared
+// nowhere here, so a rule outside the component reaches it. The two cannot be one property:
+// a custom property set on the element beats one inherited from an ancestor, and every size
+// rule sets it on the element — so a single name would make the override unreachable whatever
+// specificity a consumer wrote. A toolbar that wants a taller `sm` button without the `md`
+// font sets `--btn-pad-y` and leaves the rest of the size alone.
+:host([data-size='sm']) {
+  --btn-size-pad-y: var(--space-1);
+  --btn-size-pad-x: var(--space-3);
+  font-size: var(--text-sm);
+}
+
+:host([data-size='md']) {
+  --btn-size-pad-y: var(--space-2);
+  --btn-size-pad-x: var(--space-4);
+  font-size: var(--text-base);
+}
+
+:host([data-size='lg']) {
+  --btn-size-pad-y: var(--space-3);
+  --btn-size-pad-x: var(--space-6);
+  font-size: var(--text-lg);
+}
+
+// The spinner is sized in `em`, so it follows the font size each size rule already sets and
+// needs no size rules of its own. The base layer's reduced-motion rule stops the spin.
+.btn-spinner {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  stroke-width: var(--icon-stroke);
+  animation: btn-spin 1s linear infinite;
+}
+
+@keyframes btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ---- Severities → private properties ----
+
+:host([data-severity='primary']) {
+  --btn-color: var(--accent);
+  --btn-color-hover: var(--accent-hover);
+  --btn-color-active: var(--accent-active);
+  --btn-fg: var(--accent-fg);
+  --btn-plain-fg: var(--accent-text);
+  --btn-outline-border: var(--accent-subtle-border);
+  --btn-subtle: var(--accent-subtle);
+}
+
+:host([data-severity='secondary']) {
+  --btn-color: var(--surface-2);
+  --btn-color-hover: var(--surface-sunken);
+  --btn-color-active: var(--surface-sunken);
+  --btn-fg: var(--text-primary);
+  --btn-plain-fg: var(--text-primary);
+  --btn-outline-border: var(--border-strong);
+  // Sunken, not `--surface-2`: an outlined or text secondary button placed on a
+  // `--surface-2` section would otherwise hover into its own background and read
+  // as having no hover at all.
+  --btn-subtle: var(--surface-sunken);
+}
+
+:host([data-severity='success']) {
+  --btn-color: var(--success);
+  --btn-color-hover: var(--success-hover);
+  --btn-color-active: var(--success-active);
+  --btn-fg: var(--on-success);
+  --btn-plain-fg: var(--success-text);
+  --btn-outline-border: var(--success);
+  --btn-subtle: var(--success-bg);
+}
+
+:host([data-severity='info']) {
+  --btn-color: var(--info);
+  --btn-color-hover: var(--info-hover);
+  --btn-color-active: var(--info-active);
+  --btn-fg: var(--on-info);
+  --btn-plain-fg: var(--info-text);
+  --btn-outline-border: var(--info);
+  --btn-subtle: var(--info-bg);
+}
+
+:host([data-severity='warning']) {
+  --btn-color: var(--warning);
+  --btn-color-hover: var(--warning-hover);
+  --btn-color-active: var(--warning-active);
+  --btn-fg: var(--on-warning);
+  --btn-plain-fg: var(--warning-text);
+  --btn-outline-border: var(--warning);
+  --btn-subtle: var(--warning-bg);
+}
+
+:host([data-severity='error']) {
+  --btn-color: var(--error);
+  --btn-color-hover: var(--error-hover);
+  --btn-color-active: var(--error-active);
+  --btn-fg: var(--on-error);
+  --btn-plain-fg: var(--error-text);
+  --btn-outline-border: var(--error);
+  --btn-subtle: var(--error-bg);
+}
+
+// ---- Variants ----
+
+// Hover styles only where hover truly exists — touch devices trigger
+// hover on tap, leaving buttons stuck in their hover state.
+
+:host([data-variant='filled']) {
+  background: var(--btn-color);
+  color: var(--btn-fg);
+  box-shadow: var(--shadow-sm);
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: var(--btn-color-hover);
+    }
+  }
+
+  &:active {
+    background: var(--btn-color-active);
+    box-shadow: none;
+  }
+}
+
+// The primary CTA is the only button that earns the accent glow.
+@media (hover: hover) and (pointer: fine) {
+  :host([data-severity='primary'][data-variant='filled']:hover) {
+    box-shadow: var(--shadow-accent);
+  }
+}
+
+:host([data-variant='outlined']) {
+  background: transparent;
+  color: var(--btn-plain-fg);
+  border-color: var(--btn-outline-border);
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: var(--btn-subtle);
+    }
+  }
+
+  &:active {
+    background: var(--btn-subtle);
+  }
+}
+
+:host([data-variant='text']) {
+  background: transparent;
+  color: var(--btn-plain-fg);
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: var(--btn-subtle);
+    }
+  }
+
+  &:active {
+    background: var(--btn-subtle);
+  }
+}
+
+// ---- Modifiers ----
+
+:host([data-rounded]) {
+  border-radius: var(--radius-pill);
+}
+
+:host([data-raised]) {
+  box-shadow: var(--shadow-md);
+}
+
+// A square button has one padding on both axes, so the horizontal one follows the vertical —
+// including an override, or a consumer raising the height would widen nothing.
+:host([data-icon-only]) {
+  aspect-ratio: 1;
+  --btn-size-pad-x: var(--btn-pad-y, var(--btn-size-pad-y));
+}

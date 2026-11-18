@@ -1,0 +1,11 @@
+// The height comes from the `height` input, so the box is reserved before ECharts loads.
+:host {
+  display: block;
+  position: relative;
+  min-width: 0;
+}
+
+.chart-canvas {
+  width: 100%;
+  height: 100%;
+}

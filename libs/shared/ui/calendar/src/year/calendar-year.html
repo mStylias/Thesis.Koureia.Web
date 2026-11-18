@@ -1,0 +1,71 @@
+<div
+  class="yc-legend"
+  [attr.aria-label]="'calendar.densityLegend' | uiCopy | transloco"
+  role="group"
+>
+  <span class="yc-legend-label">{{ 'calendar.densityLegend' | uiCopy | transloco }}</span>
+  @for (range of legend; track range; let step = $index) {
+    <span class="yc-legend-item">
+      <span class="yc-legend-swatch" [attr.data-step]="step" aria-hidden="true"></span>
+      {{ range }}
+    </span>
+  }
+</div>
+
+<div class="yc-months">
+  @for (month of months(); track month.month) {
+    @let roving = rovingDate(month);
+    <!-- A press outside the days opens the month. The heading is the keyboard's way in. -->
+    <section class="yc-month" [attr.data-month]="month.month">
+      <h3 class="yc-heading">
+        <button type="button" class="yc-heading-button" (click)="openMonth(month)">
+          {{ month.heading }}
+        </button>
+      </h3>
+      <div class="yc-grid" role="grid" [attr.aria-label]="month.heading">
+        <div class="yc-row" role="row">
+          @for (weekday of weekdays(); track weekday.label) {
+            <span class="yc-weekday" role="columnheader" [attr.aria-label]="weekday.label">
+              {{ weekday.initial }}
+            </span>
+          }
+        </div>
+        @for (week of month.weeks; track week[0]?.date) {
+          <div class="yc-row" role="row">
+            @for (day of week; track day.date) {
+              @if (day.outside) {
+                <span class="yc-day" role="gridcell" aria-hidden="true"></span>
+              } @else {
+                <span
+                  class="yc-day"
+                  role="gridcell"
+                  [attr.tabindex]="roving === day.date ? 0 : -1"
+                  [attr.data-date]="day.date"
+                  [attr.data-step]="day.closed ? null : day.step"
+                  [attr.data-today]="day.today ? '' : null"
+                  [attr.data-closed]="day.closed ? '' : null"
+                  [attr.aria-current]="day.today ? 'date' : null"
+                  [attr.aria-label]="
+                    day.label +
+                    ', ' +
+                    ('calendar.entries' | uiCopy | transloco: { count: day.count })
+                  "
+                  [libTooltip]="
+                    day.count > 0
+                      ? ('calendar.entries' | uiCopy | transloco: { count: day.count })
+                      : ''
+                  "
+                  (focus)="onDayFocus(day)"
+                  (click)="onDayClick(day)"
+                  (keydown)="onDayKeydown(month, day, $event)"
+                >
+                  {{ day.day }}
+                </span>
+              }
+            }
+          </div>
+        }
+      </div>
+    </section>
+  }
+</div>

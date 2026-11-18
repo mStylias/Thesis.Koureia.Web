@@ -1,0 +1,119 @@
+// @ui/input-text: styles for the `[libIconField]` wrapper.
+//
+// These rules are global, not component-scoped, because they must style the projected input
+// and icon, which Angular's emulated encapsulation cannot reach. Every rule sits under
+// [libIconField]. Each adornment reserves its icon width plus a gutter.
+
+[libIconField] {
+  --icon-field-slot: calc(var(--icon-size-sm) + 2 * var(--space-2));
+
+  position: relative;
+  // The `top: 50%` adornments center on the wrapper, so its height must equal the control
+  // height. `inline-flex` removes the inline baseline gap, and `fit-content` opts out of
+  // stretching by a flex or grid parent.
+  display: inline-flex;
+  flex-direction: column;
+  height: fit-content;
+
+  > input {
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  [libInputIcon] {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    color: var(--text-muted);
+    pointer-events: none;
+
+    svg {
+      width: var(--icon-size-sm);
+      height: var(--icon-size-sm);
+      stroke-width: var(--icon-stroke);
+    }
+  }
+
+  // Icon placement and input padding.
+
+  &[data-icon-position='left'] {
+    [libInputIcon] {
+      left: var(--space-2);
+    }
+
+    &:has([libInputIcon]) > input {
+      padding-left: var(--icon-field-slot);
+    }
+  }
+
+  &[data-icon-position='right'] {
+    [libInputIcon] {
+      right: var(--space-2);
+    }
+
+    &:has([libInputIcon]) > input {
+      padding-right: var(--icon-field-slot);
+    }
+  }
+
+  // Clear button.
+
+  &[data-clearable] > input {
+    padding-right: var(--icon-field-slot);
+  }
+
+  // A `type="search"` input draws a clear button of the browser's own, in the browser's own
+  // colours. Where the wrapper supplies one, the two sit side by side. Scoped to
+  // `[data-clearable]`, so a search field without `showClear` keeps the only one it has.
+  &[data-clearable] > input[type='search']::-webkit-search-cancel-button {
+    display: none;
+  }
+
+  // With the icon and the clear button both on the right, the icon moves inward and the input
+  // reserves room for both.
+  &[data-clearable][data-icon-position='right'] {
+    [libInputIcon] {
+      right: var(--icon-field-slot);
+    }
+
+    &:has([libInputIcon]) > input {
+      padding-right: calc(2 * var(--icon-field-slot));
+    }
+  }
+
+  .input-clear-button {
+    position: absolute;
+    top: 50%;
+    right: var(--space-1);
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-1);
+    background: none;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color var(--dur-fast) var(--ease-standard);
+
+    &:hover {
+      color: var(--text-primary);
+    }
+
+    svg {
+      width: var(--icon-size-sm);
+      height: var(--icon-size-sm);
+      stroke-width: var(--icon-stroke);
+    }
+  }
+
+  // The button's only resting affordance is its icon color, and a forced palette overrides
+  // that away together with the hover change.
+  @media (forced-colors: active) {
+    .input-clear-button:focus-visible {
+      outline: 2px solid Highlight;
+    }
+  }
+}

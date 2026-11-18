@@ -1,0 +1,291 @@
+@let todayLabel = 'calendar.today' | uiCopy | transloco;
+@let previousLabel = 'calendar.previous' | uiCopy | transloco;
+@let nextLabel = 'calendar.next' | uiCopy | transloco;
+@let settingsLabel = 'calendar.settings' | uiCopy | transloco;
+@let refreshLabel = 'calendar.refresh' | uiCopy | transloco;
+@let overflowLabel = 'calendar.overflow' | uiCopy | transloco;
+@let viewLabel = 'calendar.view' | uiCopy | transloco;
+@let createText = createLabel() || ('calendar.create' | uiCopy | transloco);
+@let shape = layout();
+
+<div class="ct-bar" role="group" [attr.aria-label]="'calendar.toolbar' | uiCopy | transloco">
+  <div class="ct-nav">
+    <button
+      libButton
+      type="button"
+      severity="secondary"
+      variant="outlined"
+      size="sm"
+      [iconOnly]="!shape.todayLabel"
+      [attr.aria-label]="shape.todayLabel ? null : todayLabel"
+      [libTooltip]="todayLabel"
+      [tooltipDisabled]="shape.todayLabel"
+      (click)="navigate.emit('today')"
+    >
+      @if (shape.todayLabel) {
+        {{ todayLabel }}
+      } @else {
+        <svg lucideCalendarCheck aria-hidden="true"></svg>
+      }
+    </button>
+    <span class="ct-steps">
+      <button
+        libButton
+        type="button"
+        severity="secondary"
+        variant="text"
+        size="sm"
+        iconOnly
+        [attr.aria-label]="previousLabel"
+        [libTooltip]="previousLabel"
+        (click)="navigate.emit('previous')"
+      >
+        <svg lucideChevronLeft aria-hidden="true"></svg>
+      </button>
+      <button
+        libButton
+        type="button"
+        severity="secondary"
+        variant="text"
+        size="sm"
+        iconOnly
+        [attr.aria-label]="nextLabel"
+        [libTooltip]="nextLabel"
+        (click)="navigate.emit('next')"
+      >
+        <svg lucideChevronRight aria-hidden="true"></svg>
+      </button>
+    </span>
+    <span class="ct-range" showOnEllipsis [libTooltip]="label()">{{ label() }}</span>
+    @if (shape.dateInline) {
+      <ng-container [ngTemplateOutlet]="datePicker" />
+    }
+  </div>
+
+  @if (viewsInline()) {
+    <span class="ct-sep" aria-hidden="true"></span>
+    <div #viewsSlot class="ct-views" [attr.data-layout]="shape.views">
+      <ng-container [ngTemplateOutlet]="viewsTemplate()" />
+    </div>
+    <span class="ct-sep" aria-hidden="true"></span>
+  } @else {
+    <span class="ct-spacer"></span>
+  }
+
+  <div class="ct-actions">
+    @if (showFilters() && shape.filtersInline) {
+      <ng-container
+        [ngTemplateOutlet]="filtersButton"
+        [ngTemplateOutletContext]="{ $implicit: null }"
+      />
+    }
+    @if (shape.settingsInline) {
+      <ng-container
+        [ngTemplateOutlet]="settingsButton"
+        [ngTemplateOutletContext]="{ $implicit: null }"
+      />
+    }
+    @if (shape.refreshInline) {
+      <ng-container
+        [ngTemplateOutlet]="refreshButton"
+        [ngTemplateOutletContext]="{ $implicit: null }"
+      />
+    }
+    @switch (shape.viewSwitch) {
+      @case ('buttons') {
+        <!-- Toggle buttons, not a tablist: a tab must own a panel, and the
+             views are drawn outside the bar. -->
+        <div #segment class="ct-segment" role="group" [attr.aria-label]="viewLabel">
+          <span #segmentPill class="ct-segment-pill" aria-hidden="true"></span>
+          @for (option of viewOptions(); track option.value) {
+            <button
+              #segmentItem
+              type="button"
+              class="ct-segment-item"
+              [attr.aria-pressed]="option.value === view()"
+              (click)="onSegmentPick(option.value, $event)"
+            >
+              {{ option.label }}
+            </button>
+          }
+        </div>
+      }
+      @case ('select') {
+        <ng-container [ngTemplateOutlet]="viewSelect" />
+      }
+    }
+    @if (shape.createInline) {
+      <ng-container
+        [ngTemplateOutlet]="createButton"
+        [ngTemplateOutletContext]="{ $implicit: null }"
+      />
+    }
+    <!-- Drawn only once something folded, so a bar with room offers no way
+         into a panel that would be empty. -->
+    @if (shape.menu) {
+      <button
+        libButton
+        type="button"
+        severity="secondary"
+        variant="text"
+        size="sm"
+        iconOnly
+        #overflow="libPopoverTrigger"
+        [attr.aria-label]="overflowLabel"
+        [libTooltip]="overflowLabel"
+        [libPopoverTriggerFor]="overflowPanel"
+        [popoverAriaLabel]="overflowLabel"
+      >
+        <svg lucideEllipsis aria-hidden="true"></svg>
+      </button>
+
+      <!-- A panel, not a menu: the view select and the saved views stay real
+           controls in here, and `role="menu"` admits menu items only. -->
+      <ng-template #overflowPanel>
+        <div class="ct-overflow">
+          @if (!shape.dateInline) {
+            <ng-container [ngTemplateOutlet]="datePicker" />
+          }
+          @if (shape.viewSwitch === 'menu' && !shape.floating) {
+            <ng-container [ngTemplateOutlet]="viewSelect" />
+          }
+          @if (viewsFolded()) {
+            <div class="ct-overflow-views">
+              <ng-container [ngTemplateOutlet]="viewsTemplate()" />
+            </div>
+          }
+          @if (filtersFolded()) {
+            <ng-container
+              [ngTemplateOutlet]="filtersButton"
+              [ngTemplateOutletContext]="{ $implicit: overflow }"
+            />
+          }
+          @if (!shape.settingsInline) {
+            <ng-container
+              [ngTemplateOutlet]="settingsButton"
+              [ngTemplateOutletContext]="{ $implicit: overflow }"
+            />
+          }
+          @if (!shape.refreshInline) {
+            <ng-container
+              [ngTemplateOutlet]="refreshButton"
+              [ngTemplateOutletContext]="{ $implicit: overflow }"
+            />
+          }
+          @if (!shape.createInline && !shape.floating) {
+            <ng-container
+              [ngTemplateOutlet]="createButton"
+              [ngTemplateOutletContext]="{ $implicit: overflow }"
+            />
+          }
+        </div>
+      </ng-template>
+    }
+  </div>
+</div>
+
+<!-- One definition per control for both places it can be drawn. The context
+     is the overflow trigger when drawn in the panel, so an action closes it. -->
+<ng-template #datePicker>
+  <lib-date-picker
+    class="ct-date"
+    size="sm"
+    [value]="anchor()"
+    [locale]="locale()"
+    [firstDayOfWeek]="firstDayOfWeek()"
+    [ariaLabel]="'calendar.goToDate' | uiCopy | transloco"
+    (valueChange)="onDatePick($event)"
+  />
+</ng-template>
+
+<ng-template #viewSelect>
+  <lib-select
+    class="ct-view-select"
+    size="sm"
+    [options]="viewOptions()"
+    [value]="view()"
+    [ariaLabel]="viewLabel"
+    (valueChange)="onViewPick($event)"
+  />
+</ng-template>
+
+<ng-template #filtersButton let-overflow>
+  @let active = filtersActive();
+  <button
+    libButton
+    type="button"
+    class="ct-toggle"
+    severity="secondary"
+    [variant]="overflow ? 'text' : 'outlined'"
+    size="sm"
+    [attr.aria-pressed]="panel() === 'filters'"
+    (click)="togglePanel('filters', overflow)"
+  >
+    <svg lucideListFilter aria-hidden="true"></svg>
+    {{ 'calendar.filters' | uiCopy | transloco }}
+    @if (active > 0) {
+      <span class="ct-count" aria-hidden="true">{{ active }}</span>
+      <span class="ct-sr"
+        >, {{ 'calendar.filtersActive' | uiCopy | transloco: { count: active } }}</span
+      >
+    }
+  </button>
+</ng-template>
+
+<ng-template #settingsButton let-overflow>
+  <button
+    libButton
+    type="button"
+    class="ct-toggle"
+    severity="secondary"
+    variant="text"
+    size="sm"
+    [iconOnly]="!overflow"
+    [attr.aria-label]="overflow ? null : settingsLabel"
+    [attr.aria-pressed]="panel() === 'settings'"
+    [libTooltip]="settingsLabel"
+    [tooltipDisabled]="!!overflow"
+    (click)="togglePanel('settings', overflow)"
+  >
+    <svg lucideCog aria-hidden="true"></svg>
+    @if (overflow) {
+      {{ settingsLabel }}
+    }
+  </button>
+</ng-template>
+
+<ng-template #refreshButton let-overflow>
+  <button
+    libButton
+    type="button"
+    severity="secondary"
+    variant="text"
+    size="sm"
+    [iconOnly]="!overflow"
+    [attr.aria-busy]="refreshing() || null"
+    [attr.aria-label]="overflow ? null : refreshLabel"
+    [libTooltip]="refreshLabel"
+    [tooltipDisabled]="!!overflow"
+    (click)="onRefresh(overflow)"
+  >
+    <svg lucideRefreshCw [libSpin]="refreshing()" aria-hidden="true"></svg>
+    @if (overflow) {
+      {{ refreshLabel }}
+    }
+  </button>
+</ng-template>
+
+<ng-template #createButton let-overflow>
+  <button
+    libButton
+    type="button"
+    size="sm"
+    [class.ct-create]="!overflow"
+    [variant]="overflow ? 'text' : 'filled'"
+    [severity]="overflow ? 'secondary' : 'primary'"
+    (click)="onCreate(overflow)"
+  >
+    <svg lucidePlus aria-hidden="true"></svg>
+    {{ createText }}
+  </button>
+</ng-template>

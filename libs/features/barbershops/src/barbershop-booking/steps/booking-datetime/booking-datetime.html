@@ -1,0 +1,80 @@
+<h2 class="step__title">{{ 'barbershops.booking.when.title' | transloco }}</h2>
+<p class="step__lead">{{ 'barbershops.booking.when.lead' | transloco }}</p>
+
+<div class="when">
+  <section #calendarRegion class="when__calendar" [attr.aria-label]="calendarLabel()">
+    <!-- The page language, not the browser's: the rest of the step is already in it. -->
+    <lib-date-picker
+      mode="inline"
+      [locale]="language.value()"
+      [showInput]="false"
+      [showToday]="false"
+      [value]="state.date() ?? ''"
+      [min]="minDate()"
+      [max]="maxDate()"
+      [today]="state.today()"
+      [validDates]="state.availableDays()"
+      [availability]="state.dayAvailability()"
+      [disabled]="state.daysLoading()"
+      (valueChange)="onDateChange($event)"
+    />
+
+    @if (foreignTimezone(); as city) {
+      <p class="when__timezone">
+        {{ 'barbershops.booking.when.timezone' | transloco: { city } }}
+      </p>
+    }
+    @if (state.daysFailed()) {
+      <lib-banner class="when__days-error" tone="error">
+        {{ 'barbershops.booking.when.daysFailed' | transloco }}
+      </lib-banner>
+    }
+  </section>
+
+  <section #slotsRegion class="when__slots" [attr.aria-label]="slotsLabel()">
+    @if (state.date(); as date) {
+      <!--
+        The day, pinned above the grid. On a phone the calendar has scrolled away by the time
+        the slots are readable, so this is both the label and the way back to it.
+      -->
+      <button class="when__day" type="button" (click)="backToCalendar()">
+        <span class="when__day-label">{{ chosenDateLabel() }}</span>
+        <span class="when__day-change">{{ 'barbershops.booking.when.changeDay' | transloco }}</span>
+      </button>
+
+      @if (state.slotsLoading()) {
+        <!-- Skeletons hold the grid's height, so choosing a day does not make the page jump. -->
+        <ul class="when__grid when__grid--loading" aria-hidden="true">
+          @for (placeholder of [1, 2, 3, 4, 5, 6, 7, 8]; track placeholder) {
+            <li class="when__skeleton"></li>
+          }
+        </ul>
+        <p class="sr-only" role="status">
+          {{ 'barbershops.booking.when.loadingSlots' | transloco }}
+        </p>
+      } @else if (state.slotsFailed()) {
+        <lib-banner tone="error">
+          {{ 'barbershops.booking.when.slotsFailed' | transloco }}
+        </lib-banner>
+      } @else if (slotTimes().length === 0) {
+        <p class="when__empty">{{ 'barbershops.booking.when.noSlots' | transloco }}</p>
+        @if (nextAvailableDay(); as nextDay) {
+          <button class="when__next" type="button" (click)="onDateChange(nextDay)">
+            {{ 'barbershops.booking.when.tryNext' | transloco: { day: nextAvailableLabel() } }}
+          </button>
+        }
+      } @else {
+        <lib-time-picker
+          mode="inline"
+          excludedDisplay="hidden"
+          [value]="state.time() ?? ''"
+          [validTimes]="slotTimes()"
+          [ariaLabel]="slotsLabel()"
+          (valueChange)="onTimeChange($event)"
+        />
+      }
+    } @else {
+      <p class="when__empty">{{ 'barbershops.booking.when.pickDay' | transloco }}</p>
+    }
+  </section>
+</div>

@@ -1,0 +1,27 @@
+@use 'abstracts' as a;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(2);
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: a.space(10);
+  background: var(--surface);
+  border: var(--border-width-hairline) dashed var(--border);
+  border-radius: a.radius(lg);
+  text-align: center;
+}
+
+.placeholder-title {
+  @include a.t-title;
+
+  margin: 0;
+}
+
+.placeholder-lead {
+  @include a.t-body;
+
+  margin: 0;
+}

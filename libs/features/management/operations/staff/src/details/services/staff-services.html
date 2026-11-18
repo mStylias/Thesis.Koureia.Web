@@ -1,0 +1,109 @@
+@if (editor.editing()) {
+  @let fields = editor.form;
+  <form class="services-form" [libForm]="editor">
+    <lib-form-errors class="services-errors" />
+    <p class="services-hint">{{ 'managementStaff.services.hint' | transloco }}</p>
+
+    @if (groups().length === 0) {
+      <p class="services-hint">{{ 'managementStaff.services.empty' | transloco }}</p>
+    }
+
+    @for (group of groups(); track group.key) {
+      @let state = groupState(group);
+      <fieldset class="services-group">
+        <legend class="services-group-head">
+          <span class="services-group-name">{{ group.name }}</span>
+          <lib-checkbox
+            size="sm"
+            [value]="state === 'all'"
+            [indeterminate]="state === 'some'"
+            (valueChange)="selectGroup(group, $event)"
+          >
+            {{ 'managementStaff.services.selectAll' | transloco }}
+          </lib-checkbox>
+        </legend>
+
+        <div class="services-head" aria-hidden="true">
+          <span>{{ 'managementStaff.services.service' | transloco }}</span>
+          <span>{{ 'managementStaff.services.ownPrice' | transloco }}</span>
+          <span>{{ 'managementStaff.services.ownDuration' | transloco }}</span>
+        </div>
+
+        @for (row of group.rows; track row.serviceId) {
+          @let item = fields.rows[row.index];
+          <div class="services-row" [attr.data-selected]="item.selected().value() ? '' : null">
+            <lib-checkbox size="sm" class="services-name" [formField]="item.selected">
+              <span class="services-label">
+                {{ row.name }}
+                @if (!row.isActive) {
+                  <span class="services-meta">{{
+                    'managementStaff.services.inactive' | transloco
+                  }}</span>
+                }
+              </span>
+            </lib-checkbox>
+            <lib-input-number
+              size="sm"
+              mode="currency"
+              [currency]="store.currency()"
+              [locale]="language()"
+              [minFractionDigits]="2"
+              [maxFractionDigits]="2"
+              [placeholder]="money().format(row.price)"
+              [ariaLabel]="'managementStaff.services.ownPriceOf' | transloco: { name: row.name }"
+              [formField]="item.customPrice"
+            />
+            <lib-input-number
+              size="sm"
+              [step]="step"
+              [suffix]="'managementStaff.services.minutesSuffix' | transloco"
+              [locale]="language()"
+              [placeholder]="minutes(row.durationMinutes)"
+              [ariaLabel]="'managementStaff.services.ownDurationOf' | transloco: { name: row.name }"
+              [formField]="item.customDurationMinutes"
+            />
+            @for (error of item.customPrice().errors(); track $index) {
+              <p class="services-error" role="alert">{{ error.message ?? '' | transloco }}</p>
+            }
+            @for (error of item.customDurationMinutes().errors(); track $index) {
+              <p class="services-error" role="alert">{{ error.message ?? '' | transloco }}</p>
+            }
+            @for (error of item.serviceId().errors(); track $index) {
+              <p class="services-error" role="alert">{{ error.message ?? '' | transloco }}</p>
+            }
+          </div>
+        }
+      </fieldset>
+    }
+  </form>
+} @else {
+  @if (assignedGroups().length === 0) {
+    <section class="services-section">
+      <p class="services-hint">{{ 'managementStaff.services.none' | transloco }}</p>
+    </section>
+  }
+  @for (group of assignedGroups(); track group.key) {
+    <section class="services-section">
+      <h3 class="services-heading">{{ group.name }}</h3>
+      <dl class="services-grid">
+        @for (row of group.rows; track row.serviceId) {
+          @let assigned = own().get(row.serviceId);
+          <div class="services-view-row">
+            <dt class="services-caption">
+              {{ row.name }}
+              @if (!row.isActive) {
+                <span class="services-meta">{{
+                  'managementStaff.services.inactive' | transloco
+                }}</span>
+              }
+            </dt>
+            <dd class="services-value">
+              {{ money().format(assigned?.customPrice ?? row.price) }} ·
+              {{ minutes(assigned?.customDurationMinutes ?? row.durationMinutes) }}
+            </dd>
+          </div>
+        }
+      </dl>
+    </section>
+  }
+}

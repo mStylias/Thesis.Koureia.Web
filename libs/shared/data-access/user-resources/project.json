@@ -1,0 +1,8 @@
+{
+  "name": "shared-data-access-user-resources",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/shared/data-access/user-resources/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["scope:shared", "type:data-access"]
+}

@@ -1,0 +1,22 @@
+// The Koureia theme entry point. An app's `styles` array points at this file, and the file
+// pulls in the brand-neutral core.
+//
+//   core          The design system minus color: element defaults, type classes, global
+//                 component partials and vendor styles. It resolves through
+//                 `stylePreprocessorOptions.includePaths`, the only thing that ties an app to
+//                 a styles library, so a brand swap is a build-config change and not a code
+//                 change.
+//   root          Koureia's tokens, as CSS custom properties on `:root`.
+//   light, dark   The semantic aliases per theme. Light is the base.
+//   surface-dark  A permanently dark subtree context, `data-surface="dark"`.
+//
+// CAUTION: The order of the last three matters. `_dark.scss` overrides `_light.scss` at equal
+// specificity, and `_surface-dark.scss` builds on `_dark.scss`.
+//
+// Tailwind is wired separately in the core's `tailwind.css` and reads these same custom
+// properties through `@theme inline`.
+@use 'core';
+@use 'root';
+@use 'light';
+@use 'dark';
+@use 'surface-dark';

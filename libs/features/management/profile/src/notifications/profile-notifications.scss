@@ -1,0 +1,27 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+.channels {
+  display: grid;
+  gap: a.space(4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.channel {
+  display: grid;
+  gap: a.space(1);
+}
+
+// Lines up with the label of a `md` switch: its track is two icons wide, then the gap.
+.channel-hint {
+  @include a.t-body-sm;
+
+  margin: 0;
+  padding-inline-start: calc(var(--icon-size-md) * 2 + var(--space-2));
+  color: var(--text-muted);
+}

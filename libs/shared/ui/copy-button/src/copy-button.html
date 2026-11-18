@@ -1,0 +1,33 @@
+<button
+  libButton
+  type="button"
+  severity="secondary"
+  variant="outlined"
+  size="sm"
+  [attr.aria-label]="label()"
+  (click)="copy()"
+>
+  <!-- One node per branch, or the icon misses the button's icon slot. -->
+  @if (state() === 'copied') {
+    <svg lucideCheck libButtonIcon aria-hidden="true"></svg>
+  } @else {
+    <svg lucideCopy libButtonIcon aria-hidden="true"></svg>
+  }
+  <!-- Sized to the longer label, so "Copied" does not move what is beside it. -->
+  <span
+    class="copy-label"
+    [attr.data-copy]="'copyButton.copy' | uiCopy | transloco"
+    [attr.data-copied]="'copyButton.copied' | uiCopy | transloco"
+    >{{
+      (state() === 'copied' ? 'copyButton.copied' : 'copyButton.copy') | uiCopy | transloco
+    }}</span
+  >
+</button>
+<!-- The button keeps its name, so the result is announced here. -->
+<span class="sr-only" role="status">
+  @if (state() === 'copied') {
+    {{ 'copyButton.copied' | uiCopy | transloco }}
+  } @else if (state() === 'failed') {
+    {{ 'copyButton.failed' | uiCopy | transloco }}
+  }
+</span>

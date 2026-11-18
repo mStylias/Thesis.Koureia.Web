@@ -1,0 +1,54 @@
+<router-outlet />
+
+<!--
+  Covers the first navigation into `/management` and nothing else. It stays mounted and reads the
+  flag rather than being switched in and out here, because it owns the floor on how long it is up
+  and so has to outlive the flag that raised it.
+
+  On a cold load it takes over the copy `index.html` painted before the bundle booted: the floor
+  is what is left of it, and the mark does not enter a second time.
+-->
+<lib-loading-screen
+  [loading]="managementEntry.entering()"
+  [logo]="brand.logo"
+  [minDuration]="managementEntry.floorMs()"
+  [animateLogo]="!managementEntry.adoptedDocumentSplash()"
+/>
+
+<!--
+  After the outlet, because the bar it renders is fixed to the bottom of the viewport: reading and
+  focus order follow what is on the screen.
+
+  Loaded for anyone signed in, and not on `!isEmailVerified()`. The reminder is a live region, and
+  it has to be in the accessibility tree *before* the message lands in it. The sign-in hint cookie
+  answers optimistically at bootstrap, so this chunk is already mounted and empty by the time
+  `GET /auth/session` says the address is unproven.
+-->
+@defer (when session.isSignedIn()) {
+  <auth-email-unverified />
+}
+
+<!--
+  Deferred out of the initial bundle: the expiry dialog carries `@ui/dialog`, one of the
+  heaviest components in the workspace, to say something most people will never be shown.
+-->
+@defer (when session.status() === 'expired') {
+  @if (session.status() === 'expired') {
+    <auth-session-expired />
+  }
+}
+
+<!--
+  The one toaster the app has: the queue is a root service and this is its renderer, so a second
+  would draw the same toasts twice.
+
+  `on idle` and nothing else, deliberately. A `when` on the queue would have to read
+  `ToasterService` here, outside the block — and a deferred block only stays lazy while its
+  dependency is used nowhere else, so the service import would pull the whole library back into
+  the initial bundle (measured: ~30 kB) to save loading a component the same bundle now carries.
+  The queue lives in the root service either way, so a toast fired before this mounts is still
+  the toast that gets rendered.
+-->
+@defer (on idle) {
+  <lib-toaster />
+}

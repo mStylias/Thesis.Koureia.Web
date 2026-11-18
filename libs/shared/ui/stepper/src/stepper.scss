@@ -1,0 +1,303 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+  font-family: var(--font-sans);
+}
+
+// The narrow-screen header. The rail below names every step, so this carries the
+// position and the progress only.
+.stepper__compact {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(1);
+  margin-block-end: a.space(4);
+
+  @include a.respond(md) {
+    display: none;
+  }
+}
+
+.stepper__count {
+  @include a.t-caption;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.stepper__progress {
+  block-size: var(--stepper-progress-height);
+  background: var(--surface-2);
+  border-radius: a.radius(pill);
+  overflow: hidden;
+  margin-block-start: a.space(1);
+}
+
+// Scaled rather than widened. Advancing is a direct answer to a press, so the bar leaves on
+// the frame of it and lays nothing out again on the way.
+.stepper__progress-fill {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  background: var(--accent);
+  transform-origin: 0 50%;
+  transition: scale var(--dur-base) var(--ease-out);
+}
+
+.stepper__list {
+  display: flex;
+  // Stretched, so steps with labels of different heights still rest their markers
+  // on one line. The step itself bottom-aligns its content.
+  align-items: stretch;
+  gap: a.space(1);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  @include a.respond(md) {
+    align-items: center;
+    gap: a.space(3);
+  }
+}
+
+.stepper__step {
+  // Equal shares, and nothing inside may widen one: a label that set its step's width would
+  // put the markers at uneven distances and leave every connector a different length.
+  flex: 1 1 0;
+  min-inline-size: 0;
+  position: relative;
+  display: flex;
+  justify-content: center;
+
+  // The connector, drawn from this step's marker to the next one's rather than laid out
+  // between them. In flow it took whatever slack its own step had left over, which is what
+  // made the lines unequal.
+  &:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    inset-block-end: calc(var(--stepper-marker-size-compact) / 2);
+    // Starts clear of this marker and ends clear of the next, across one step plus one gap.
+    inset-inline-start: calc(50% + var(--stepper-marker-size-compact) / 2 + #{a.space(1)});
+    inline-size: calc(100% + #{a.space(1)} - var(--stepper-marker-size-compact) - #{a.space(2)});
+    block-size: var(--border-width-hairline);
+    // Two layers in one hairline: the track is the background colour, the fill is an image
+    // grown from nothing. Finishing a step then reads as reaching the next one rather than
+    // as a line changing colour. A second pseudo-element cannot do it — on the wide rail the
+    // connector is a flex item, and two of them would each take flow space — and a transform
+    // would shrink the track along with the fill. Paint on a one-pixel strip is the cheaper
+    // of the two trades.
+    background-color: var(--border);
+    background-image: linear-gradient(to right, var(--accent), var(--accent));
+    background-repeat: no-repeat;
+    background-size: 0 100%;
+    transition: background-size var(--dur-base) var(--ease-out);
+  }
+
+  &[data-state='completed']:not(:last-child)::after,
+  &[data-state='locked']:not(:last-child)::after {
+    background-size: 100% 100%;
+  }
+
+  @include a.respond(md) {
+    // The wide rail lays the connector out in flow, beside a label that reads across.
+    justify-content: flex-start;
+    align-items: center;
+    gap: a.space(2);
+
+    &:not(:last-child)::after {
+      position: static;
+      flex: 1 1 auto;
+      min-inline-size: a.space(2);
+      inline-size: auto;
+    }
+  }
+}
+
+.stepper__header {
+  display: flex;
+  // `column-reverse`, so the label paints above the marker while the marker keeps
+  // its place first in the DOM and is read before the name.
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: a.space(1);
+  // Fills its equal share rather than sizing to the label, so every marker lands on the
+  // same offset inside its step and the spacing between them is constant.
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  // The header is a <button> when activatable and a <div> otherwise. Neutralizing
+  // the button here keeps one set of rules for both.
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+
+  @include a.respond(md) {
+    flex-direction: row;
+    flex: 0 1 auto;
+    gap: a.space(2);
+  }
+}
+
+button.stepper__header {
+  cursor: pointer;
+  border-radius: a.radius(md);
+
+  &:hover .stepper__label {
+    color: var(--accent-text);
+  }
+}
+
+.stepper__marker {
+  @include a.t-label;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  inline-size: var(--stepper-marker-size-compact);
+  block-size: var(--stepper-marker-size-compact);
+  border-radius: a.radius(pill);
+  border: var(--border-width-hairline) solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  transition-property: background, border-color, color;
+  transition-duration: var(--dur-fast);
+  transition-timing-function: var(--ease-standard);
+
+  svg {
+    inline-size: var(--icon-size-sm);
+    block-size: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+  }
+
+  @include a.respond(md) {
+    inline-size: var(--stepper-marker-size);
+    block-size: var(--stepper-marker-size);
+  }
+}
+
+// The tick lands on the marker rather than replacing the number in place. Only on the step
+// that just became done — the component withholds the class from every other tick.
+.stepper__tick--in {
+  animation: stepper-tick-in var(--dur-fast) var(--ease-out);
+}
+
+@keyframes stepper-tick-in {
+  from {
+    opacity: 0;
+    scale: 0.6;
+  }
+}
+
+[data-state='active'] .stepper__marker {
+  border-color: var(--accent);
+  color: var(--accent-text);
+  // A second ring rather than a thicker border, so the marker does not change size
+  // as it becomes active and nudge the whole rail.
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+[data-state='completed'] .stepper__marker,
+[data-state='locked'] .stepper__marker {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+}
+
+.stepper__text {
+  display: flex;
+  min-inline-size: 0;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  @include a.respond(md) {
+    align-items: stretch;
+    text-align: start;
+  }
+}
+
+// One line each, clipped, once there is a row to clip them in. Below `md` a label
+// owns a column a fifth of the screen wide and has to wrap to be read at all.
+.stepper__label,
+.stepper__summary {
+  @include a.respond(md) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.stepper__label {
+  @include a.t-caption;
+  color: var(--text-secondary);
+  // `anywhere`, not `break-word`: only this one lowers the label's min-content width, and
+  // that is what keeps the steps equal when a name is wider than its share.
+  overflow-wrap: anywhere;
+  transition: color var(--dur-fast) var(--ease-standard);
+
+  @include a.respond(md) {
+    @include a.t-body-sm;
+    color: var(--text-secondary);
+  }
+}
+
+[data-state='active'] .stepper__label {
+  color: var(--text-primary);
+  font-weight: var(--weight-medium);
+}
+
+// The wide presentation only. A narrow column has no room for a second line under
+// a label that is already wrapping.
+.stepper__summary {
+  @include a.t-caption;
+  display: none;
+  color: var(--text-muted);
+
+  @include a.respond(md) {
+    display: block;
+  }
+}
+
+// Vertical runs the same rail down the page. Only the axis differs, so only the axis is restated.
+@include a.respond(md) {
+  :host([data-orientation='vertical']) {
+    .stepper__list,
+    .stepper__step {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .stepper__step {
+      flex: 0 0 auto;
+    }
+
+    // The fill runs down the rail instead of across it, so the gradient turns with it.
+    .stepper__step:not(:last-child)::after {
+      inline-size: var(--border-width-hairline);
+      block-size: a.space(4);
+      margin-inline-start: calc(var(--stepper-marker-size) / 2);
+      background-image: linear-gradient(to bottom, var(--accent), var(--accent));
+      background-size: 100% 0;
+    }
+
+    .stepper__step[data-state='completed']:not(:last-child)::after,
+    .stepper__step[data-state='locked']:not(:last-child)::after {
+      background-size: 100% 100%;
+    }
+  }
+}
+
+@media (forced-colors: active) {
+  .stepper__marker {
+    border: 1px solid CanvasText;
+  }
+
+  [data-state='completed'] .stepper__marker,
+  [data-state='locked'] .stepper__marker,
+  [data-state='active'] .stepper__marker {
+    border: 2px solid Highlight;
+  }
+}

@@ -1,0 +1,37 @@
+<p class="more-heading">{{ 'calendar.moreTitle' | uiCopy | transloco }}</p>
+<ul class="more-list">
+  @for (row of rows(); track row.event.id) {
+    <li>
+      <button
+        type="button"
+        class="more-row"
+        [attr.data-swatch]="row.resource?.swatch ?? null"
+        [attr.data-muted]="row.event.muted ? '' : null"
+        [attr.aria-current]="row.event.id === selectedEventId() ? 'true' : null"
+        [attr.aria-label]="
+          ('calendar.eventLabel'
+            | uiCopy
+            | transloco: { start: row.start, end: row.end, title: row.event.title }) + extras(row)
+        "
+        (click)="eventOpen.emit(row.event)"
+      >
+        <span class="more-bar" aria-hidden="true"></span>
+        <span class="more-time">{{ row.start }}–{{ row.end }}</span>
+        <span class="more-text">
+          <span class="more-title-row">
+            <span class="more-title">{{ row.event.title }}</span>
+            @if (row.event.marks?.length) {
+              <lib-calendar-marks [marks]="row.event.marks" />
+            }
+          </span>
+          @if (row.event.subtitle) {
+            <span class="more-subtitle">{{ row.event.subtitle }}</span>
+          }
+        </span>
+        @if (row.event.badge; as badge) {
+          <span class="more-badge" [attr.data-tone]="badge.tone">{{ badge.label }}</span>
+        }
+      </button>
+    </li>
+  }
+</ul>

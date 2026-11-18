@@ -1,0 +1,48 @@
+@if (loading()) {
+  <!-- The skeletons below say this visually. Rendering both would be one message twice. -->
+  <p class="sr-only" role="status">{{ 'barbershops.list.loading' | transloco }}</p>
+
+  <ul class="shop-list__grid">
+    @for (skeleton of skeletons; track skeleton) {
+      <li><lib-barbershop-card-skeleton /></li>
+    }
+  </ul>
+} @else if (failed()) {
+  <lib-banner tone="error" role="alert">
+    {{ 'barbershops.list.error' | transloco }}
+    <button
+      libButton
+      libBannerAction
+      type="button"
+      severity="secondary"
+      variant="outlined"
+      size="sm"
+      (click)="retry.emit()"
+    >
+      {{ 'barbershops.list.retry' | transloco }}
+    </button>
+  </lib-banner>
+} @else if (shops().length === 0) {
+  <div class="shop-list__status" role="status">
+    @if (filtered()) {
+      <p>{{ 'barbershops.list.emptyFiltered' | transloco }}</p>
+      <button libButton severity="secondary" variant="text" size="sm" (click)="clearFilters.emit()">
+        {{ 'barbershops.list.clear' | transloco }}
+      </button>
+    } @else {
+      <p>{{ 'barbershops.list.empty' | transloco }}</p>
+    }
+  </div>
+} @else {
+  <ul
+    class="shop-list__grid"
+    [class.shop-list__grid--busy]="refreshing()"
+    [attr.aria-busy]="refreshing()"
+  >
+    @for (shop of shops(); track shop.id) {
+      <li animate.enter="shop-card-enter" [style.--shop-card-enter-delay.ms]="enterDelay($index)">
+        <lib-barbershop-card [shop]="shop" (locate)="locate.emit(shop)" />
+      </li>
+    }
+  </ul>
+}

@@ -1,0 +1,13 @@
+// `prefers-reduced-motion` is not queried here: the base layer collapses
+// every `transition-duration` globally with `!important`.
+
+:host {
+  display: grid;
+  grid-template-rows: 1fr;
+  color: var(--text-secondary);
+  transition: grid-template-rows var(--dur-slow) var(--ease-out);
+}
+
+:host([inert]) {
+  grid-template-rows: 0fr;
+}

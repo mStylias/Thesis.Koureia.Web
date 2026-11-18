@@ -1,0 +1,14 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+// One column, centered in the shell's content area.
+.company-page {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(6);
+  max-inline-size: var(--management-page-max-width);
+  margin-inline: auto;
+}

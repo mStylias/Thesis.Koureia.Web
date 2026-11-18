@@ -1,0 +1,299 @@
+<header class="appointment-header">
+  @if (appointment(); as booked) {
+    <div class="appointment-heading">
+      <h2 class="appointment-title" id="appointment-title">{{ booked.companyName }}</h2>
+      @if (status(); as chip) {
+        <span class="appointment-status" [attr.data-tone]="chip.tone">
+          {{ chip.labelKey | transloco }}
+        </span>
+      }
+    </div>
+  }
+  <a
+    libButton
+    variant="outlined"
+    severity="secondary"
+    class="appointment-back"
+    [routerLink]="backLink()"
+  >
+    <svg libButtonIcon lucideChevronLeft aria-hidden="true"></svg>
+    {{ 'account.appointment.back' | transloco }}
+  </a>
+</header>
+
+@switch (page().status) {
+  @case ('not-found') {
+    <p class="appointment-state" role="alert">{{ 'account.appointment.notFound' | transloco }}</p>
+  }
+  @case ('failed') {
+    <div class="appointment-state" role="alert">
+      <p>{{ 'account.appointment.failed' | transloco }}</p>
+      <button
+        libButton
+        type="button"
+        variant="outlined"
+        severity="secondary"
+        [loading]="reloading()"
+        (click)="reload()"
+      >
+        {{ 'account.common.retry' | transloco }}
+      </button>
+    </div>
+  }
+}
+
+@if (appointment(); as booked) {
+  <div class="appointment-layout">
+    <article libCard class="appointment" aria-labelledby="appointment-title">
+      <header class="appointment-when">
+        <!-- The heading beside it carries the date. -->
+        <div class="appointment-date" aria-hidden="true">
+          <span class="appointment-month">{{ month() }}</span>
+          <span class="appointment-day">{{ dayOfMonth() }}</span>
+        </div>
+        <div class="appointment-when-text">
+          <p class="appointment-relative">{{ relativeDay() }}</p>
+          <h3 class="appointment-long-date">{{ longDate() }}</h3>
+          <p class="appointment-time">{{ booked.localTime }} – {{ endTime() }}</p>
+        </div>
+      </header>
+
+      <section class="appointment-section">
+        <dl class="appointment-grid">
+          <div class="appointment-row">
+            <dt class="appointment-caption">{{ 'account.appointment.barber' | transloco }}</dt>
+            <dd class="appointment-value">{{ booked.staffDisplayName }}</dd>
+          </div>
+
+          @if (phoneHref(); as tel) {
+            <div class="appointment-row">
+              <dt class="appointment-caption">{{ 'account.appointment.phone' | transloco }}</dt>
+              <dd class="appointment-value appointment-split">
+                <span class="appointment-phone">{{ booked.companyPhone }}</span>
+                <a
+                  libButton
+                  variant="outlined"
+                  severity="secondary"
+                  size="sm"
+                  class="appointment-contact-action"
+                  [href]="tel"
+                  [attr.aria-label]="
+                    'account.appointment.callLabel' | transloco: { shop: booked.companyName }
+                  "
+                >
+                  <svg libButtonIcon lucidePhone aria-hidden="true"></svg>
+                  {{ 'account.appointment.call' | transloco }}
+                </a>
+              </dd>
+            </div>
+          }
+
+          @if (booked.companyEmail) {
+            <div class="appointment-row">
+              <dt class="appointment-caption">{{ 'account.appointment.email' | transloco }}</dt>
+              <dd class="appointment-value appointment-split">
+                <span class="appointment-email">{{ booked.companyEmail }}</span>
+                <a
+                  libButton
+                  variant="outlined"
+                  severity="secondary"
+                  size="sm"
+                  class="appointment-contact-action"
+                  [href]="'mailto:' + booked.companyEmail"
+                  [attr.aria-label]="
+                    'account.appointment.emailLabel' | transloco: { shop: booked.companyName }
+                  "
+                >
+                  <svg libButtonIcon lucideMail aria-hidden="true"></svg>
+                  {{ 'account.appointment.email' | transloco }}
+                </a>
+              </dd>
+            </div>
+          }
+
+          <div class="appointment-row">
+            <dt class="appointment-caption">
+              {{
+                (booked.services.length === 1
+                  ? 'account.appointment.service'
+                  : 'account.appointment.services'
+                ) | transloco
+              }}
+            </dt>
+            <dd class="appointment-value">
+              <ul class="appointment-lines">
+                @for (service of booked.services; track service.serviceId) {
+                  <li class="appointment-line">
+                    <span>
+                      <span class="appointment-service">{{ service.name }}</span>
+                      <span class="appointment-meta">
+                        ·
+                        {{
+                          'account.appointment.minutes'
+                            | transloco: { count: service.durationMinutes }
+                        }}
+                      </span>
+                    </span>
+                    <span class="appointment-amount">{{ price(service.price) }}</span>
+                  </li>
+                }
+              </ul>
+            </dd>
+          </div>
+
+          <div class="appointment-row appointment-total">
+            <dt class="appointment-caption">{{ 'account.appointment.total' | transloco }}</dt>
+            <dd class="appointment-value appointment-amount">{{ total() }}</dd>
+          </div>
+
+          @if (booked.notes) {
+            <div class="appointment-row">
+              <dt class="appointment-caption">{{ 'account.appointment.note' | transloco }}</dt>
+              <dd class="appointment-value appointment-note">{{ booked.notes }}</dd>
+            </div>
+          }
+        </dl>
+      </section>
+
+      <footer class="appointment-footer">
+        @if (booked.canAddToCalendar) {
+          <lib-banner class="appointment-calendar-note">
+            {{ 'account.appointment.calendarNote' | transloco }}
+          </lib-banner>
+        }
+
+        @if (cancelledAt(); as date) {
+          <p class="appointment-notice">{{ cancelledKey() | transloco: { date } }}</p>
+        }
+
+        @switch (actions()) {
+          @case ('change') {
+            @if (changeableUntil(); as date) {
+              <p class="appointment-notice">
+                {{ 'account.appointment.changeableUntil' | transloco }} <strong>{{ date }}</strong
+                >.
+              </p>
+            }
+            <div class="appointment-actions">
+              <a
+                libButton
+                [routerLink]="bookingPath(booked.companySlug)"
+                [queryParams]="{ reschedule: booked.id }"
+              >
+                {{ 'account.appointment.changeTime' | transloco }}
+              </a>
+              <button
+                libButton
+                type="button"
+                variant="outlined"
+                severity="error"
+                (click)="cancelOpen.set(true)"
+              >
+                {{ 'account.appointment.cancel' | transloco }}
+              </button>
+            </div>
+          }
+          @case ('call') {
+            <p class="appointment-notice" role="note">
+              {{ 'account.appointment.windowClosed' | transloco }}
+            </p>
+            @if (phoneHref(); as tel) {
+              <div class="appointment-actions">
+                <a libButton [href]="tel">
+                  <svg libButtonIcon lucidePhone aria-hidden="true"></svg>
+                  {{ 'account.appointment.callShop' | transloco }}
+                </a>
+              </div>
+            }
+          }
+          @default {
+            @if (actions() === 'review' && reviewableUntil(); as date) {
+              <p class="appointment-notice">
+                {{ 'account.appointment.reviewableUntil' | transloco }} <strong>{{ date }}</strong
+                >.
+              </p>
+            }
+            <div class="appointment-actions">
+              @if (actions() === 'review') {
+                <button
+                  libButton
+                  type="button"
+                  variant="outlined"
+                  severity="secondary"
+                  (click)="reviewOpen.set(true)"
+                >
+                  {{ 'account.appointments.rate' | transloco }}
+                </button>
+              }
+              <a
+                libButton
+                [routerLink]="bookingPath(booked.companySlug)"
+                [queryParams]="bookAgainQuery()"
+              >
+                {{ 'account.appointment.bookAgain' | transloco }}
+              </a>
+            </div>
+          }
+        }
+
+        @if (booked.review; as review) {
+          <section class="appointment-review" aria-labelledby="appointment-review-title">
+            <h4 class="appointment-review-title" id="appointment-review-title">
+              {{ 'account.appointment.yourReview' | transloco }}
+            </h4>
+            <lib-rating readonly size="sm" [value]="review.rating" />
+            @if (review.comment) {
+              <p class="appointment-review-comment">{{ review.comment }}</p>
+            }
+            <button
+              libButton
+              type="button"
+              size="sm"
+              variant="outlined"
+              severity="secondary"
+              (click)="reviewOpen.set(true)"
+            >
+              {{ 'account.appointment.editReview' | transloco }}
+            </button>
+          </section>
+        }
+      </footer>
+    </article>
+
+    <section
+      libCard
+      class="appointment-location"
+      [attr.aria-label]="'account.appointment.location' | transloco"
+    >
+      <div class="appointment-location-body">
+        <p class="appointment-location-label">{{ 'account.appointment.address' | transloco }}</p>
+        <address class="appointment-address">
+          {{ booked.companyStreet }}
+          @if (locality()) {
+            <br />{{ locality() }}
+          }
+        </address>
+        <lib-shop-map-links
+          class="appointment-location-links"
+          [latitude]="booked.companyLatitude"
+          [longitude]="booked.companyLongitude"
+        />
+      </div>
+      <lib-shop-map class="appointment-map" [shop]="mapShop()" />
+    </section>
+  </div>
+
+  <lib-cancel-appointment-dialog
+    [(visible)]="cancelOpen"
+    [appointment]="booked"
+    (cancelled)="cancelled($event)"
+    (stale)="reload()"
+  />
+
+  <lib-review-dialog
+    [(visible)]="reviewOpen"
+    [target]="reviewTarget()"
+    (saved)="reviewed($event)"
+    (stale)="reload()"
+  />
+}

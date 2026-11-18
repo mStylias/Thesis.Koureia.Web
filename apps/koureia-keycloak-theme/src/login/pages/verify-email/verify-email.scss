@@ -1,0 +1,35 @@
+:host {
+  display: contents;
+}
+
+.verify-resend {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: stretch;
+}
+
+.verify-resend p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  text-align: center;
+}
+
+a[libButton] {
+  width: 100%;
+}
+
+.message {
+  margin-bottom: var(--space-3);
+}
+
+@media (min-width: 64rem) and (min-height: 48rem) {
+  .verify-resend {
+    gap: var(--space-3);
+  }
+
+  .message {
+    margin-bottom: var(--space-5);
+  }
+}

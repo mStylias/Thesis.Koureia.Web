@@ -1,0 +1,39 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.filter-option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+// The same swatch the barber's tiles carry, so the list reads as the legend too.
+.filter-swatch {
+  width: 0.625rem;
+  height: 0.625rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+}
+
+// The last visit goes under the name, so a long name does not push it out of the row.
+.filter-option-stacked {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.filter-option-meta {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+@media (forced-colors: active) {
+  .filter-swatch {
+    forced-color-adjust: none;
+    outline: 1px solid CanvasText;
+  }
+}

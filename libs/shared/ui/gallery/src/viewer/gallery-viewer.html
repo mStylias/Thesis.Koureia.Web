@@ -1,0 +1,85 @@
+<!-- Resolved here and passed in as strings. A pipe inside the headless template resolves against
+     the dialog's own Transloco scope and renders an empty string. -->
+@let counter = 'gallery.counter' | uiCopy | transloco: { current: index() + 1, total: total() };
+@let position = 'gallery.position' | uiCopy | transloco: { current: index() + 1, total: total() };
+@let closeLabel = 'gallery.close' | uiCopy | transloco;
+@let previousLabel = 'gallery.previous' | uiCopy | transloco;
+@let nextLabel = 'gallery.next' | uiCopy | transloco;
+
+<lib-dialog
+  class="gallery-viewer"
+  [(visible)]="visible"
+  fullScreen
+  [ariaLabel]="'gallery.label' | uiCopy | transloco"
+>
+  <ng-template libDialogHeadless let-dialog>
+    <div class="viewer" data-surface="dark">
+      <header class="viewer__bar">
+        <p class="viewer__counter" aria-hidden="true">
+          {{ counter }}
+        </p>
+        <p class="sr-only" aria-live="polite">
+          {{ position }}
+        </p>
+        <button
+          libButton
+          type="button"
+          variant="text"
+          severity="secondary"
+          iconOnly
+          rounded
+          [attr.aria-label]="closeLabel"
+          (click)="dialog.close()"
+        >
+          <svg lucideX aria-hidden="true"></svg>
+        </button>
+      </header>
+
+      @if (current(); as image) {
+        <figure
+          class="viewer__stage"
+          (pointerdown)="onPointerDown($event)"
+          (pointerup)="onPointerUp($event)"
+          (pointercancel)="onPointerCancel()"
+        >
+          <img
+            class="viewer__image"
+            [src]="image.src"
+            [alt]="image.alt"
+            [attr.width]="image.width ?? null"
+            [attr.height]="image.height ?? null"
+            draggable="false"
+          />
+          <figcaption class="viewer__caption">{{ image.alt }}</figcaption>
+        </figure>
+      }
+
+      <!-- `aria-disabled`, not `disabled`: a native disabled button drops the focus it holds, and
+           the last press of "next" would leave keyboard users on nothing. Not `libButton`, which
+           binds `aria-disabled` on its own host and overwrites this one on the first render. -->
+      <button
+        type="button"
+        class="viewer__step viewer__step--previous"
+        [attr.aria-disabled]="hasPrevious() ? null : true"
+        [attr.aria-label]="previousLabel"
+        (click)="previous()"
+      >
+        <svg lucideChevronLeft aria-hidden="true"></svg>
+      </button>
+      <button
+        type="button"
+        class="viewer__step viewer__step--next"
+        [attr.aria-disabled]="hasNext() ? null : true"
+        [attr.aria-label]="nextLabel"
+        (click)="next()"
+      >
+        <svg lucideChevronRight aria-hidden="true"></svg>
+      </button>
+
+      <!-- The photos either side, fetched ahead and never shown. -->
+      @for (image of neighbors(); track image.src) {
+        <img class="viewer__preload" [src]="image.src" alt="" aria-hidden="true" />
+      }
+    </div>
+  </ng-template>
+</lib-dialog>

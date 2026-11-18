@@ -1,0 +1,81 @@
+<main class="unsubscribe">
+  <h1 class="unsubscribe__title">{{ 'reminders.unsubscribe.title' | transloco }}</h1>
+
+  @let current = view();
+  @if (current.status === 'loading') {
+    <p class="unsubscribe__text" role="status">{{ 'reminders.unsubscribe.loading' | transloco }}</p>
+  } @else if (current.status === 'invalid') {
+    <p class="unsubscribe__lead">{{ 'reminders.unsubscribe.invalid' | transloco }}</p>
+    <p class="unsubscribe__text">{{ 'reminders.unsubscribe.invalidHint' | transloco }}</p>
+    @if (signedIn()) {
+      <div class="unsubscribe__actions">
+        <a libButton variant="outlined" severity="secondary" [routerLink]="settingsLink()">
+          {{ 'reminders.unsubscribe.settings' | transloco }}
+        </a>
+      </div>
+    }
+  } @else if (current.status === 'failed') {
+    <p class="unsubscribe__lead" role="alert">{{ 'reminders.unsubscribe.failed' | transloco }}</p>
+    <div class="unsubscribe__actions">
+      <button libButton type="button" variant="outlined" severity="secondary" (click)="load()">
+        {{ 'reminders.unsubscribe.retry' | transloco }}
+      </button>
+    </div>
+  } @else {
+    @let subscription = current.subscription;
+    <!-- The masked address, so the person sees whose reminders these are. -->
+    <p class="unsubscribe__address">
+      {{ 'reminders.unsubscribe.address' | transloco: { email: subscription.maskedEmail } }}
+    </p>
+
+    <div class="unsubscribe__status" role="status">
+      @if (subscription.emailRemindersEnabled) {
+        <p class="unsubscribe__lead">
+          {{
+            (change() === 'resumed'
+              ? 'reminders.unsubscribe.resubscribed'
+              : 'reminders.unsubscribe.question'
+            ) | transloco
+          }}
+        </p>
+      } @else {
+        <p class="unsubscribe__lead">{{ 'reminders.unsubscribe.done' | transloco }}</p>
+      }
+    </div>
+
+    <div class="unsubscribe__actions">
+      @if (subscription.emailRemindersEnabled) {
+        <button libButton type="button" [loading]="saving()" (click)="stop()">
+          {{ 'reminders.unsubscribe.stop' | transloco }}
+        </button>
+      } @else {
+        <button
+          libButton
+          type="button"
+          variant="outlined"
+          severity="secondary"
+          [loading]="saving()"
+          (click)="resume()"
+        >
+          {{
+            (change() === 'stopped'
+              ? 'reminders.unsubscribe.undo'
+              : 'reminders.unsubscribe.resubscribe'
+            ) | transloco
+          }}
+        </button>
+      }
+      @if (subscription.hasAccount) {
+        <a libButton variant="text" severity="secondary" [routerLink]="settingsLink()">
+          {{ 'reminders.unsubscribe.settings' | transloco }}
+        </a>
+      }
+    </div>
+
+    @if (saveFailed()) {
+      <p class="unsubscribe__error" role="alert">
+        {{ 'reminders.unsubscribe.failed' | transloco }}
+      </p>
+    }
+  }
+</main>

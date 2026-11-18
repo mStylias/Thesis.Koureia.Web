@@ -1,0 +1,86 @@
+@if (!hidden()) {
+  <lib-page-section
+    sectionId="work-hours"
+    skeletonRows="7"
+    [heading]="'managementProfile.workHours.title' | transloco"
+    [hint]="hint()"
+    [state]="state()"
+    (retry)="retry()"
+  >
+    <!-- Static, so the section's slot matches it. The button inside comes and goes. -->
+    <div libPageSectionActions>
+      @if (canEditHours() && !editing()) {
+        <button
+          #editButton
+          libButton
+          type="button"
+          size="sm"
+          variant="outlined"
+          severity="secondary"
+          (click)="edit()"
+        >
+          <svg libButtonIcon lucidePencil aria-hidden="true"></svg>
+          {{ 'managementProfile.actions.edit' | transloco }}
+        </button>
+      }
+    </div>
+
+    @if (member(); as shown) {
+      <lib-staff-hours
+        [staffMemberId]="shown.staffMemberId"
+        [workHours]="shown.workHours"
+        [editable]="canEditHours()"
+        [language]="language()"
+        [emptyText]="'managementProfile.workHours.none' | transloco"
+        (changed)="onHoursChanged($event)"
+      />
+
+      @if (editing()) {
+        <div class="work-actions">
+          <button
+            libButton
+            type="button"
+            variant="outlined"
+            severity="secondary"
+            [disabled]="submitting()"
+            (click)="cancel()"
+          >
+            {{ 'managementProfile.actions.cancel' | transloco }}
+          </button>
+          <!-- Never disabled by validity: the first press is what reveals it. -->
+          <button libButton type="button" [loading]="submitting()" (click)="save()">
+            {{ 'managementProfile.actions.save' | transloco }}
+          </button>
+        </div>
+      }
+
+      @if (canManageTimeOff()) {
+        <section class="work-time-off" aria-labelledby="work-hours-time-off-title">
+          <div class="work-time-off-head">
+            <h3 class="work-time-off-title" id="work-hours-time-off-title">
+              {{ 'managementProfile.workHours.timeOff.title' | transloco }}
+            </h3>
+            <button
+              libButton
+              type="button"
+              size="sm"
+              variant="outlined"
+              severity="secondary"
+              (click)="addTimeOff()"
+            >
+              <svg libButtonIcon lucideCalendarPlus aria-hidden="true"></svg>
+              {{ 'managementProfile.workHours.timeOff.add' | transloco }}
+            </button>
+          </div>
+          <!-- Its two list headings sit under the h3 above. -->
+          <lib-staff-time-off
+            [headingLevel]="4"
+            [staffMemberId]="shown.staffMemberId"
+            [editable]="canManageTimeOff()"
+            [language]="language()"
+          />
+        </section>
+      }
+    }
+  </lib-page-section>
+}

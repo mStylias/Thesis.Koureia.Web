@@ -1,0 +1,46 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+// A plain `hidden` loses to the display above.
+:host([hidden]) {
+  display: none;
+}
+
+// The schedule components inset their content for a drawer edge. The card pads its own body.
+lib-staff-hours,
+lib-staff-time-off {
+  --staff-schedule-inset: 0;
+}
+
+.work-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: a.space(3);
+  margin-block-start: a.space(5);
+}
+
+.work-time-off {
+  display: grid;
+  gap: a.space(4);
+  margin-block-start: a.space(6);
+  padding-block-start: a.space(5);
+  border-block-start: var(--border-width-hairline) solid var(--border-subtle);
+}
+
+.work-time-off-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.space(3);
+}
+
+.work-time-off-title {
+  @include a.t-title;
+
+  margin: 0;
+}

@@ -1,0 +1,76 @@
+<!-- The native chooser, behind a button. "accept" makes iOS convert a HEIC photo to JPEG. -->
+<input
+  #chooser
+  class="sr-only"
+  type="file"
+  accept="image/jpeg,image/png,image/webp"
+  tabindex="-1"
+  aria-hidden="true"
+  (change)="onChosen($event)"
+/>
+
+<lib-dialog
+  size="sm"
+  [visible]="visible()"
+  [header]="
+    (file() === null ? 'managementStaff.profile.photoTitle' : 'managementStaff.crop.title')
+      | transloco
+  "
+  (visibleChange)="onVisibleChange($event)"
+>
+  @if (file(); as chosen) {
+    <lib-image-cropper #cropper [source]="chosen" shape="circle" [outputSize]="1024" />
+  } @else if (member(); as shown) {
+    <div class="photo-current">
+      <lib-staff-avatar size="xl" [avatarUrl]="shown.avatarUrl" [initials]="shown.initials" />
+      <p class="photo-hint">{{ 'managementStaff.profile.photoHint' | transloco }}</p>
+    </div>
+  }
+
+  <ng-template libDialogFooter>
+    @if (file() === null) {
+      @if (member()?.avatarUrl) {
+        <button
+          libButton
+          type="button"
+          class="photo-remove"
+          severity="error"
+          variant="text"
+          [disabled]="busy()"
+          (click)="remove()"
+        >
+          {{ 'managementStaff.profile.removePhotoShort' | transloco }}
+        </button>
+      }
+      <button libButton type="button" severity="primary" [disabled]="busy()" (click)="choose()">
+        {{
+          (member()?.avatarUrl
+            ? 'managementStaff.profile.uploadNew'
+            : 'managementStaff.profile.uploadPhoto'
+          ) | transloco
+        }}
+      </button>
+    } @else {
+      <button
+        libButton
+        type="button"
+        severity="secondary"
+        variant="text"
+        [disabled]="busy()"
+        (click)="back()"
+      >
+        {{ 'managementStaff.crop.back' | transloco }}
+      </button>
+      <button
+        libButton
+        type="button"
+        severity="primary"
+        [loading]="busy()"
+        [disabled]="!cropper()?.ready()"
+        (click)="save()"
+      >
+        {{ 'managementStaff.crop.save' | transloco }}
+      </button>
+    }
+  </ng-template>
+</lib-dialog>

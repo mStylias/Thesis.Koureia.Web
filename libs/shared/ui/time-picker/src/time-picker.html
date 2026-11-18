@@ -1,0 +1,182 @@
+@if (showClock() && mode() === 'dropdown') {
+  <ng-container *ngTemplateOutlet="clockFace" />
+}
+
+@if (mode() === 'dropdown') {
+  <div cdkOverlayOrigin #origin="cdkOverlayOrigin" class="time-field">
+    <svg lucideClock3 class="time-leading-icon" aria-hidden="true"></svg>
+    <input
+      #timeInput
+      ngCombobox
+      #combobox="ngCombobox"
+      class="time-input"
+      type="text"
+      inputmode="numeric"
+      autocomplete="off"
+      spellcheck="false"
+      [attr.id]="inputId() || null"
+      [attr.name]="name() || null"
+      [attr.placeholder]="placeholder() || ('timePicker.placeholder' | uiCopy | transloco)"
+      [attr.aria-label]="
+        ariaLabel() || (!ariaLabelledby() ? ('timePicker.label' | uiCopy | transloco) : null)
+      "
+      [attr.aria-labelledby]="ariaLabelledby() || null"
+      [attr.aria-describedby]="describedBy()"
+      [attr.aria-invalid]="isInvalid() ? true : null"
+      [attr.aria-required]="required() ? true : null"
+      [disabled]="disabled()"
+      [readOnly]="readonly()"
+      [value]="draft()"
+      [(expanded)]="expanded"
+      (valueChange)="onDraftChange($event)"
+      (click)="openDropdown()"
+      (keydown)="onInputKeydown($event)"
+    />
+
+    @if (showClear() && draft() && !disabled() && !readonly()) {
+      <button
+        type="button"
+        class="time-icon-button"
+        [attr.aria-label]="clearAriaLabel() || ('timePicker.clear' | uiCopy | transloco)"
+        (click)="clear()"
+      >
+        <svg lucideX aria-hidden="true"></svg>
+      </button>
+    }
+    <!-- Focus stays in the input. A press that moved it would close the list before the click. -->
+    <button
+      type="button"
+      class="time-icon-button time-toggle"
+      tabindex="-1"
+      aria-hidden="true"
+      [disabled]="disabled() || readonly()"
+      (mousedown)="$event.preventDefault()"
+      (click)="toggle()"
+    >
+      <svg lucideChevronDown aria-hidden="true"></svg>
+    </button>
+  </div>
+
+  <ng-template
+    cdkConnectedOverlay
+    [cdkConnectedOverlayOrigin]="origin"
+    [cdkConnectedOverlayOpen]="expanded()"
+    [cdkConnectedOverlayPositions]="dropdownPositions"
+    [cdkConnectedOverlayMatchWidth]="true"
+    [cdkConnectedOverlayPush]="true"
+    [cdkConnectedOverlayFlexibleDimensions]="false"
+    [cdkConnectedOverlayGrowAfterOpen]="true"
+    cdkConnectedOverlayUsePopover="inline"
+  >
+    <ng-template ngComboboxPopup [combobox]="combobox">
+      <div #panelEl class="time-panel" animate.enter="time-panel-enter">
+        <ul
+          #dropdownList
+          ngComboboxWidget
+          ngListbox
+          #listbox="ngListbox"
+          class="time-list"
+          [attr.data-navigated]="navigated() ? '' : null"
+          focusMode="activedescendant"
+          selectionMode="explicit"
+          [activeDescendant]="navigated() ? listbox.activeDescendant() : undefined"
+          [value]="listboxValue()"
+          (valueChange)="onSelectionChange($event)"
+        >
+          @for (slot of visibleSlots(); track slot.value) {
+            <li
+              ngOption
+              class="time-option"
+              [value]="slot.value"
+              [label]="slot.value"
+              [disabled]="slot.disabled"
+            >
+              {{ slot.value }}
+            </li>
+          }
+        </ul>
+        @if (!visibleSlots().length) {
+          <div class="time-empty">{{ 'timePicker.empty' | uiCopy | transloco }}</div>
+        }
+      </div>
+    </ng-template>
+  </ng-template>
+} @else {
+  @if (mode() === 'clock') {
+    <ng-container *ngTemplateOutlet="clockFace" />
+  }
+  <ul
+    #inlineList
+    ngListbox
+    class="time-grid"
+    orientation="horizontal"
+    selectionMode="explicit"
+    [attr.id]="inputId() || null"
+    [attr.aria-label]="
+      ariaLabel() || (!ariaLabelledby() ? ('timePicker.label' | uiCopy | transloco) : null)
+    "
+    [attr.aria-labelledby]="ariaLabelledby() || null"
+    [attr.aria-describedby]="describedBy()"
+    [attr.aria-invalid]="isInvalid() ? true : null"
+    [attr.aria-required]="required() ? true : null"
+    [disabled]="disabled()"
+    [value]="listboxValue()"
+    (valueChange)="onSelectionChange($event)"
+  >
+    @for (slot of visibleSlots(); track slot.value) {
+      <li
+        ngOption
+        class="time-option time-tile"
+        [value]="slot.value"
+        [label]="slot.value"
+        [disabled]="slot.disabled || readonly()"
+        animate.enter="time-tile-enter"
+        [style.--time-tile-delay.ms]="tileDelay($index)"
+      >
+        {{ slot.value }}
+      </li>
+    }
+  </ul>
+  @if (!visibleSlots().length) {
+    <div class="time-inline-empty">{{ 'timePicker.empty' | uiCopy | transloco }}</div>
+  }
+}
+
+<ng-template #clockFace>
+  <div
+    class="time-clock"
+    role="img"
+    [attr.aria-label]="value() || ('timePicker.noTime' | uiCopy | transloco)"
+  >
+    @for (hour of clockHours; track hour.label) {
+      <span
+        class="time-clock-mark"
+        aria-hidden="true"
+        [style.left.%]="hour.left"
+        [style.top.%]="hour.top"
+        >{{ hour.label }}</span
+      >
+    }
+    <span
+      class="time-clock-hand time-clock-hour"
+      aria-hidden="true"
+      [style.rotate]="clockHourRotation()"
+    ></span>
+    <span
+      class="time-clock-hand time-clock-minute"
+      aria-hidden="true"
+      [style.rotate]="clockMinuteRotation()"
+    ></span>
+    <span class="time-clock-pin" aria-hidden="true"></span>
+  </div>
+</ng-template>
+
+@if (showError()) {
+  <div [id]="errorId" class="time-error" role="alert">
+    @if (!entryError() && firstError()?.message; as message) {
+      {{ message | transloco }}
+    } @else {
+      {{ errorKey() | uiCopy | transloco }}
+    }
+  </div>
+}

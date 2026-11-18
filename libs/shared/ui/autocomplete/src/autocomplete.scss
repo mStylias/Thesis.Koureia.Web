@@ -1,0 +1,309 @@
+:host {
+  display: inline-block;
+  min-width: var(--autocomplete-min-width);
+  font-family: var(--font-sans);
+}
+
+:host([data-disabled]) {
+  opacity: var(--opacity-disabled);
+}
+
+.autocomplete-field {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border-strong);
+  border-radius: var(--radius-md);
+  transition:
+    border-color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard);
+
+  &:hover:not(:has(.autocomplete-input:disabled, .autocomplete-input:read-only)) {
+    border-color: var(--accent);
+  }
+
+  &:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+}
+
+:host([data-invalid]) .autocomplete-field {
+  border-color: var(--error);
+
+  &:focus-within {
+    border-color: var(--error);
+    box-shadow: 0 0 0 1px var(--error);
+  }
+}
+
+:host([data-frameless]) .autocomplete-field {
+  border-color: transparent;
+  background: transparent;
+
+  &:hover,
+  &:focus-within {
+    border-color: transparent;
+    box-shadow: none;
+  }
+}
+
+:host([data-size='sm']) {
+  --autocomplete-pad-y: var(--space-1);
+  --autocomplete-pad-x: var(--space-2);
+  --autocomplete-text: var(--text-sm);
+}
+
+:host([data-size='md']) {
+  --autocomplete-pad-y: var(--space-2);
+  --autocomplete-pad-x: var(--space-3);
+  --autocomplete-text: var(--text-base);
+}
+
+:host([data-size='lg']) {
+  --autocomplete-pad-y: var(--space-3);
+  --autocomplete-pad-x: var(--space-4);
+  --autocomplete-text: var(--text-lg);
+}
+
+.autocomplete-input {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: var(--field-pad-top, var(--autocomplete-pad-y)) var(--space-1) var(--autocomplete-pad-y);
+  color: var(--text-primary);
+  background: transparent;
+  border: 0;
+  outline: 0;
+  font: inherit;
+  font-size: var(--autocomplete-text);
+  line-height: var(--leading-snug);
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+
+  // The field draws the focus indicator on :focus-within. The global
+  // :focus-visible ring is a box-shadow, so `outline: 0` alone leaves it
+  // painting a second border inside the first.
+  &:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
+  &:disabled,
+  &:read-only {
+    cursor: default;
+  }
+}
+
+.autocomplete-search-icon,
+.autocomplete-spinner,
+.autocomplete-clear svg,
+.autocomplete-action svg,
+.autocomplete-more svg {
+  flex: 0 0 auto;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  stroke-width: var(--icon-stroke);
+}
+
+.autocomplete-search-icon {
+  margin-inline-start: var(--autocomplete-pad-x);
+  color: var(--text-muted);
+}
+
+// Sized from the clear button, which is the widest thing it can hold, so the
+// field's intrinsic width does not depend on what is currently in the slot.
+.autocomplete-adornment {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: calc(var(--icon-size-sm) + 2 * var(--space-1));
+}
+
+// The field's trailing padding belongs to whichever control is last, and the action button
+// takes that place whenever it exists. `@if` leaves a comment node behind, not an element, so
+// `:last-child` still matches the slot when there is no action.
+.autocomplete-adornment:last-child,
+.autocomplete-action {
+  margin-inline-end: var(--autocomplete-pad-x);
+}
+
+.autocomplete-spinner {
+  color: var(--text-muted);
+  animation: autocomplete-spin 1s linear infinite;
+}
+
+.autocomplete-clear,
+.autocomplete-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  padding: var(--space-1);
+  color: var(--text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: var(--text-primary);
+    background: var(--surface-2);
+  }
+}
+
+.autocomplete-action:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: default;
+}
+
+.autocomplete-panel {
+  box-sizing: border-box;
+  // The CDK pane is a flex container, so a block child shrinks to its content
+  // and `cdkConnectedOverlayMatchWidth` alone leaves the panel narrower than the field.
+  min-width: 100%;
+  max-height: var(--autocomplete-panel-max-height);
+  overflow-y: auto;
+  padding: var(--space-1);
+  color: var(--text-primary);
+  background: var(--surface-overlay);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  font-family: var(--font-sans);
+  transform-origin: top center;
+}
+
+// The panel drops out of the field, as every other panel in the system does. It matches
+// `date-panel-in` and `time-panel-in`: one surface opening under one control.
+.autocomplete-panel-enter {
+  animation: autocomplete-panel-in var(--dur-fast) var(--ease-out);
+}
+
+@keyframes autocomplete-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--space-1))) scale(0.97);
+  }
+}
+
+.autocomplete-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  outline: none;
+}
+
+.autocomplete-option {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--autocomplete-text);
+  line-height: var(--leading-snug);
+  cursor: pointer;
+
+  &:hover:not([aria-disabled='true']) {
+    background: var(--surface-2);
+  }
+
+  :host([data-navigated]) &[data-active='true'] {
+    box-shadow: inset 0 0 0 2px var(--focus-ring);
+  }
+
+  :host([data-modality='pointer']) &[data-active='true'] {
+    box-shadow: none;
+  }
+
+  &[aria-selected='true'] {
+    color: var(--accent-text);
+    background: var(--accent-subtle);
+    font-weight: var(--weight-bold);
+  }
+
+  &[aria-disabled='true'] {
+    opacity: var(--opacity-disabled);
+    cursor: default;
+  }
+}
+
+.autocomplete-state,
+.autocomplete-more,
+.autocomplete-footer {
+  padding: var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.autocomplete-more {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+
+  svg {
+    animation: autocomplete-spin 1s linear infinite;
+  }
+}
+
+.autocomplete-footer {
+  margin-top: var(--space-1);
+  border-top: var(--border-width-hairline) solid var(--border);
+}
+
+.autocomplete-resolution,
+.autocomplete-error {
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+}
+
+.autocomplete-resolution {
+  color: var(--text-secondary);
+}
+
+.autocomplete-error {
+  color: var(--error-text);
+}
+
+.autocomplete-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes autocomplete-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (forced-colors: active) {
+  :host(:not([data-frameless])) .autocomplete-field {
+    border-color: CanvasText;
+  }
+
+  .autocomplete-field:focus-within {
+    outline: 2px solid Highlight;
+    outline-offset: 1px;
+  }
+
+  :host([data-navigated]:not([data-modality='pointer'])) .autocomplete-option[data-active='true'] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+
+  .autocomplete-option[aria-selected='true'] {
+    color: HighlightText;
+    background: Highlight;
+    forced-color-adjust: none;
+  }
+}

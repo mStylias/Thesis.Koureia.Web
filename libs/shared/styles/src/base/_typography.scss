@@ -1,0 +1,37 @@
+// Semantic type classes: the global `.t-*` utilities, composed from the typography mixins in
+// `abstracts/_mixins.scss`.
+@use '../abstracts' as a;
+
+.t-display {
+  @include a.t-display;
+}
+.t-h1 {
+  @include a.t-h1;
+}
+.t-h2 {
+  @include a.t-h2;
+}
+.t-h3 {
+  @include a.t-h3;
+}
+.t-title {
+  @include a.t-title;
+}
+.t-body {
+  @include a.t-body;
+}
+.t-body-sm {
+  @include a.t-body-sm;
+}
+.t-label {
+  @include a.t-label;
+}
+.t-field-label {
+  @include a.t-field-label;
+}
+.t-caption {
+  @include a.t-caption;
+}
+.t-mono {
+  @include a.t-mono;
+}

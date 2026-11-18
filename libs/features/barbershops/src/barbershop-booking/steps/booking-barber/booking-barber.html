@@ -1,0 +1,72 @@
+<h2 class="step__title">{{ 'barbershops.booking.barber.title' | transloco }}</h2>
+<p class="step__lead">{{ 'barbershops.booking.barber.lead' | transloco }}</p>
+
+@if (rows().length === 0) {
+  <p class="step__empty">{{ 'barbershops.booking.barber.none' | transloco }}</p>
+} @else {
+  <ul class="barbers__list">
+    <li>
+      @let anyone = state.staffMemberId() === null;
+      <button
+        class="barbers__card"
+        type="button"
+        [attr.aria-pressed]="anyone"
+        (click)="state.chooseBarber(null)"
+      >
+        <span class="barbers__avatar barbers__avatar--any" aria-hidden="true">
+          <svg lucideUsers></svg>
+        </span>
+        <span class="barbers__body">
+          <span class="barbers__name">{{ 'barbershops.booking.barber.anyone' | transloco }}</span>
+          <span class="barbers__note">{{
+            'barbershops.booking.barber.anyoneNote' | transloco
+          }}</span>
+        </span>
+        <span class="barbers__mark" aria-hidden="true">
+          @if (anyone) {
+            <svg lucideCheck></svg>
+          }
+        </span>
+      </button>
+    </li>
+
+    @for (barber of rows(); track barber.id) {
+      @let chosen = state.staffMemberId() === barber.id;
+      <li>
+        <button
+          class="barbers__card"
+          type="button"
+          [attr.aria-pressed]="chosen"
+          (click)="state.chooseBarber(barber.id)"
+        >
+          @if (barber.avatarUrl) {
+            <img
+              class="barbers__avatar"
+              [src]="barber.avatarUrl"
+              alt=""
+              width="48"
+              height="48"
+              loading="lazy"
+              decoding="async"
+            />
+          } @else {
+            <span class="barbers__avatar barbers__avatar--initials" aria-hidden="true">{{
+              barber.initials
+            }}</span>
+          }
+          <span class="barbers__body">
+            <span class="barbers__name">{{ barber.displayName }}</span>
+            @if (barber.totals) {
+              <span class="barbers__note">{{ barber.totals }}</span>
+            }
+          </span>
+          <span class="barbers__mark" aria-hidden="true">
+            @if (chosen) {
+              <svg lucideCheck></svg>
+            }
+          </span>
+        </button>
+      </li>
+    }
+  </ul>
+}

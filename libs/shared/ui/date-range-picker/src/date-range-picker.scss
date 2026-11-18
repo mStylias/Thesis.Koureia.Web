@@ -1,0 +1,458 @@
+:host {
+  display: inline-block;
+  width: 100%;
+  font-family: var(--font-sans);
+}
+
+:host([data-disabled]) {
+  opacity: var(--opacity-disabled);
+}
+
+:host([data-size='sm']) {
+  --range-pad-y: var(--space-1);
+  --range-pad-x: var(--space-2);
+  --range-text: var(--text-sm);
+}
+
+:host([data-size='md']) {
+  --range-pad-y: var(--space-2);
+  --range-pad-x: var(--space-3);
+  --range-text: var(--text-base);
+}
+
+:host([data-size='lg']) {
+  --range-pad-y: var(--space-3);
+  --range-pad-x: var(--space-4);
+  --range-text: var(--text-lg);
+}
+
+.range-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  box-sizing: border-box;
+  width: 100%;
+  padding-inline: var(--range-pad-x);
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border-strong);
+  border-radius: var(--radius-md);
+  transition: border-color var(--dur-fast) var(--ease-standard);
+
+  &:hover:not(:has(.range-input:disabled)) {
+    border-color: var(--accent);
+  }
+
+  &:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 var(--border-width-hairline) var(--accent);
+  }
+}
+
+:host([data-invalid]) .range-field,
+:host([data-invalid]) .range-field:focus-within {
+  border-color: var(--error);
+  box-shadow: none;
+}
+
+// The fields and the dash share one face, size and box, so the flex gap on each side of the dash
+// is the only space there is.
+.range-input,
+.range-separator {
+  padding: var(--field-pad-top, var(--range-pad-y)) 0 var(--range-pad-y);
+  font-family: var(--font-mono);
+  font-size: var(--range-text);
+  line-height: var(--leading-snug);
+}
+
+// Exactly one date wide: a canonical date is ten mono characters. A locale with a longer format
+// sizes to its text where the browser can.
+.range-input {
+  flex: 0 0 auto;
+  width: 10ch;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+
+  @supports (field-sizing: content) {
+    field-sizing: content;
+    width: auto;
+    min-width: 10ch;
+  }
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+
+  &:focus-visible {
+    box-shadow: none;
+  }
+}
+
+.range-separator {
+  color: var(--text-muted);
+}
+
+.range-icon-button {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: var(--space-1);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+  }
+
+  &:hover:not(:disabled) {
+    background: var(--surface-2);
+    color: var(--text-primary);
+  }
+
+  &:disabled {
+    opacity: var(--opacity-disabled);
+    cursor: default;
+  }
+}
+
+.range-toggle {
+  margin-inline-start: auto;
+}
+
+.range-toggle[aria-expanded='true'] {
+  background: var(--surface-2);
+  color: var(--accent-text);
+}
+
+.range-error {
+  margin-top: var(--space-1);
+  color: var(--error-text);
+  font-size: var(--text-sm);
+}
+
+.range-panel {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  max-width: calc(100vw - var(--space-8));
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-primary);
+}
+
+.range-panel-enter {
+  animation: range-panel-in var(--dur-fast) var(--ease-out);
+}
+
+@keyframes range-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--space-1))) scale(0.98);
+  }
+}
+
+.range-presets {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border-inline-end: var(--border-width-hairline) solid var(--border-subtle);
+}
+
+.range-preset {
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  text-align: start;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--surface-2);
+  }
+
+  &[aria-pressed='true'] {
+    background: var(--accent-subtle);
+    color: var(--accent-text);
+    font-weight: var(--weight-bold);
+  }
+
+  &:disabled {
+    opacity: var(--opacity-disabled);
+    cursor: default;
+  }
+}
+
+.range-months {
+  position: relative;
+}
+
+.range-days {
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-3);
+
+  &[inert] {
+    visibility: hidden;
+  }
+}
+
+.range-month {
+  width: calc(var(--space-20) * 3 + var(--space-10));
+}
+
+.range-month-header {
+  display: grid;
+  grid-template-columns: var(--space-10) 1fr var(--space-10);
+  align-items: center;
+  min-height: var(--space-10);
+  margin-bottom: var(--space-1);
+
+  .range-nav:last-child {
+    grid-column: 3;
+  }
+}
+
+.range-month-heading,
+.range-year-heading {
+  grid-column: 2;
+  justify-self: center;
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+}
+
+// A button that reads as the heading: it opens the month grid.
+.range-month-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: inherit;
+  cursor: pointer;
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+    color: var(--text-muted);
+  }
+
+  &:hover:not(:disabled) {
+    background: var(--surface-2);
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+// Laid over the hidden days, so switching views never resizes or moves the panel.
+.range-year-view {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-3);
+}
+
+.range-month-grid {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+.range-month-option {
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+
+  &:hover:not(:disabled, [aria-pressed='true']) {
+    background: var(--surface-2);
+  }
+
+  &[aria-pressed='true'] {
+    background: var(--accent);
+    color: var(--accent-fg);
+    font-weight: var(--weight-bold);
+  }
+
+  &:disabled {
+    opacity: var(--opacity-disabled);
+    cursor: default;
+  }
+}
+
+.range-grid {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  // A drag across days must not select their numbers as text.
+  user-select: none;
+
+  th {
+    height: var(--space-8);
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+  }
+}
+
+.range-day {
+  height: var(--space-10);
+  padding: 0;
+  // A finger dragged across the days selects them instead of scrolling the page.
+  touch-action: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  cursor: pointer;
+
+  span {
+    display: grid;
+    height: 100%;
+    place-items: center;
+    border-radius: var(--radius-sm);
+  }
+
+  // The band joins the days between the ends into one strip.
+  &[data-in-range] {
+    background: var(--accent-subtle);
+  }
+
+  &[data-range-start] {
+    border-start-start-radius: var(--radius-sm);
+    border-end-start-radius: var(--radius-sm);
+  }
+
+  &[data-range-end] {
+    border-start-end-radius: var(--radius-sm);
+    border-end-end-radius: var(--radius-sm);
+  }
+
+  &[data-range-start] span,
+  &[data-range-end] span {
+    background: var(--accent);
+    color: var(--accent-fg);
+    font-weight: var(--weight-bold);
+  }
+
+  &[data-today]:not([data-range-start], [data-range-end]) span {
+    box-shadow: inset 0 0 0 var(--border-width-hairline) var(--accent);
+    color: var(--accent-text);
+  }
+
+  // Focus, not the roving tabindex: a ring on the tab stop would read as a choice.
+  &:focus-visible {
+    outline: 0;
+
+    span {
+      box-shadow: inset 0 0 0 2px var(--focus-ring);
+    }
+  }
+
+  &[aria-disabled='true'] {
+    color: var(--text-muted);
+    cursor: default;
+    text-decoration: line-through;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .range-day:hover:not([aria-disabled='true'], [data-range-start], [data-range-end]) span {
+    background: var(--surface-2);
+  }
+}
+
+.range-footer {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-top: var(--border-width-hairline) solid var(--border-subtle);
+}
+
+.range-summary {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.range-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+
+// One month and the presets above it, as a wrapping row of chips.
+@media (max-width: 42rem) {
+  .range-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .range-presets {
+    flex-flow: row wrap;
+    border-inline-end: 0;
+    border-bottom: var(--border-width-hairline) solid var(--border-subtle);
+  }
+
+  .range-month {
+    width: 100%;
+  }
+}
+
+// Range, ends and today are carried by background and inset shadow, which a forced palette drops.
+@media (forced-colors: active) {
+  .range-field,
+  .range-panel {
+    border-color: CanvasText;
+  }
+
+  .range-day[data-in-range] {
+    outline: var(--border-width-hairline) solid CanvasText;
+    outline-offset: -1px;
+  }
+
+  .range-day[data-range-start] span,
+  .range-day[data-range-end] span,
+  .range-preset[aria-pressed='true'],
+  .range-month-option[aria-pressed='true'] {
+    background: Highlight;
+    color: HighlightText;
+    forced-color-adjust: none;
+  }
+
+  .range-day[aria-disabled='true'] {
+    color: GrayText;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .range-panel-enter {
+    animation: none;
+  }
+}

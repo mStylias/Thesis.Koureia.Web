@@ -1,0 +1,426 @@
+@use 'abstracts' as a;
+
+// Consumes the design-system CSS custom properties emitted by the
+// shared @ui styles. Keyboard focus comes from
+// the global `:focus-visible` rule.
+//
+// Stacking variables (--index, --toasts-before, --z-index, --offset,
+// --initial-height, --swipe-amount-*) are set by this component's host
+// bindings; --width, --gap, and --front-toast-height inherit from the
+// <ol> in the toaster component. The stacking mechanics at the bottom
+// of this file are ported from sonner@2.0.7.
+
+:host {
+  --y: translateY(100%);
+  --lift-amount: calc(var(--lift) * var(--gap));
+
+  position: absolute;
+  z-index: var(--z-index);
+  box-sizing: border-box;
+  opacity: 0;
+  transform: var(--y);
+  touch-action: none;
+  overflow-wrap: anywhere;
+  outline: none;
+
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  width: var(--width);
+  padding: var(--space-4);
+
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+
+  // Enter/exit use ease-out (responsive fast start); the height morph
+  // is on-screen movement, so it keeps the standard curve. Animating
+  // height triggers layout — the documented exception: the collapsed
+  // stack must match the front toast's auto height, which transforms
+  // cannot express.
+  transition:
+    transform var(--dur-slow) var(--ease-out),
+    opacity var(--dur-slow) var(--ease-out),
+    height var(--dur-slow) var(--ease-standard),
+    box-shadow var(--dur-base) var(--ease-standard);
+  // Keeps the toast on the GPU across its many transform states, so it
+  // doesn't shift by 1px on the CPU/GPU rendering handoff.
+  will-change: transform;
+}
+
+// Exits run faster than entrances — and inside TOAST_UNMOUNT_DELAY
+// (200ms), so the fade isn't cut off by the teardown.
+:host([data-removed='true']) {
+  transition-duration: var(--dur-base);
+}
+
+:host > * {
+  transition: opacity var(--dur-slow) var(--ease-standard);
+}
+
+// Room for the absolutely-positioned close button.
+:host([data-sticky='true']) {
+  padding-right: var(--space-10);
+}
+
+// ---- Severities → private properties ----
+
+:host([data-severity='primary']) {
+  --toast-accent: var(--accent);
+  --toast-icon: var(--accent-text);
+  --toast-accent-hover: var(--accent-hover);
+  --toast-accent-fg: var(--accent-fg);
+}
+
+:host([data-severity='secondary']) {
+  --toast-accent: var(--text-secondary);
+  --toast-icon: var(--text-secondary);
+  --toast-accent-hover: var(--text-primary);
+  --toast-accent-fg: var(--surface);
+}
+
+:host([data-severity='success']) {
+  --toast-accent: var(--success);
+  --toast-icon: var(--success-text);
+  --toast-accent-hover: var(--success-hover);
+  --toast-accent-fg: var(--on-success);
+}
+
+:host([data-severity='info']) {
+  --toast-accent: var(--info);
+  --toast-icon: var(--info-text);
+  --toast-accent-hover: var(--info-hover);
+  --toast-accent-fg: var(--on-info);
+}
+
+:host([data-severity='warning']) {
+  --toast-accent: var(--warning);
+  --toast-icon: var(--warning-text);
+  --toast-accent-hover: var(--warning-hover);
+  --toast-accent-fg: var(--on-warning);
+}
+
+:host([data-severity='error']) {
+  --toast-accent: var(--error);
+  --toast-icon: var(--error-text);
+  --toast-accent-hover: var(--error-hover);
+  --toast-accent-fg: var(--on-error);
+}
+
+// ---- Parts ----
+
+.toast-icon {
+  display: flex;
+  flex-shrink: 0;
+  // The icon sits on the toast surface, so it takes the text tone. The fill tone is the button.
+  color: var(--toast-icon);
+  // Optical alignment with the first line of the title.
+  margin-top: 1px;
+
+  svg {
+    width: var(--icon-size-md);
+    height: var(--icon-size-md);
+    stroke-width: var(--icon-stroke);
+  }
+}
+
+:host([data-loading='true']) .toast-icon svg {
+  animation: toast-spin 1s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host([data-loading='true']) .toast-icon svg {
+    animation: none;
+  }
+}
+
+@keyframes toast-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.toast-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.toast-title {
+  margin: 0;
+  font-weight: var(--weight-bold);
+}
+
+.toast-description {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+
+.toast-action {
+  margin-left: auto;
+  align-self: center;
+  flex-shrink: 0;
+  padding: var(--space-1) var(--space-3);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--toast-accent);
+  color: var(--toast-accent-fg);
+  font-family: inherit;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-snug);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard);
+
+  &:hover {
+    background: var(--toast-accent-hover);
+  }
+}
+
+.toast-close {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-6);
+  height: var(--space-6);
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+  }
+
+  &:hover {
+    background: var(--surface-2);
+    color: var(--text-primary);
+  }
+}
+
+// A forced palette repaints both buttons in `ButtonFace` and drops their
+// backgrounds, which in most high-contrast themes is the same colour as the
+// toast behind them — leaving two invisible hit areas. The severity itself
+// survives without help: it is carried by the icon's shape, not its colour.
+@media (forced-colors: active) {
+  .toast-action,
+  .toast-close {
+    border: var(--border-width-hairline) solid ButtonText;
+  }
+}
+
+// ---- Stacking mechanics (ported from sonner@2.0.7) ----
+
+:host([data-y-position='top']) {
+  top: 0;
+  --y: translateY(-100%);
+  --lift: 1;
+  --lift-amount: calc(1 * var(--gap));
+}
+
+:host([data-y-position='bottom']) {
+  bottom: 0;
+  --y: translateY(100%);
+  --lift: -1;
+  --lift-amount: calc(var(--lift) * var(--gap));
+}
+
+:host([data-x-position='right']) {
+  right: 0;
+}
+
+:host([data-x-position='left']) {
+  left: 0;
+}
+
+:host([data-mounted='true']) {
+  --y: translateY(0);
+  opacity: 1;
+}
+
+// Collapsed stack: peek behind the front toast, slightly scaled down.
+// --scale holds a raw calc fragment on purpose — it is substituted
+// textually into the calc() below (sonner's trick).
+:host([data-expanded='false'][data-front='false']) {
+  --scale: var(--toasts-before) * 0.05 + 1;
+  --y: translateY(calc(var(--lift-amount) * var(--toasts-before))) scale(calc(-1 * var(--scale)));
+  height: var(--front-toast-height);
+}
+
+:host([data-expanded='false'][data-front='false']) > * {
+  opacity: 0;
+}
+
+:host([data-visible='false']) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+:host([data-mounted='true'][data-expanded='true']) {
+  --y: translateY(calc(var(--lift) * var(--offset)));
+  height: var(--initial-height);
+}
+
+:host([data-removed='true'][data-front='true'][data-swipe-out='false']) {
+  --y: translateY(calc(var(--lift) * -100%));
+  opacity: 0;
+}
+
+:host([data-removed='true'][data-front='false'][data-swipe-out='false'][data-expanded='true']) {
+  --y: translateY(calc(var(--lift) * var(--offset) + var(--lift) * -100%));
+  opacity: 0;
+}
+
+:host([data-removed='true'][data-front='false'][data-swipe-out='false'][data-expanded='false']) {
+  --y: translateY(40%);
+  opacity: 0;
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    opacity var(--dur-base) var(--ease-out);
+}
+
+:host([data-removed='true'][data-front='false'])::before {
+  height: calc(var(--initial-height) + 20%);
+}
+
+// Enlarged invisible hit area so a swipe doesn't lose pointer capture.
+:host([data-swiping='true'])::before {
+  content: '';
+  position: absolute;
+  left: -100%;
+  right: -100%;
+  height: 100%;
+  z-index: -1;
+}
+
+:host([data-y-position='top'][data-swiping='true'])::before {
+  bottom: 50%;
+  transform: scaleY(3) translateY(50%);
+}
+
+:host([data-y-position='bottom'][data-swiping='true'])::before {
+  top: 50%;
+  transform: scaleY(3) translateY(-50%);
+}
+
+:host([data-swiping='false'][data-removed='true'])::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: scaleY(2);
+}
+
+// Bridges the gap between toasts so hover doesn't flicker while expanded.
+:host([data-expanded='true'])::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  width: 100%;
+  height: calc(var(--gap) + 1px);
+}
+
+:host([data-swiping='true']) {
+  transform: var(--y) translateY(var(--swipe-amount-y, 0px)) translateX(var(--swipe-amount-x, 0px));
+  transition: none;
+}
+
+:host([data-swiped='true']) {
+  user-select: none;
+}
+
+:host([data-swipe-out='true']) {
+  animation-duration: var(--dur-base);
+  animation-timing-function: var(--ease-out);
+  animation-fill-mode: forwards;
+}
+
+:host([data-swipe-out='true'][data-swipe-direction='left']) {
+  animation-name: toast-swipe-out-left;
+}
+
+:host([data-swipe-out='true'][data-swipe-direction='right']) {
+  animation-name: toast-swipe-out-right;
+}
+
+:host([data-swipe-out='true'][data-swipe-direction='up']) {
+  animation-name: toast-swipe-out-up;
+}
+
+:host([data-swipe-out='true'][data-swipe-direction='down']) {
+  animation-name: toast-swipe-out-down;
+}
+
+@keyframes toast-swipe-out-left {
+  from {
+    transform: var(--y) translateX(var(--swipe-amount-x));
+    opacity: 1;
+  }
+
+  to {
+    transform: var(--y) translateX(calc(var(--swipe-amount-x) - 100%));
+    opacity: 0;
+  }
+}
+
+@keyframes toast-swipe-out-right {
+  from {
+    transform: var(--y) translateX(var(--swipe-amount-x));
+    opacity: 1;
+  }
+
+  to {
+    transform: var(--y) translateX(calc(var(--swipe-amount-x) + 100%));
+    opacity: 0;
+  }
+}
+
+@keyframes toast-swipe-out-up {
+  from {
+    transform: var(--y) translateY(var(--swipe-amount-y));
+    opacity: 1;
+  }
+
+  to {
+    transform: var(--y) translateY(calc(var(--swipe-amount-y) - 100%));
+    opacity: 0;
+  }
+}
+
+@keyframes toast-swipe-out-down {
+  from {
+    transform: var(--y) translateY(var(--swipe-amount-y));
+    opacity: 1;
+  }
+
+  to {
+    transform: var(--y) translateY(calc(var(--swipe-amount-y) + 100%));
+    opacity: 0;
+  }
+}
+
+// Mirrors the design system's `sm` breakpoint (640px): the list spans
+// the viewport on small screens, toasts fill it.
+@include a.respond-down(sm) {
+  :host {
+    width: 100%;
+  }
+}

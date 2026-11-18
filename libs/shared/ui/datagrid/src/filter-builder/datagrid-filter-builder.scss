@@ -1,0 +1,256 @@
+@use 'abstracts' as a;
+
+// The host is the surface: `PopoverService` positions and dismisses, and the
+// panel is the caller's to draw. Same arrangement as the header filter, and
+// for the same reason — the service is headless.
+:host {
+  // `lib-input-number` is 10rem wide before it is told otherwise, which is a
+  // form-field metric. The editor sizes its own tracks, so the control gives up
+  // its floor rather than fighting a width the parent already decided.
+  --input-number-min-width: 0;
+
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: a.space(3);
+  width: min(44rem, calc(100vw - a.space(8)));
+  padding: a.space(3);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  outline: none;
+}
+
+.dg-fb-title {
+  @include a.t-caption;
+
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+// The one place the editor may scroll, and only when an expression outgrows the
+// viewport. Nothing drawn inside needs to escape it: every chooser and every
+// picker opens in an overlay, so a list is never clipped by this box.
+.dg-fb-tree {
+  min-width: 0;
+  max-height: min(60vh, 32rem);
+  overflow: auto;
+}
+
+// Nesting reads from the rule down the inline-start edge, so the depth of a
+// group is visible without counting indents.
+.dg-fb-group {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(2);
+  min-width: 0;
+  padding: a.space(2);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(md);
+  background: var(--surface);
+}
+
+.dg-fb-group .dg-fb-group {
+  border-inline-start: 2px solid var(--border-strong);
+  background: var(--surface-2);
+}
+
+.dg-fb-group-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: a.space(2);
+  min-width: 0;
+}
+
+// A grid, not a flex row: every condition of a group then puts its field, its
+// operator and its editor on the same three tracks, so the rows read as one
+// expression instead of three ragged lines. `minmax(0, …)` is what lets a track
+// go below its content — a bare `1fr` floors at `auto`, which is the control's
+// own width and the reason a flex version overflowed.
+.dg-fb-condition {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.4fr) auto;
+  align-items: center;
+  column-gap: a.space(2);
+  row-gap: a.space(1);
+  min-width: 0;
+  // Always drawn, transparent until the row is incomplete, so marking one
+  // moves nothing. Coloured by the rule below.
+  border-inline-start: 2px solid transparent;
+  padding-inline-start: a.space(2);
+  margin-inline-start: a.space(2);
+}
+
+// Placed rather than ordered: the warning belongs after the editors in the
+// reading order and under them on screen, and the remove button keeps the
+// trailing track whether or not the operator draws an editor at all.
+.dg-fb-remove {
+  grid-column: -2;
+  grid-row: 1;
+}
+
+.dg-fb-flag {
+  grid-column: 1 / -2;
+  grid-row: 2;
+}
+
+// Every chooser: the value in force, an ellipsis when the track is too narrow
+// for it, and a caret. It shrinks to whatever the track gives it, which is the
+// whole reason it is a button and not a select.
+.dg-fb-chooser {
+  @include a.t-body-sm;
+
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  width: 100%;
+  height: 2rem;
+  padding: 0 var(--space-2);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(sm);
+  background: var(--surface);
+  color: var(--text-primary);
+  text-align: start;
+  cursor: pointer;
+
+  svg {
+    flex: none;
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+    color: var(--text-secondary);
+  }
+
+  &:hover {
+    border-color: var(--border-strong);
+  }
+
+  &:focus-visible {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+    outline: none;
+  }
+}
+
+.dg-fb-chooser-text {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dg-fb-mode {
+  flex: none;
+  width: 8rem;
+}
+
+.dg-fb-value {
+  min-width: 0;
+}
+
+// `[libIconField]` is `inline-flex` at `height: fit-content`, so it never grows
+// into a track it was given. Same rule the filter row needs.
+div.dg-fb-value {
+  display: flex;
+}
+
+// Both ends of the range share the value track, and each gives up its floor so
+// the pair shrinks with it rather than pushing the track wider.
+.dg-fb-range {
+  display: flex;
+  align-items: center;
+  gap: a.space(1);
+  min-width: 0;
+
+  > * {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
+
+// Not colour alone: the flag beside the row carries the same text the summary
+// under the tree repeats, so the mark survives forced colours and a reader.
+.dg-fb-condition[data-incomplete] {
+  border-inline-start-color: var(--border-strong);
+}
+
+.dg-fb-flag,
+.dg-fb-note {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+
+  svg {
+    flex: none;
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+  }
+}
+
+.dg-fb-hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.dg-fb-note {
+  margin: 0;
+}
+
+.dg-fb-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: a.radius(pill);
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+  }
+
+  &:hover {
+    color: var(--text-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 1px;
+  }
+}
+
+// The group's remove button sits at the trailing edge, away from the two add
+// buttons it would otherwise read as a third member of.
+.dg-fb-group-head .dg-fb-remove {
+  grid-column: auto;
+  margin-inline-start: auto;
+}
+
+.dg-fb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: a.space(2);
+}
+
+@media (forced-colors: active) {
+  .dg-fb-condition[data-incomplete] {
+    border-inline-start-color: Highlight;
+  }
+}

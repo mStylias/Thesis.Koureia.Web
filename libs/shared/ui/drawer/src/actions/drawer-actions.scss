@@ -1,0 +1,52 @@
+// Fills the toolbar row: the fit measures this width, and a row sized to its buttons never has
+// room for one more. One gap everywhere, because the fit counts one gap between two buttons.
+:host {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+
+  // Taller than `sm` draws them: a 27px target in a toolbar is a small thing to hit. It
+  // inherits into the end slot's buttons too.
+  --btn-pad-y: var(--space-2);
+}
+
+.drawer-actions-start,
+.drawer-actions-end {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.drawer-actions-end {
+  flex-shrink: 0;
+  margin-inline-start: auto;
+}
+
+.drawer-actions-start svg,
+.drawer-actions-measure svg {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  stroke-width: var(--icon-stroke);
+  flex-shrink: 0;
+}
+
+.drawer-actions-clip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.drawer-actions-measure {
+  display: flex;
+  gap: var(--space-2);
+  width: max-content;
+  white-space: nowrap;
+  visibility: hidden;
+}

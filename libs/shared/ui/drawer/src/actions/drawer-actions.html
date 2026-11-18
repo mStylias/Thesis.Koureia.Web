@@ -1,0 +1,95 @@
+@let moreLabel = moreAriaLabel() || ('drawer.moreActions' | uiCopy | transloco);
+
+<div class="drawer-actions-start">
+  @for (action of barActions(); track action.id) {
+    @let mode = modeOf(action);
+    @if (mode !== 'menu') {
+      <!-- An anchor cannot be disabled, so a disabled or busy link draws as a button. -->
+      @if (action.link && !action.disabled && !action.loading) {
+        <a
+          libButton
+          size="sm"
+          [routerLink]="action.link"
+          [severity]="action.severity ?? 'secondary'"
+          [variant]="action.variant ?? 'outlined'"
+          [iconOnly]="mode === 'icon'"
+          [attr.aria-label]="mode === 'icon' ? action.label : null"
+          [libTooltip]="mode === 'icon' ? action.label : ''"
+        >
+          <svg [lucideIcon]="action.icon" libButtonIcon aria-hidden="true"></svg>
+          @if (mode === 'label') {
+            {{ action.label }}
+          }
+        </a>
+      } @else {
+        <button
+          libButton
+          type="button"
+          size="sm"
+          [severity]="action.severity ?? 'secondary'"
+          [variant]="action.variant ?? 'outlined'"
+          [iconOnly]="mode === 'icon'"
+          [loading]="!!action.loading"
+          [disabled]="!!action.disabled"
+          [attr.aria-label]="mode === 'icon' ? action.label : null"
+          [libTooltip]="mode === 'icon' ? action.label : ''"
+          (click)="action.run?.()"
+        >
+          <svg [lucideIcon]="action.icon" libButtonIcon aria-hidden="true"></svg>
+          @if (mode === 'label') {
+            {{ action.label }}
+          }
+        </button>
+      }
+    }
+  }
+  @if (menuItems().length > 0) {
+    <button
+      libButton
+      type="button"
+      size="sm"
+      severity="secondary"
+      variant="text"
+      iconOnly
+      [libMenuTriggerFor]="moreMenu"
+      [disabled]="menuDisabled()"
+      [menuDisabled]="menuDisabled()"
+      [attr.aria-label]="moreLabel"
+      [libTooltip]="moreLabel"
+    >
+      <svg lucideEllipsisVertical aria-hidden="true"></svg>
+    </button>
+    <lib-menu #moreMenu [items]="menuItems()" [ariaLabel]="moreLabel" />
+  }
+</div>
+
+<div #end class="drawer-actions-end">
+  <ng-content />
+</div>
+
+<!-- Every caption, always drawn and never seen, so the fit can measure an action that is not on
+     the line. A clip of no size keeps it out of the layout and out of any scroll width. -->
+<div class="drawer-actions-clip" aria-hidden="true" inert>
+  <div #measure class="drawer-actions-measure">
+    @for (action of barActions(); track action.id) {
+      <button
+        libButton
+        type="button"
+        size="sm"
+        tabindex="-1"
+        data-measure
+        [severity]="action.severity ?? 'secondary'"
+        [variant]="action.variant ?? 'outlined'"
+        [iconOnly]="!!action.iconOnly"
+      >
+        <svg [lucideIcon]="action.icon" libButtonIcon aria-hidden="true"></svg>
+        @if (!action.iconOnly) {
+          {{ action.label }}
+        }
+      </button>
+    }
+    <button libButton type="button" size="sm" iconOnly tabindex="-1" data-measure-icon>
+      <svg lucideEllipsisVertical aria-hidden="true"></svg>
+    </button>
+  </div>
+</div>

@@ -1,0 +1,30 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: var(--bg);
+}
+
+// Visually hidden until focused, then slides in above the fixed header.
+.skip-link {
+  position: fixed;
+  top: var(--space-3);
+  left: var(--space-3);
+  z-index: a.z(skip-link);
+  padding: var(--space-2) var(--space-4);
+  color: var(--text-primary);
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  text-decoration: none;
+  transform: translateY(calc(-100% - var(--space-6)));
+
+  &:focus-visible {
+    transform: translateY(0);
+  }
+}

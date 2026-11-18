@@ -1,0 +1,207 @@
+@let viewed = customer();
+
+<div class="customer-view">
+  @if (viewed.block; as block) {
+    <section class="view-section">
+      <lib-banner class="view-block" tone="error" role="note">
+        <p>
+          {{
+            'managementCustomers.view.blocked'
+              | transloco: { when: instant(block.blockedAt), name: block.blockedByDisplayName }
+          }}
+        </p>
+        <p>{{ 'managementCustomers.view.blockReason' | transloco: { reason: block.reason } }}</p>
+        <p class="view-hint">{{ 'managementCustomers.view.blockReasonHint' | transloco }}</p>
+      </lib-banner>
+    </section>
+  }
+
+  @if (viewed.phoneNumber || viewed.email) {
+    <section class="view-section" aria-labelledby="customer-view-contact">
+      <h3 class="view-heading" id="customer-view-contact">
+        {{ 'managementCustomers.view.contact' | transloco }}
+      </h3>
+      <dl class="view-grid">
+        @if (viewed.phoneNumber; as phone) {
+          <div class="view-row">
+            <dt class="view-caption">{{ 'managementCustomers.view.phone' | transloco }}</dt>
+            <dd class="view-value view-contact">
+              <span class="view-contact-value">{{ phone }}</span>
+              <span class="view-contact-actions">
+                <a
+                  libButton
+                  severity="secondary"
+                  variant="outlined"
+                  size="sm"
+                  [href]="phoneHref()"
+                  [attr.aria-label]="
+                    'managementCustomers.view.call' | transloco: { name: viewed.displayName }
+                  "
+                >
+                  <svg lucidePhone libButtonIcon aria-hidden="true"></svg>
+                  {{ 'managementCustomers.view.callShort' | transloco }}
+                </a>
+                <lib-copy-button
+                  [value]="phone"
+                  [label]="'managementCustomers.view.copyPhone' | transloco"
+                />
+              </span>
+            </dd>
+          </div>
+        }
+        @if (viewed.email; as email) {
+          <div class="view-row">
+            <dt class="view-caption">{{ 'managementCustomers.view.email' | transloco }}</dt>
+            <dd class="view-value view-contact">
+              <a
+                class="view-contact-value view-contact-link"
+                [href]="'mailto:' + email"
+                showOnEllipsis
+                [libTooltip]="email"
+                >{{ email }}</a
+              >
+              <span class="view-contact-actions">
+                <lib-copy-button
+                  [value]="email"
+                  [label]="'managementCustomers.view.copyEmail' | transloco"
+                />
+              </span>
+            </dd>
+          </div>
+        }
+      </dl>
+      @if (!viewed.isWalkIn) {
+        <p class="view-hint">{{ 'managementCustomers.view.accountManaged' | transloco }}</p>
+      }
+    </section>
+  }
+
+  @if (viewed.note; as note) {
+    <section class="view-section" aria-labelledby="customer-view-note">
+      <h3 class="view-heading" id="customer-view-note">
+        {{ 'managementCustomers.view.note' | transloco }}
+        <span class="view-hint">{{ 'managementCustomers.view.noteHint' | transloco }}</span>
+      </h3>
+      <p class="view-note">{{ note.text }}</p>
+      @if (note.updatedAt; as updatedAt) {
+        <p class="view-meta">
+          @if (note.updatedByDisplayName; as name) {
+            {{
+              'managementCustomers.view.noteUpdated' | transloco: { name, when: instant(updatedAt) }
+            }}
+          } @else {
+            {{ 'managementCustomers.view.noteUpdatedAt' | transloco: { when: instant(updatedAt) } }}
+          }
+        </p>
+      }
+    </section>
+  }
+
+  @if (viewed.preferredStaffDisplayName; as barber) {
+    <section class="view-section">
+      <dl class="view-grid">
+        <div class="view-row">
+          <dt class="view-caption">
+            {{ 'managementCustomers.view.preferredBarber' | transloco }}
+          </dt>
+          <dd class="view-value">
+            {{ barber }}
+            @if (viewed.preferredStaffIsActive === false) {
+              <span class="view-meta">· {{ 'managementCustomers.view.inactive' | transloco }}</span>
+            }
+          </dd>
+        </div>
+      </dl>
+    </section>
+  }
+
+  <section class="view-section" aria-labelledby="customer-view-facts">
+    <h3 class="view-heading" id="customer-view-facts">
+      {{ 'managementCustomers.view.facts' | transloco }}
+    </h3>
+    <lib-stat-group class="view-facts" aria-labelledby="customer-view-facts">
+      <lib-stat
+        labelFirst
+        [value]="viewed.visitCount"
+        [label]="'managementCustomers.view.visits' | transloco"
+      />
+      <lib-stat
+        labelFirst
+        [value]="viewed.upcomingCount"
+        [label]="'managementCustomers.view.upcoming' | transloco"
+      />
+      <lib-stat
+        labelFirst
+        [value]="viewed.cancellationCount"
+        [label]="'managementCustomers.view.cancellations' | transloco"
+      />
+      <lib-stat
+        labelFirst
+        [value]="viewed.noShowCount"
+        [label]="'managementCustomers.view.noShows' | transloco"
+        [attr.data-tone]="warnNoShows() ? 'warning' : null"
+      >
+        @if (warnNoShows()) {
+          <svg lucideTriangleAlert class="view-fact-icon" aria-hidden="true"></svg>
+        }
+      </lib-stat>
+    </lib-stat-group>
+
+    <dl class="view-grid">
+      @if (viewed.lastNoShowDate; as date) {
+        <div class="view-row">
+          <dt class="view-caption">{{ 'managementCustomers.view.lastNoShow' | transloco }}</dt>
+          <dd class="view-value">{{ day(date) }}</dd>
+        </div>
+      }
+      @if (viewed.firstVisitDate; as date) {
+        <div class="view-row">
+          <dt class="view-caption">{{ 'managementCustomers.view.firstVisit' | transloco }}</dt>
+          <dd class="view-value">{{ day(date) }}</dd>
+        </div>
+      }
+      @if (viewed.lastVisitDate; as date) {
+        <div class="view-row">
+          <dt class="view-caption">{{ 'managementCustomers.view.lastVisit' | transloco }}</dt>
+          <dd class="view-value">{{ day(date) }}</dd>
+        </div>
+      }
+      @if (viewed.nextAppointmentAt; as at) {
+        <div class="view-row">
+          <dt class="view-caption">
+            {{ 'managementCustomers.view.nextAppointment' | transloco }}
+          </dt>
+          <dd class="view-value">{{ instant(at) }}</dd>
+        </div>
+      }
+      <div class="view-row">
+        <dt class="view-caption">{{ 'managementCustomers.view.customerSince' | transloco }}</dt>
+        <dd class="view-value">{{ day(viewed.customerSince) }}</dd>
+      </div>
+      @if (totalSpend()) {
+        <div class="view-row">
+          <dt class="view-caption">{{ 'managementCustomers.view.totalSpend' | transloco }}</dt>
+          <dd class="view-value view-amount">{{ totalSpend() }}</dd>
+        </div>
+      }
+      @if (averageSpend()) {
+        <div class="view-row">
+          <dt class="view-caption">{{ 'managementCustomers.view.averageSpend' | transloco }}</dt>
+          <dd class="view-value view-amount">{{ averageSpend() }}</dd>
+        </div>
+      }
+    </dl>
+  </section>
+
+  @if (canReadAppointments()) {
+    <lib-customer-history
+      titleKey="managementCustomers.view.appointments"
+      [customerId]="viewed.id"
+      [revision]="revision()"
+      [language]="language()"
+      [timezone]="timezone()"
+      [viewAll]="appointmentsLink()"
+      [appointmentLink]="appointmentLink()"
+    />
+  }
+</div>

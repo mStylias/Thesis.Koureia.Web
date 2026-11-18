@@ -1,0 +1,20 @@
+<span class="dg-export-count">
+  @if (determinate()) {
+    {{ 'datagrid.export.progress' | uiCopy | transloco: countParams() }}
+  } @else {
+    {{ 'datagrid.export.progressUnknown' | uiCopy | transloco: countParams() }}
+  }
+</span>
+
+<lib-progress-bar
+  class="dg-export-progress"
+  size="sm"
+  [value]="percent()"
+  [mode]="determinate() ? 'determinate' : 'indeterminate'"
+  [showValue]="false"
+  [ariaLabel]="'datagrid.export.label' | uiCopy | transloco"
+/>
+
+<button libButton type="button" severity="secondary" size="sm" (click)="canceled.emit()">
+  {{ 'datagrid.export.cancel' | uiCopy | transloco }}
+</button>

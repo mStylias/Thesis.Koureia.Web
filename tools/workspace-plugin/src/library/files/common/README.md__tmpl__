@@ -1,0 +1,21 @@
+# <%= alias %>
+
+What the library is for, in one paragraph.
+<% if (component) { %>
+```ts
+import { <%= className %> } from '<%= alias %>';
+```
+
+```html
+<<%= selector %> />
+```
+
+## API
+
+| Input | Type | Notes |
+| ----- | ---- | ----- |
+
+## Accessibility
+
+What a keyboard and a screen reader get.
+<% } %>

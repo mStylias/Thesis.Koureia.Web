@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist/out-tsc",
+    "types": ["vitest/globals"]
+  },
+  "files": ["vite.config.ts", "vitest.config.mts"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts"]
+}

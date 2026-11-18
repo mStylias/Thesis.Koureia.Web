@@ -1,0 +1,81 @@
+<!--
+  One real input holds the whole code and covers the drawn cells, so every
+  pointer gesture, the mobile keyboard, and one-time-code autofill land on
+  it. It is invisible; the cells below draw the value and are hidden from
+  assistive technology, which reads the input instead. The error message
+  sits outside `.otp-field` so the overlay never covers it.
+-->
+<div class="otp-field">
+  <input
+    #otpInput
+    class="otp-input"
+    type="text"
+    autocomplete="one-time-code"
+    autocorrect="off"
+    autocapitalize="off"
+    spellcheck="false"
+    [attr.inputmode]="inputMode()"
+    [attr.maxlength]="cellCount()"
+    [value]="code()"
+    [disabled]="disabled()"
+    [readOnly]="readonly()"
+    [attr.id]="inputId() || null"
+    [attr.name]="name() || null"
+    [attr.aria-label]="
+      ariaLabel() || (!ariaLabelledby() ? ('inputOtp.label' | uiCopy | transloco) : null)
+    "
+    [attr.aria-labelledby]="ariaLabelledby() || null"
+    [attr.aria-describedby]="describedBy()"
+    [attr.aria-invalid]="invalid() ? true : null"
+    [attr.aria-required]="required() ? true : null"
+    (focus)="onFocus()"
+    (blur)="onBlur()"
+    (beforeinput)="onBeforeInput($event)"
+    (input)="onInput()"
+    (keyup)="syncSelection()"
+    (select)="syncSelection()"
+  />
+
+  <div class="otp-cells" aria-hidden="true">
+    @for (cell of cells(); track cell.index) {
+      <div
+        #cellBox
+        class="otp-cell"
+        [attr.data-filled]="cell.filled ? '' : null"
+        [attr.data-active]="cell.active ? '' : null"
+        [attr.data-selected]="cell.active && !collapsed() ? '' : null"
+      >
+        @if (cellTemplate(); as template) {
+          <ng-container
+            [ngTemplateOutlet]="template.templateRef"
+            [ngTemplateOutletContext]="cell"
+          />
+        } @else {
+          <span class="otp-char">{{ cell.$implicit }}</span>
+        }
+        @if (cell.active && collapsed() && !cell.filled) {
+          <span class="otp-caret"></span>
+        }
+      </div>
+
+      @if (separators().has(cell.index + 1)) {
+        <span class="otp-separator">
+          @if (separatorTemplate(); as template) {
+            <ng-container
+              [ngTemplateOutlet]="template.templateRef"
+              [ngTemplateOutletContext]="{ $implicit: cell.index + 1 }"
+            />
+          } @else {
+            –
+          }
+        </span>
+      }
+    }
+  </div>
+</div>
+
+@if (showError()) {
+  <div [id]="errorId" class="otp-error" role="alert">
+    {{ firstError()?.message || errorKey() | uiCopy | transloco }}
+  </div>
+}

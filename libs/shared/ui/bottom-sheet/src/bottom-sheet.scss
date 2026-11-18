@@ -1,0 +1,197 @@
+@use 'abstracts' as a;
+
+:host {
+  display: contents;
+  font-family: var(--font-sans);
+}
+
+.sheet__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: a.z(overlay);
+  background: var(--scrim);
+}
+
+.sheet__backdrop--in {
+  animation: sheet-fade-in var(--dur-base) var(--ease-out);
+}
+
+.sheet__backdrop--out {
+  animation: sheet-fade-in var(--dur-fast) var(--ease-out) reverse;
+}
+
+@keyframes sheet-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.sheet__surface {
+  // The whole travel, as one transform. The sheet is laid out where it belongs
+  // when expanded and pushed down by everything but the visible band when
+  // collapsed, so nothing has to measure the panel to know how far that is. The
+  // band is the bar plus whatever the consumer projects into the actions slot,
+  // which is why a consumer that uses that slot must declare its height.
+  --shift: calc(100% - var(--bottom-sheet-peek-height) - var(--bottom-sheet-actions-height, 0px));
+
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: a.z(overlay);
+  display: flex;
+  flex-direction: column;
+  max-block-size: var(--bottom-sheet-max-height);
+  background: var(--surface);
+  border-start-start-radius: a.radius(xl);
+  border-start-end-radius: a.radius(xl);
+  border-block-start: var(--border-width-hairline) solid var(--border);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(calc(var(--shift) + var(--drag, 0px)));
+  transition: transform var(--dur-slower) var(--ease-out);
+  // The sheet is dragged vertically, so the browser must not claim the gesture
+  // for a page scroll before the first pointermove arrives.
+  touch-action: none;
+}
+
+:host([data-expanded]) .sheet__surface {
+  --shift: 0px;
+  // On the surface and not on the last child, because which child is last changes
+  // with the state. Padding here also keeps it out of the band the collapsed
+  // transform is measured against.
+  padding-block-end: env(safe-area-inset-bottom);
+}
+
+// A dragged sheet tracks the finger. Easing it there would lag the pointer.
+:host([data-dragging]) .sheet__surface {
+  transition: none;
+}
+
+// The bar plus the grip above it. Sized so the two together are exactly the peek
+// height, which is what the page reserves and what the collapsed transform leaves
+// on screen.
+.sheet__header {
+  flex: 0 0 auto;
+  block-size: var(--bottom-sheet-peek-height);
+  display: flex;
+  flex-direction: column;
+  touch-action: none;
+}
+
+.sheet__peek {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: a.space(3);
+  min-inline-size: 0;
+  padding-inline: a.space(4);
+}
+
+// The whole bar, as one empty button. It paints nothing and covers the projected
+// content, which is text and is not interactive.
+.sheet__toggle {
+  position: absolute;
+  inset: 0;
+  z-index: a.z(base);
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+
+  // Drawn inside. The bar reaches both edges of the surface, so a ring with spread
+  // would paint over the grip above it and the actions row below.
+  &:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--focus-ring);
+  }
+}
+
+.sheet__peek-content {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+// The end of the bar, for a control the consumer needs reachable there. Positioned and after
+// the toggle, so it sits above it and takes the press instead.
+.sheet__trailing {
+  position: relative;
+  z-index: a.z(base);
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: a.space(1);
+
+  &:empty {
+    display: none;
+  }
+}
+
+// Empty unless the consumer projects into it, and then exactly as tall as the height they
+// declared — the collapsed transform leaves that much on screen and nothing measures it.
+.sheet__actions {
+  flex: 0 0 auto;
+  block-size: var(--bottom-sheet-actions-height, 0px);
+  display: flex;
+  align-items: center;
+  padding-inline: a.space(4);
+}
+
+// Expanded, the actions are the sheet's footer rather than a second bar under the
+// first: the panel between them is what the customer came to read, and an action
+// row above it reads as belonging to the bar it is pinned under. `order` and not a
+// second slot, because collapsed the row must stay inside the visible band, which
+// is the top of the surface.
+:host([data-expanded]) .sheet__actions {
+  order: 1;
+  border-block-start: var(--border-width-hairline) solid var(--border);
+}
+
+// The bar stops being a bar on its own once the panel is open, and the hairline is
+// what keeps the scrolling content from running into it.
+:host([data-expanded]) .sheet__header {
+  border-block-end: var(--border-width-hairline) solid var(--border);
+}
+
+// Hidden rather than removed on a pinned sheet: it says the sheet can be dragged, and it
+// cannot, but its box is part of the peek height every collapsed sheet is measured against.
+:host([data-locked]) .sheet__grip {
+  visibility: hidden;
+}
+
+.sheet__grip {
+  flex: 0 0 auto;
+  inline-size: var(--bottom-sheet-grip-width);
+  block-size: var(--bottom-sheet-grip-height);
+  margin-inline: auto;
+  margin-block-start: a.space(2);
+  border-radius: a.radius(pill);
+  background: var(--border-strong);
+}
+
+.sheet__panel {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-inline: a.space(4);
+  padding-block: a.space(4);
+
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .sheet__surface {
+    border: 1px solid CanvasText;
+  }
+}
+
+// The scrim is a button, so the browser's own button chrome has to go.
+.sheet__backdrop {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  cursor: default;
+}

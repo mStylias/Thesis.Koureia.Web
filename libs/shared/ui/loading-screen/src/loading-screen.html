@@ -1,0 +1,24 @@
+<!-- No entrance animation on the backdrop. On a cold load it is the first thing on the screen,
+     and fading it in would delay the only feedback there is. -->
+@if (visible()) {
+  <div class="loading-screen" role="status" animate.leave="loading-screen-leave">
+    @if (logo()) {
+      <img
+        class="loading-screen-logo"
+        [src]="logo()"
+        alt=""
+        [animate.enter]="animateLogo() ? 'loading-screen-logo-enter' : ''"
+      />
+    }
+
+    <div class="loading-screen-bar" aria-hidden="true">
+      <div class="loading-screen-bar-fill"></div>
+    </div>
+
+    <!-- The name lives in the live region, not on the host: a host binding cannot run the pipe
+         that registers the scope's lazy loader. -->
+    <span class="loading-screen-a11y-text">{{
+      ariaLabel() || ('loadingScreen.label' | uiCopy | transloco)
+    }}</span>
+  </div>
+}

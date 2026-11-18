@@ -1,0 +1,9 @@
+:host {
+  display: grid;
+  place-items: center;
+  aspect-ratio: var(--card-media-aspect-ratio);
+  margin: 0;
+  overflow: hidden;
+  color: var(--text-muted);
+  background: var(--surface-2);
+}

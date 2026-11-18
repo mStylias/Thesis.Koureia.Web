@@ -1,0 +1,218 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+// One row that never wraps: what does not fit is folded by the layout, never
+// pushed onto a second line.
+.ct-bar {
+  display: flex;
+  align-items: center;
+  gap: a.space(2);
+  min-width: 0;
+}
+
+.ct-nav,
+.ct-steps,
+.ct-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.ct-nav {
+  gap: a.space(2);
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.ct-actions {
+  gap: a.space(1);
+}
+
+// Holds the primary action off the view switcher. The fold thresholds budget this lead.
+.ct-create {
+  margin-inline-start: a.space(2);
+}
+
+.ct-range {
+  @include a.t-title;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// A narrow host lets the label take two lines rather than lose its year.
+:host([data-compact-range]) .ct-range {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  white-space: normal;
+  line-height: var(--leading-tight);
+}
+
+.ct-date {
+  flex-shrink: 0;
+  width: var(--calendar-date-field-width);
+}
+
+.ct-sep {
+  flex-shrink: 0;
+  align-self: stretch;
+  width: var(--border-width-hairline);
+  margin-block: a.space(1);
+  background: var(--border);
+}
+
+// The views take what the other controls leave, and never push them.
+.ct-views {
+  display: flex;
+  align-items: center;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.ct-spacer {
+  flex: 1 1 0;
+}
+
+// The view switcher: one frame, one pressed segment, as tall as a small button.
+.ct-segment {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-self: stretch;
+  overflow: hidden;
+  border: var(--border-width-hairline) solid var(--border-strong);
+  border-radius: a.radius(md);
+}
+
+.ct-segment-item {
+  padding: var(--space-1) var(--space-3);
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+
+  & + & {
+    border-inline-start: var(--border-width-hairline) solid var(--border);
+  }
+
+  position: relative;
+
+  &:hover:not([aria-pressed='true']) {
+    background: var(--surface-2);
+    color: var(--text-primary);
+  }
+
+  &[aria-pressed='true'] {
+    color: var(--accent-text);
+  }
+}
+
+// The pressed view's background, one element that glides to the pick. The
+// travel reaches the width of the bar's buttons, so it takes `--ease-out`:
+// an in-out curve would sit still for the first frames after the press.
+.ct-segment-pill {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 0;
+  background: var(--accent-subtle);
+}
+
+.ct-segment[data-ready] .ct-segment-pill {
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    width var(--dur-base) var(--ease-out);
+}
+
+// Until measured, as in a server render, the pressed button draws its own.
+.ct-segment:not([data-ready]) .ct-segment-item[aria-pressed='true'] {
+  background: var(--accent-subtle);
+}
+
+.ct-view-select {
+  width: var(--calendar-view-select-width);
+}
+
+// A pressed toggle wears the selected treatment, the same as a checked menu row.
+.ct-toggle[aria-pressed='true'] {
+  background: var(--accent-subtle);
+  border-color: var(--accent-subtle-border);
+  color: var(--accent-text);
+}
+
+.ct-count {
+  @include a.t-mono;
+  display: inline-grid;
+  place-items: center;
+  min-width: a.space(5);
+  height: a.space(5);
+  padding-inline: a.space(1);
+  border-radius: a.radius(pill);
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-size: var(--text-xs);
+  line-height: 1;
+}
+
+.ct-sr {
+  position: absolute;
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ct-overflow {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(1);
+  width: var(--calendar-overflow-width);
+  max-width: 100%;
+
+  > button {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .ct-view-select,
+  .ct-date {
+    width: 100%;
+  }
+}
+
+.ct-overflow-views {
+  display: flex;
+  padding-block-end: a.space(1);
+  border-block-end: var(--border-width-hairline) solid var(--border);
+}
+
+@media (forced-colors: active) {
+  .ct-toggle[aria-pressed='true'],
+  .ct-segment-item[aria-pressed='true'] {
+    outline: var(--border-width-hairline) solid Highlight;
+  }
+
+  .ct-count {
+    border: var(--border-width-hairline) solid CanvasText;
+  }
+
+  .ct-sep {
+    background: CanvasText;
+  }
+}

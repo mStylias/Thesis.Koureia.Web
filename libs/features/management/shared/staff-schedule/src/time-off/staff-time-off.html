@@ -1,0 +1,114 @@
+@if (conflicts().length > 0) {
+  <lib-staff-conflicts
+    class="time-off-conflicts"
+    kind="timeOff"
+    [conflicts]="conflicts()"
+    [language]="language()"
+    (dismissed)="conflicts.set([])"
+  />
+}
+
+@if (currentFailed() || pastFailed()) {
+  <lib-banner class="time-off-notice" tone="error" role="alert">
+    {{ 'managementStaffSchedule.timeOff.loadFailed' | transloco }}
+    <button libButton libBannerAction type="button" variant="outlined" size="sm" (click)="retry()">
+      {{ 'managementStaffSchedule.retry' | transloco }}
+    </button>
+  </lib-banner>
+}
+
+<section class="time-off-section" [attr.aria-busy]="currentLoading() || null">
+  @if (headingLevel() === 4) {
+    <h4 class="time-off-heading">{{ 'managementStaffSchedule.timeOff.current' | transloco }}</h4>
+  } @else {
+    <h3 class="time-off-heading">{{ 'managementStaffSchedule.timeOff.current' | transloco }}</h3>
+  }
+  @if (current().length === 0) {
+    @if (!currentLoading() && !currentFailed()) {
+      <p class="time-off-empty">{{ 'managementStaffSchedule.timeOff.none' | transloco }}</p>
+    }
+  } @else {
+    <dl class="time-off-grid">
+      @for (row of current(); track row.item.id) {
+        <div class="time-off-row">
+          <dt class="time-off-caption">{{ row.dates }}</dt>
+          <dd class="time-off-value">
+            <span class="time-off-text">
+              {{ row.hours }}
+              @if (row.item.reason) {
+                · {{ row.item.reason }}
+              }
+            </span>
+            @if (editable()) {
+              <span class="time-off-actions">
+                <button
+                  libButton
+                  type="button"
+                  severity="secondary"
+                  variant="text"
+                  size="sm"
+                  iconOnly
+                  [attr.aria-label]="'managementStaffSchedule.timeOff.edit' | transloco"
+                  [libTooltip]="'managementStaffSchedule.timeOff.edit' | transloco"
+                  (click)="edit(row.item)"
+                >
+                  <svg lucidePencil aria-hidden="true"></svg>
+                </button>
+                <button
+                  libButton
+                  type="button"
+                  severity="error"
+                  variant="text"
+                  size="sm"
+                  iconOnly
+                  [attr.aria-label]="'managementStaffSchedule.timeOff.delete' | transloco"
+                  [libTooltip]="'managementStaffSchedule.timeOff.delete' | transloco"
+                  (click)="remove(row.item, row.dates)"
+                >
+                  <svg lucideTrash2 aria-hidden="true"></svg>
+                </button>
+              </span>
+            }
+          </dd>
+        </div>
+      }
+    </dl>
+  }
+</section>
+
+<section class="time-off-section" [attr.aria-busy]="pastLoading() || null">
+  @if (headingLevel() === 4) {
+    <h4 class="time-off-heading">{{ 'managementStaffSchedule.timeOff.past' | transloco }}</h4>
+  } @else {
+    <h3 class="time-off-heading">{{ 'managementStaffSchedule.timeOff.past' | transloco }}</h3>
+  }
+  @if (past().length === 0) {
+    @if (!pastLoading() && !pastFailed()) {
+      <p class="time-off-empty">{{ 'managementStaffSchedule.timeOff.pastNone' | transloco }}</p>
+    }
+  } @else {
+    <dl class="time-off-grid">
+      @for (row of past(); track row.item.id) {
+        <div class="time-off-row">
+          <dt class="time-off-caption">{{ row.dates }}</dt>
+          <dd class="time-off-value">
+            <span class="time-off-text">
+              {{ row.hours }}
+              @if (row.item.reason) {
+                · {{ row.item.reason }}
+              }
+            </span>
+          </dd>
+        </div>
+      }
+    </dl>
+  }
+</section>
+
+<lib-staff-time-off-dialog
+  [(visible)]="dialogOpen"
+  [staffMemberId]="staffMemberId()"
+  [timeOff]="editing()"
+  [language]="language()"
+  (saved)="onSaved($event)"
+/>

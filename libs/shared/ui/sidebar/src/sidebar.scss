@@ -1,0 +1,347 @@
+@use 'abstracts' as a;
+
+// Consumes the design-system CSS custom properties emitted by the
+// shared @ui styles. Keyboard focus comes from
+// the global `:focus-visible` rule. State attributes (`data-collapsed`,
+// `data-mobile`) live on the component HOST, so they are styled via
+// `:host([data-…])`. Projected brand content is styled by the global
+// partial `styles/components/_sidebar.scss`.
+
+// ---- Collapse choreography ----
+//
+// Asymmetric on purpose, and only in one direction:
+//
+//   collapsing  copy fades out (0 → fast) ┄ then the rail narrows
+//   expanding   the rail widens and reveals the copy already at full
+//               opacity — no second beat
+//
+// Collapsing still needs the fade: without it the labels would be visibly
+// squeezed and guillotined by the narrowing rail. Expanding needs nothing
+// — the widening rail IS the reveal, and `overflow: hidden` wipes the
+// copy in from the left as it goes. A fade layered on top of that read as
+// the letters ghosting in a beat late.
+//
+// A transition belongs to the state it moves TOWARD, so the instant
+// (0s) case sits on the default (expanded) rules and the collapsed rules
+// supply the fade. `--sidebar-copy-transition` is shared by every fading
+// string, here and in the global partial that reaches the projected brand
+// text — paired elements must move as a unit. It stays a `opacity …`
+// shorthand rather than `none` because `.sidebar-parent-chevron` splices
+// it into a transition LIST, where a `none` entry invalidates the whole
+// declaration.
+:host {
+  --sidebar-copy-transition: opacity 0s;
+
+  display: flex;
+  flex-direction: column;
+  width: var(--sidebar-width);
+  min-height: 0;
+  background: var(--surface);
+  border-right: var(--border-width-hairline) solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+
+  // Animating width triggers layout — the documented exception (as in
+  // drawer push mode): reflowing the page content is the entire point
+  // of collapsing. Everything else animates transform/opacity only.
+  //
+  // `--dur-slow` rather than `--dur-base`: this is the largest travel in
+  // the system (16rem → 3.75rem) and duration should match distance.
+  //
+  // `--ease-out`, NOT `--ease-standard`, and this one was measured rather
+  // than reasoned. "On-screen element moving → ease-in-out" is the usual
+  // rule, but `--ease-standard` is cubic-bezier(0.4, 0, 0.2, 1) — it eases
+  // IN, and over a 196px journey that start ramp is long enough to see:
+  // two frames after the click only 2.8% of the width had moved, which
+  // reads as the button not having registered. `--ease-out` covers 60% in
+  // those same two frames and glides into the last few pixels. The rail is
+  // responding to a press, so it should leave the instant it is pressed.
+  transition: width var(--dur-slow) var(--ease-out);
+}
+
+:host([data-collapsed]) {
+  // Collapsing, the copy leaves first — no lead-in, and it is gone before
+  // the rail is narrow enough to clip it.
+  --sidebar-copy-transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+// `--sidebar-collapsed-width` (3.75rem) is not a round number: the nav
+// icons keep their fixed left inset (nav padding + link padding =
+// space-2 + space-3 = 20px) rather than re-centering when the rail
+// narrows — see `.sidebar-link-icon` below — so the rail width is chosen
+// to make that fixed inset land exactly on-center for a
+// var(--icon-size-md) icon, matching the (genuinely centered) toggle
+// button above it. Both widths are `$component-size` tokens; a consumer
+// overrides them on `lib-sidebar` or any ancestor.
+:host([data-collapsed]) {
+  width: var(--sidebar-collapsed-width);
+}
+
+// Below the breakpoint (keep in sync with DESKTOP_MEDIA_QUERY) the
+// sidebar leaves the flow: the drawer branch renders in the top layer,
+// so the host box itself must not take space. The plain `:host` rule
+// also hides the server-rendered desktop branch on small screens until
+// hydration flips it to the drawer.
+@include a.respond-down(lg) {
+  :host {
+    display: none;
+  }
+}
+
+:host([data-mobile]) {
+  display: contents;
+}
+
+// ---- Header row: the brand ----
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  // PINNED, not a minimum: `lib-topbar` pins its own outer height to the
+  // same token so the two bottom hairlines meet as one unbroken rule across
+  // the viewport. A `min-height` would let each bar grow to its own content
+  // — the toggle here, a page title there — and break the line (see the
+  // comment block in `topbar.scss`).
+  height: var(--shell-header-height);
+  // The start inset matches the nav's icon column (nav padding + link
+  // padding below), so the brand icon lines up with the option icons —
+  // and, crucially, KEEPS that alignment in the rail. Nothing in this
+  // row is centered or repositioned on collapse; the brand icon simply
+  // stays where it already was while the width around it changes.
+  padding-inline: var(--space-5) var(--space-3);
+  border-bottom: var(--border-width-hairline) solid var(--border);
+}
+
+// Fixed to the icon column rather than `flex: 1`: a growing/shrinking
+// flex basis would drag the brand icon along with the width animation.
+// The brand takes the space it is given and clips — the rail then hides
+// the (already faded) brand text without moving the icon a pixel.
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+// ---- Groups and options ----
+
+.sidebar-nav {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--space-2);
+
+  // No visible scrollbar in either mode — it would eat the options'
+  // right-hand spacing (and cover them entirely in the rail).
+  // Wheel/keyboard scrolling still works.
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.sidebar-list,
+.sidebar-group-list,
+.sidebar-sublist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sidebar-group {
+  padding: var(--space-2) 0;
+}
+
+// The subtle hairline separating groups. On the border rather than the
+// (hideable) label so it survives the collapsed state.
+.sidebar-group + .sidebar-group {
+  border-top: var(--border-width-hairline) solid var(--border);
+}
+
+.sidebar-group-label {
+  padding: var(--space-1) var(--space-3) var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-wide);
+  white-space: nowrap;
+  overflow: hidden;
+  transition: var(--sidebar-copy-transition);
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  // 44px touch target; also a comfortable desktop row height.
+  min-height: 44px;
+  // Button reset for expandable parents; harmless on the anchors.
+  // border-box is essential: there is no global reset, so a content-box
+  // anchor at width:100% overflows right by its padding and gets
+  // clipped square against the sidebar edge.
+  box-sizing: border-box;
+  width: 100%;
+  border: none;
+  background: none;
+  font-family: inherit;
+  text-align: start;
+  padding: calc(var(--space-2) - 2px) var(--space-3);
+  margin-block-end: 2px;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-tight);
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+
+  // Seen constantly — no hover animation by design.
+  &:hover {
+    color: var(--text-primary);
+    background: var(--surface-2);
+  }
+
+  // routerLinkActive marks the link matching the current route.
+  &.is-active {
+    color: var(--accent-text);
+    background: var(--surface-2);
+    box-shadow: inset 2px 0 0 0 var(--accent);
+  }
+
+  &[aria-disabled='true'],
+  &:disabled {
+    color: var(--text-muted);
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+.sidebar-link-icon {
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
+  stroke-width: var(--icon-stroke);
+  // Icons keep their x-position while the width animates.
+  flex-shrink: 0;
+}
+
+.sidebar-link-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: var(--sidebar-copy-transition);
+}
+
+// ---- Submenus (one level) ----
+
+.sidebar-parent {
+  position: relative;
+}
+
+.sidebar-parent-chevron {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  stroke-width: var(--icon-stroke);
+  flex-shrink: 0;
+  margin-left: auto;
+  // Rotation is its own interaction (opening a submenu) and keeps the
+  // base duration; the fade rides the collapse choreography.
+  transition:
+    transform var(--dur-base) var(--ease-standard),
+    var(--sidebar-copy-transition);
+}
+
+// Rail-only affordance: a small corner arrow marking expandable items,
+// since the row chevron is clipped away with the labels.
+.sidebar-parent-rail-indicator {
+  display: none;
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  width: calc(var(--icon-size-sm) * 2 / 3);
+  height: calc(var(--icon-size-sm) * 2 / 3);
+  stroke-width: var(--icon-stroke);
+  color: var(--text-muted);
+}
+
+:host([data-collapsed]) .sidebar-parent-rail-indicator {
+  display: block;
+}
+
+.sidebar-parent[aria-expanded='true'] .sidebar-parent-chevron {
+  transform: rotate(90deg);
+}
+
+// Expanding to auto height has no transform-based equivalent — the
+// grid-template-rows trick is the documented layout-animation
+// exception. User-initiated enter/exit → --ease-out.
+.sidebar-submenu {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--dur-base) var(--ease-out);
+
+  &.is-open {
+    grid-template-rows: 1fr;
+  }
+}
+
+.sidebar-submenu-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+// Children are inset from the left — the margin narrows their whole
+// row (background included), reading as hierarchy. The width must give
+// back the margin, or the border-box row overflows the right edge.
+.sidebar-sublink {
+  margin-inline-start: var(--space-6);
+  width: calc(100% - var(--space-6));
+}
+
+// Collapsed rail: labels fade out but stay in the DOM (and in the
+// accessibility tree — the anchors keep their names from content);
+// the shrunken host and `overflow: hidden` clip them.
+:host([data-collapsed]) .sidebar-link-label,
+:host([data-collapsed]) .sidebar-group-label,
+:host([data-collapsed]) .sidebar-parent-chevron {
+  opacity: 0;
+}
+
+// The rail has no room for children — activating a parent expands the
+// sidebar instead (see toggleSubmenu).
+:host([data-collapsed]) .sidebar-submenu {
+  display: none;
+}
+
+// ---- Compact density (desktop only — the drawer keeps 44px targets) ----
+
+:host([data-compact]) {
+  .sidebar-link {
+    min-height: 32px;
+    padding-block: var(--space-1);
+  }
+
+  .sidebar-group {
+    padding: var(--space-1) 0;
+  }
+
+  .sidebar-group-label {
+    padding-block: var(--space-1);
+  }
+}
+
+// ---- Mobile drawer ----
+
+.sidebar-drawer-nav {
+  padding: var(--space-2);
+}
+
+// No `prefers-reduced-motion` block: `base/_base.scss` already collapses
+// every transition-duration globally, and nothing here carries a
+// transition-DELAY (which that global rule does NOT cover) any more.

@@ -1,0 +1,217 @@
+<div
+  ngCombobox
+  #combobox="ngCombobox"
+  class="select-trigger"
+  [attr.id]="inputId() || null"
+  [attr.aria-label]="ariaLabel() || null"
+  [attr.aria-labelledby]="labelledBy() || null"
+  [attr.aria-describedby]="ariaDescribedby() || null"
+  [attr.aria-invalid]="invalid() ? true : null"
+  [attr.aria-required]="required() ? true : null"
+  [attr.aria-busy]="busy() ? true : null"
+  [disabled]="disabled()"
+  [expanded]="expanded()"
+  (expandedChange)="onExpandedChange($event)"
+  (keydown)="onTriggerKeydown($event)"
+>
+  <span class="select-value">
+    @if (selectedOptions().length) {
+      @if (display() === 'chip') {
+        <!-- Past the last row the chips fold into "+N", so assistive tech reads the whole
+             selection from the list after it instead. -->
+        <span #chipsEl class="select-chips" aria-hidden="true">
+          @for (option of selectedOptions(); track option.value) {
+            <span
+              #chipEl
+              class="select-chip"
+              animate.enter="select-chip-enter"
+              (animate.leave)="onChipLeave($event)"
+            >
+              <span class="select-chip-label">{{ option.label }}</span>
+              @if (!disabled()) {
+                <!-- Pointer-only affordance (a nested button would break the
+                     combobox ARIA contract); keyboard users toggle options
+                     in the list instead. Hidden from assistive tech, so the
+                     label is a tooltip — an `aria-label` here would
+                     be markup the a11y tree never reaches. -->
+                <svg
+                  lucideX
+                  class="select-chip-remove"
+                  aria-hidden="true"
+                  [libTooltip]="
+                    removeChipAriaLabel()
+                      ? removeChipAriaLabel() + ' ' + option.label
+                      : ('multiSelect.removeChip' | uiCopy | transloco: { label: option.label })
+                  "
+                  (click)="removeChip(option, $event)"
+                ></svg>
+              }
+            </span>
+          }
+          <!-- Its count and visibility are written by \`fitChips\`, never bound. -->
+          <span #moreEl class="select-more" hidden [libTooltip]="foldedLabels()"></span>
+        </span>
+        <span class="select-sr-only">{{ joinedLabels() }}</span>
+      } @else {
+        {{ joinedLabels() }}
+      }
+    } @else if (!leavingChips() && !unresolvedCount()) {
+      <!-- Held back while the last chip fades out — rendering the
+           placeholder beside the leaving chip would grow the trigger
+           for a beat. -->
+      <span class="select-placeholder">{{ placeholder() }}</span>
+    }
+
+    @if (unresolvedCount(); as unresolved) {
+      <!-- The values are kept, not dropped: an id the source cannot display is
+           still an id the form has to save back. One note, not one chip each. -->
+      <span class="select-unavailable">
+        {{ unavailableMessage() || ('multiSelect.unavailable' | uiCopy | transloco) }}
+        ({{ unresolved }})
+      </span>
+    }
+  </span>
+
+  @if (showClear() && value().length && !disabled()) {
+    <!-- Pointer-only affordance (a nested button would break the combobox
+         ARIA contract); keyboard users clear with Delete/Backspace. Its
+         label is a tooltip for the same reason as the chip ×. -->
+    <svg
+      lucideX
+      class="select-clear"
+      aria-hidden="true"
+      [libTooltip]="clearAriaLabel() || ('multiSelect.clear' | uiCopy | transloco)"
+      (click)="clear($event)"
+    ></svg>
+  }
+
+  @if (busy()) {
+    <svg lucideLoaderCircle class="select-spinner" aria-hidden="true"></svg>
+  } @else {
+    <svg lucideChevronDown class="select-chevron" aria-hidden="true"></svg>
+  }
+</div>
+
+@if (dataSource()) {
+  <div class="select-live" aria-live="polite" aria-atomic="true">
+    @if (expanded()) {
+      @switch (panelState()) {
+        @case ('error') {
+          {{ loadErrorMessage() || ('multiSelect.loadError' | uiCopy | transloco) }}
+        }
+        @case ('empty') {
+          {{ emptyMessage() || ('multiSelect.empty' | uiCopy | transloco) }}
+        }
+        @case ('ready') {
+          {{ 'multiSelect.results' | uiCopy | transloco: { count: resultCount() } }}
+        }
+      }
+    }
+  </div>
+}
+
+<ng-template ngComboboxPopup [combobox]="combobox">
+  <!-- The widget is the panel, not the list: the combobox relays the trigger's
+       keys to this element, and routing them on from here is what lets a
+       source-bound control keep typed characters for its query. The keydown is that
+       relay, not a user interacting with the panel — focus never moves here. -->
+  <!-- eslint-disable-next-line @angular-eslint/template/interactive-supports-focus -->
+  <div
+    #panelEl
+    ngComboboxWidget
+    class="select-panel"
+    [id]="panelId"
+    [activeDescendant]="navigated() ? listbox.activeDescendant() : undefined"
+    animate.enter="select-panel-enter"
+    (keydown)="onPanelKeydown($event)"
+    (scroll)="onPanelScroll($event)"
+  >
+    @if (dataSource()) {
+      <!-- A real field, so the caret is where the user expects it. It sits inside
+           the widget element, so focus landing here keeps the combobox expanded,
+           and it forwards the navigation keys the listbox needs. -->
+      <div class="select-search" (pointerdown)="onSearchRowPointerdown($event)">
+        <svg lucideSearch class="select-search-icon" aria-hidden="true"></svg>
+        <input
+          #searchInput
+          type="text"
+          class="select-search-input"
+          autocomplete="off"
+          [value]="searchText()"
+          [attr.placeholder]="searchHint() || ('multiSelect.typeToSearch' | uiCopy | transloco)"
+          [attr.aria-label]="searchAriaLabel() || ('multiSelect.search' | uiCopy | transloco)"
+          [attr.aria-controls]="listbox.id()"
+          [attr.aria-activedescendant]="(navigated() && listbox.activeDescendant()) || null"
+          (input)="onSearchInput($event)"
+          (keydown)="onSearchFieldKeydown($event)"
+        />
+        @if (searchText()) {
+          <!-- Pointer-only, like the trigger's ×: the field is cleared from the
+               keyboard by deleting the text that is already in it. -->
+          <svg
+            lucideX
+            class="select-search-clear"
+            aria-hidden="true"
+            [libTooltip]="'multiSelect.clearSearch' | uiCopy | transloco"
+            (click)="clearSearch($event)"
+          ></svg>
+        }
+      </div>
+    }
+
+    <ul
+      #listboxEl
+      ngListbox
+      #listbox="ngListbox"
+      class="select-list"
+      multi
+      focusMode="activedescendant"
+      selectionMode="explicit"
+      [value]="listboxValue()"
+      (valueChange)="onListboxValueChange($event)"
+    >
+      @for (option of listOptions(); track option.value) {
+        <li
+          ngOption
+          class="select-option"
+          [value]="option.value"
+          [label]="option.label"
+          [disabled]="option.disabled ?? false"
+        >
+          @if (optionTemplate(); as template) {
+            <ng-container
+              *ngTemplateOutlet="template.templateRef; context: { $implicit: option }"
+            />
+          } @else {
+            {{ option.label }}
+          }
+        </li>
+      }
+    </ul>
+
+    @switch (panelState()) {
+      @case ('loading') {
+        <div class="select-empty" role="status">
+          {{ 'multiSelect.loading' | uiCopy | transloco }}
+        </div>
+      }
+      @case ('error') {
+        <div class="select-empty" role="status">
+          {{ loadErrorMessage() || ('multiSelect.loadError' | uiCopy | transloco) }}
+        </div>
+      }
+      @case ('empty') {
+        <div class="select-empty">
+          {{ emptyMessage() || ('multiSelect.empty' | uiCopy | transloco) }}
+        </div>
+      }
+    }
+
+    @if (panelState() === 'ready' && busy()) {
+      <div class="select-more" role="status">
+        <svg lucideLoaderCircle aria-hidden="true"></svg>
+        {{ 'multiSelect.loading' | uiCopy | transloco }}
+      </div>
+    }
+  </div>
+</ng-template>

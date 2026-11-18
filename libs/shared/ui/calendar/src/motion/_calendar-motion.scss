@@ -1,0 +1,17 @@
+// Rows that arrive with new data rise three pixels into place, all at once:
+// the data arrived at once. `--calendar-motion: 0` from a view that is itself
+// moving holds them still.
+
+@mixin rise {
+  animation: calendar-rise calc(var(--dur-slower) * var(--calendar-motion, 1)) var(--ease-out) both;
+}
+
+// Include at the stylesheet root: keyframes are scoped per component.
+@mixin rise-keyframes {
+  @keyframes calendar-rise {
+    from {
+      opacity: 0;
+      transform: translateY(3px);
+    }
+  }
+}

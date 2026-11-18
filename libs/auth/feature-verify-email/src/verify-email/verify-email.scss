@@ -1,0 +1,105 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+.verify-email {
+  @include a.container;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 34rem;
+  padding-top: a.space(16);
+  padding-bottom: a.space(16);
+  text-align: center;
+}
+
+.verify-email__title {
+  @include a.t-h2;
+  margin: 0 0 a.space(3);
+}
+
+.verify-email__lead {
+  @include a.t-body;
+  margin: 0 0 a.space(8);
+  color: var(--text-secondary);
+  // The address is the one thing on this page a person checks character by character.
+  overflow-wrap: anywhere;
+}
+
+.verify-email__form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: a.space(5);
+  width: 100%;
+}
+
+.verify-email__status {
+  @include a.t-body-sm;
+  // Reserved whether or not there is a message, so the button below does not jump when one
+  // arrives — this region changes on almost every keystroke.
+  min-height: a.space(6);
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.verify-email:has(.verify-email__code[data-invalid]) .verify-email__status {
+  color: var(--error-text);
+}
+
+.verify-email__submit {
+  width: 100%;
+}
+
+.verify-email__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: a.space(2);
+  margin-top: a.space(6);
+}
+
+// The pending action: why the person is on this screen. Written by the flow that sent them.
+.verify-email__pending {
+  width: 100%;
+  margin-block: a.space(2) a.space(6);
+  padding: a.space(4);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(lg);
+  background: var(--surface-2);
+  text-align: start;
+}
+
+.verify-email__pending-title {
+  @include a.t-label;
+  margin: 0 0 a.space(3);
+  color: var(--text-primary);
+}
+
+.verify-email__pending-rows {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(2);
+  margin: 0;
+}
+
+.verify-email__pending-row {
+  display: flex;
+  justify-content: space-between;
+  gap: a.space(4);
+
+  dt {
+    @include a.t-body-sm;
+    color: var(--text-muted);
+    margin: 0;
+  }
+
+  dd {
+    @include a.t-body-sm;
+    color: var(--text-primary);
+    margin: 0;
+    text-align: end;
+  }
+}

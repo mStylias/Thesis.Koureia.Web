@@ -1,0 +1,95 @@
+@use 'abstracts' as a;
+
+// The host is the surface: `PopoverService` positions and dismisses, and the
+// panel is the caller's to draw.
+:host {
+  box-sizing: border-box;
+  display: block;
+  width: 17rem;
+  padding: a.space(3);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  outline: none;
+}
+
+.dg-hf {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(2);
+}
+
+.dg-hf-title {
+  @include a.t-caption;
+
+  margin: 0;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dg-hf-search {
+  display: flex;
+}
+
+.dg-hf-all {
+  padding-block-end: a.space(1);
+  border-block-end: var(--border-width-hairline) solid var(--border-subtle);
+}
+
+// Capped so a long value list scrolls inside the panel instead of pushing the
+// actions past the bottom of the viewport.
+.dg-hf-list {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(2);
+  max-height: 14rem;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.dg-hf-count {
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.dg-hf-notice {
+  @include a.t-caption;
+
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.dg-hf-tree {
+  max-height: 18rem;
+  overflow-y: auto;
+}
+
+.dg-hf-tree-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.space(2);
+  width: 100%;
+}
+
+.dg-hf-empty {
+  @include a.t-body-sm;
+
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.dg-hf-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: a.space(2);
+  padding-block-start: a.space(2);
+  border-block-start: var(--border-width-hairline) solid var(--border-subtle);
+}

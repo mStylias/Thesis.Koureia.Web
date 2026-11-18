@@ -1,0 +1,93 @@
+.add-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+// Lines the label up with a `sm` field's horizontal padding. The wrapper inherits the property.
+.add-field {
+  --field-label-inset: var(--space-2);
+}
+
+.add-existing,
+.add-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+
+  p {
+    margin: 0;
+    font-size: var(--text-sm);
+  }
+}
+
+.add-error {
+  color: var(--error-text);
+}
+
+.add-found {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.add-found-caption {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.add-person {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.add-person-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.add-person-name {
+  font-weight: var(--weight-bold);
+  overflow-wrap: anywhere;
+}
+
+.add-person-email {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.add-switch {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+
+  label {
+    font-weight: var(--weight-medium);
+    cursor: pointer;
+  }
+}
+
+.add-defaults {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-inline-start: var(--space-2);
+}
+
+.add-hint {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  color: var(--text-muted);
+}
+
+// "Change email" sits apart from the two buttons that close or finish.
+.add-back {
+  margin-inline-end: auto;
+}

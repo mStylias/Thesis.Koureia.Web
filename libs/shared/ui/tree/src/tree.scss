@@ -1,0 +1,335 @@
+// All values come from the brand-neutral token contract; no brand colors or
+// spacing are owned here.
+
+:host {
+  display: block;
+  width: 100%;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+.tree-root,
+.tree-group {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tree-root {
+  outline: none;
+}
+
+.tree-group {
+  margin-inline-start: calc(var(--tree-chevron-size) / 2);
+  padding-inline-start: calc(var(--tree-chevron-size) / 2 + var(--space-2));
+  width: calc(100% - var(--tree-chevron-size) / 2);
+  border-inline-start: var(--border-width-hairline) solid transparent;
+}
+
+:host([data-guides]) .tree-group {
+  border-inline-start-color: var(--border-subtle);
+}
+
+.tree-item {
+  width: 100%;
+  outline: none;
+}
+
+.tree-row {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--tree-row-height);
+  gap: var(--space-2);
+  padding: var(--tree-padding-block) var(--space-2);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.tree-item:focus-visible > .tree-row {
+  box-shadow: inset 0 0 0 2px var(--focus-ring);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tree-item:not([aria-disabled='true']):not([data-readonly]) > .tree-row:hover {
+    background: var(--surface-2);
+  }
+}
+
+.tree-item[data-selected] > .tree-row,
+.tree-item[data-partial] > .tree-row {
+  color: var(--accent-text);
+}
+
+.tree-item[data-selected] > .tree-row .tree-content,
+.tree-item[data-partial] > .tree-row .tree-content {
+  font-weight: var(--weight-bold);
+}
+
+.tree-item[aria-disabled='true'] > .tree-row {
+  color: var(--text-muted);
+  cursor: default;
+  opacity: var(--opacity-disabled);
+}
+
+:host([data-readonly]) .tree-row {
+  cursor: default;
+}
+
+:host([data-readonly]) .tree-item[data-branch]:not([aria-disabled='true']) > .tree-row {
+  cursor: pointer;
+}
+
+:host([data-readonly]) [data-tree-selection-hit] {
+  cursor: default;
+}
+
+:host([data-disabled]) {
+  opacity: var(--opacity-disabled);
+}
+
+.tree-indent {
+  display: none;
+}
+
+.tree-chevron,
+.tree-indicator {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  width: var(--tree-chevron-size);
+  height: var(--tree-chevron-size);
+  pointer-events: none;
+}
+
+.tree-indicator {
+  pointer-events: auto;
+}
+
+.tree-chevron {
+  color: var(--text-secondary);
+}
+
+.tree-chevron-placeholder {
+  visibility: hidden;
+}
+
+.tree-chevron svg,
+.tree-status svg {
+  width: 100%;
+  height: 100%;
+  stroke-width: var(--icon-stroke);
+}
+
+.tree-chevron svg {
+  transform: rotate(0deg);
+  transform-origin: center;
+}
+
+.tree-item[aria-expanded='true'] > .tree-row .tree-chevron svg {
+  transform: rotate(90deg);
+}
+
+:host-context([dir='rtl']) .tree-item:not([aria-expanded='true']) > .tree-row .tree-chevron svg {
+  transform: rotate(180deg);
+}
+
+// Pointer disclosure is deliberately the only animated path. Initial,
+// keyboard, and imperative expansion never receive `data-motion`.
+.tree-item[data-motion='pointer'] > .tree-row .tree-chevron svg {
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.tree-group[data-motion='pointer'] > .tree-item-enter {
+  animation: tree-item-in var(--dur-fast) var(--ease-out);
+}
+
+@keyframes tree-item-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tree-indicator:not(.tree-status) {
+  width: var(--tree-check-size);
+  height: var(--tree-check-size);
+  overflow: hidden;
+  border: var(--border-width-hairline) solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--accent-fg);
+}
+
+.tree-indicator:not(.tree-status)[data-state='selected'],
+.tree-indicator:not(.tree-status)[data-state='partial'] {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.tree-checkbox-mark {
+  width: 100%;
+  height: 100%;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tree-checkbox-check,
+.tree-checkbox-dash {
+  display: none;
+}
+
+.tree-indicator[data-state='selected'] .tree-checkbox-check,
+.tree-indicator[data-state='partial'] .tree-checkbox-dash {
+  display: block;
+}
+
+.tree-status {
+  color: var(--text-secondary);
+}
+
+.tree-status[data-state='selected'],
+.tree-status[data-state='partial'] {
+  color: var(--accent-text);
+}
+
+.tree-content {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  line-height: var(--leading-snug);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  // The flex remainder belongs to disclosure; only `.tree-label-hit` routes
+  // a click to selection.
+  pointer-events: none;
+}
+
+.tree-label-hit {
+  display: inline-flex;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+
+.tree-empty {
+  padding: var(--space-4);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.tree-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+:host([data-size='sm']) {
+  --tree-row-height: var(--control-height-sm);
+  --tree-padding-block: var(--space-1);
+  --tree-chevron-size: var(--icon-size-sm);
+  --tree-check-size: var(--icon-size-sm);
+
+  font-size: var(--text-sm);
+}
+
+:host([data-size='md']) {
+  --tree-row-height: var(--control-height-md);
+  --tree-padding-block: var(--space-2);
+  --tree-chevron-size: var(--icon-size-md);
+  --tree-check-size: var(--icon-size-md);
+
+  font-size: var(--text-base);
+}
+
+:host([data-size='lg']) {
+  --tree-row-height: var(--control-height-lg);
+  --tree-padding-block: var(--space-3);
+  --tree-chevron-size: var(--icon-size-lg);
+  --tree-check-size: var(--icon-size-lg);
+
+  font-size: var(--text-lg);
+}
+
+:host([data-invalid]) .tree-root {
+  box-shadow: inset 0 0 0 var(--border-width-hairline) var(--error);
+  border-radius: var(--radius-sm);
+}
+
+@media (forced-colors: active) {
+  .tree-item[data-selected] > .tree-row,
+  .tree-item[data-partial] > .tree-row {
+    color: Highlight;
+  }
+
+  .tree-item:focus-visible > .tree-row {
+    outline: 2px solid CanvasText;
+    outline-offset: -2px;
+    box-shadow: none;
+  }
+
+  .tree-indicator:not(.tree-status) {
+    border-color: CanvasText;
+  }
+
+  .tree-indicator:not(.tree-status)[data-state='selected'],
+  .tree-indicator:not(.tree-status)[data-state='partial'] {
+    color: HighlightText;
+    background: Highlight;
+    border-color: Highlight;
+    forced-color-adjust: none;
+  }
+
+  .tree-item[aria-disabled='true'] > .tree-row {
+    color: GrayText;
+  }
+}
+
+.tree-spinner {
+  color: var(--text-secondary);
+  animation: tree-spin 1s linear infinite;
+}
+
+@keyframes tree-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tree-node-error {
+  flex: 0 0 auto;
+  color: var(--error-text);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+.tree-empty-error {
+  color: var(--error-text);
+}
+
+.tree-note {
+  margin: var(--space-2) 0 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}

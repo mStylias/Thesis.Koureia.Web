@@ -1,0 +1,71 @@
+@use 'abstracts' as a;
+
+:host {
+  display: grid;
+  gap: a.space(10);
+}
+
+.profile-section {
+  display: grid;
+  gap: a.space(4);
+}
+
+.profile-heading {
+  @include a.t-title;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.profile-form {
+  display: grid;
+  gap: a.space(5);
+}
+
+.profile-pair {
+  display: grid;
+  gap: a.space(5);
+
+  @include a.respond(md) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.profile-readonly {
+  display: grid;
+  gap: a.space(1);
+}
+
+.profile-caption {
+  @include a.t-field-label;
+}
+
+.profile-value {
+  @include a.t-body;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.profile-hint {
+  @include a.t-body-sm;
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.space(3);
+}
+
+.profile-state {
+  @include a.t-body;
+  display: grid;
+  justify-items: start;
+  gap: a.space(3);
+  margin: 0;
+  color: var(--text-secondary);
+
+  p {
+    margin: 0;
+  }
+}

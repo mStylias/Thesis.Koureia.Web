@@ -1,0 +1,41 @@
+// `@ui/spin`. A directive has no stylesheet of its own, so its animation is global. The
+// keyframe names are `SPIN_ANIMATIONS` in `spin.ts`: the directive reads them from its events.
+//
+// Two animations share one timeline. The lead turn eases out, so the icon leaves on the frame
+// of the press. The loop starts when the lead ends and eases in and out, so every turn ends at
+// rest. The directive stops the spin only on a turn boundary, where the icon is still.
+
+[data-lib-spin][data-spinning] {
+  transform-origin: center;
+  animation:
+    lib-spin-lead var(--dur-spin) var(--ease-out-cubic),
+    lib-spin-loop var(--dur-spin) var(--ease-in-out-quad) var(--dur-spin) infinite;
+}
+
+// Two names for one motion: a new name starts a new animation, a changed timing does not.
+@keyframes lib-spin-lead {
+  from {
+    rotate: 0deg;
+  }
+
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes lib-spin-loop {
+  from {
+    rotate: 0deg;
+  }
+
+  to {
+    rotate: 360deg;
+  }
+}
+
+// No animation, not a short one. The directive then sees no turn to wait for and stops at once.
+@media (prefers-reduced-motion: reduce) {
+  [data-lib-spin][data-spinning] {
+    animation: none;
+  }
+}

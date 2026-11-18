@@ -1,0 +1,37 @@
+:host {
+  display: contents;
+}
+
+.auth-form {
+  display: grid;
+  gap: var(--space-3);
+}
+
+button[libButton] {
+  width: 100%;
+}
+
+.auth-switch {
+  margin: var(--space-3) 0 0;
+  text-align: center;
+}
+
+.auth-switch a {
+  color: var(--accent-text);
+  font-weight: var(--weight-semibold);
+  text-underline-offset: var(--space-1);
+}
+
+.message {
+  margin-bottom: var(--space-3);
+}
+
+@media (min-width: 64rem) and (min-height: 48rem) {
+  .message {
+    margin-bottom: var(--space-5);
+  }
+
+  .auth-switch {
+    margin-top: var(--space-8);
+  }
+}

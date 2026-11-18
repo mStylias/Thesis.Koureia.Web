@@ -1,0 +1,85 @@
+<lib-field labelStyle="plain" mode="edit" [icon]="barbersIcon" [field]="editor.form.barberIds">
+  <ng-template libFieldEditor let-id let-describedBy="describedBy">
+    <lib-multi-select
+      display="chip"
+      size="sm"
+      showClear
+      [inputId]="id"
+      [ariaDescribedby]="describedBy"
+      [options]="barberOptions()"
+      [ariaLabel]="'managementCalendar.filters.barbers' | transloco"
+      [placeholder]="'managementCalendar.filters.barbersAll' | transloco"
+      [formField]="editor.form.barberIds"
+    >
+      <ng-template libSelectOption let-option>
+        <span class="filter-option">
+          <span
+            class="filter-swatch"
+            aria-hidden="true"
+            [style.background]="swatchOf(option.value)"
+          ></span>
+          {{ option.label }}
+        </span>
+      </ng-template>
+    </lib-multi-select>
+  </ng-template>
+</lib-field>
+
+<lib-field labelStyle="plain" mode="edit" [icon]="customersIcon" [field]="editor.form.customerIds">
+  <ng-template libFieldEditor let-id let-describedBy="describedBy">
+    @if (store.customers(); as customers) {
+      <lib-multi-select
+        display="chip"
+        size="sm"
+        showClear
+        key="id"
+        [inputId]="id"
+        [ariaDescribedby]="describedBy"
+        [source]="customers"
+        [displayWith]="customerName"
+        [ariaLabel]="'managementCalendar.filters.customers' | transloco"
+        [placeholder]="'managementCalendar.filters.customersAll' | transloco"
+        [searchHint]="'managementCalendar.filters.customersSearch' | transloco"
+        [formField]="editor.form.customerIds"
+      >
+        <ng-template libSelectOption let-option>
+          <span class="filter-option filter-option-stacked">
+            <span>{{ option.label }}</span>
+            <span class="filter-option-meta">{{ lastVisit(option.item) }}</span>
+          </span>
+        </ng-template>
+      </lib-multi-select>
+    }
+  </ng-template>
+</lib-field>
+
+<lib-field labelStyle="plain" mode="edit" [icon]="statusesIcon" [field]="editor.form.statuses">
+  <ng-template libFieldEditor let-id let-describedBy="describedBy">
+    <lib-multi-select
+      size="sm"
+      showClear
+      [inputId]="id"
+      [ariaDescribedby]="describedBy"
+      [options]="statusOptions()"
+      [ariaLabel]="'managementCalendar.filters.statuses' | transloco"
+      [placeholder]="'managementCalendar.filters.statusesAll' | transloco"
+      [formField]="editor.form.statuses"
+    />
+  </ng-template>
+</lib-field>
+
+<lib-field labelStyle="plain" mode="edit" [icon]="categoriesIcon" [field]="editor.form.categoryIds">
+  <ng-template libFieldEditor let-id let-describedBy="describedBy">
+    <lib-multi-select
+      display="chip"
+      size="sm"
+      showClear
+      [inputId]="id"
+      [ariaDescribedby]="describedBy"
+      [options]="categoryOptions()"
+      [ariaLabel]="'managementCalendar.filters.categories' | transloco"
+      [placeholder]="'managementCalendar.filters.categoriesAll' | transloco"
+      [formField]="editor.form.categoryIds"
+    />
+  </ng-template>
+</lib-field>

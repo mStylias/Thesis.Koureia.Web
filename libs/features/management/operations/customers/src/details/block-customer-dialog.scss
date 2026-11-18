@@ -1,0 +1,29 @@
+.block-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.block-text,
+.block-hint {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+}
+
+.block-hint {
+  color: var(--text-muted);
+}
+
+.block-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: calc(var(--space-1) * -1);
+}
+
+.block-link {
+  margin-inline-start: var(--space-1);
+  color: var(--accent-text);
+  font-weight: var(--weight-medium);
+}

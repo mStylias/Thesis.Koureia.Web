@@ -1,0 +1,14 @@
+@use 'abstracts' as a;
+
+.alt-form {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(4);
+}
+
+.alt-hint {
+  @include a.t-body-sm;
+
+  margin: 0;
+  color: var(--text-muted);
+}

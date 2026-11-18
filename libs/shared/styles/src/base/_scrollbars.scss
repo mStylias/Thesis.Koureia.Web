@@ -1,0 +1,54 @@
+// Scrollbars, themed from the semantic tokens so they re-theme with everything
+// else instead of staying whatever the OS paints.
+//
+// Two code paths, and they are deliberately mutually exclusive. Once
+// `scrollbar-color` is set, Blink and WebKit ignore the `::-webkit-scrollbar`
+// pseudo-elements entirely — so declaring both would silently throw away the
+// rounded thumb and the hover state. The `@supports` guard hands each engine
+// exactly one path: engines that understand the pseudo-element use it and get
+// the full treatment, and the rest fall back to the standard properties, which
+// can carry the colours but not the shape.
+@use '../abstracts' as a;
+
+::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
+}
+
+// A transparent track lets the scrollbar sit over whatever surface it belongs
+// to, so it needs no per-surface override.
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: a.radius(pill);
+  background: var(--border-strong);
+  // The border is transparent and clipped to the padding box, which insets the
+  // thumb without shrinking the hit area the pointer actually needs.
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+  background-clip: padding-box;
+}
+
+// Where the two bars meet. Left alone it renders as an opaque OS-grey square.
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+@supports not selector(::-webkit-scrollbar-thumb) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+}
+
+@media (forced-colors: active) {
+  ::-webkit-scrollbar-thumb {
+    background: ButtonBorder;
+  }
+}

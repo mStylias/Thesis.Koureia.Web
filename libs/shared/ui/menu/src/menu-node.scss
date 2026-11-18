@@ -1,0 +1,106 @@
+// The node host contributes no box of its own so rows remain direct
+// children of the `menu` element for layout and the accessibility
+// tree alike.
+
+:host {
+  display: contents;
+}
+
+// The metrics come from the panel: it owns the density, and these properties
+// inherit down to the rows it renders.
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--menu-row-gap);
+  padding: var(--menu-row-pad-y) var(--menu-row-pad-x);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  // Link items render as anchors; strip the underline and inherited
+  // link colour so they look identical to the other rows.
+  text-decoration: none;
+
+  &:hover:not([aria-disabled='true']) {
+    background: var(--surface-2);
+  }
+
+  // The row that owns the currently open submenu stays highlighted.
+  &[aria-expanded='true'] {
+    background: var(--surface-2);
+  }
+
+  // The background highlight follows the pointer only (`:hover`), and
+  // keyboard navigation shows the inset focus ring (`:focus-visible`,
+  // matching the Select options; inset so the panel radius never clips
+  // it). Plain `:focus` deliberately shows nothing: the pattern moves
+  // focus on hover, and a focus background would linger on the last
+  // hovered row after the pointer leaves. The pattern's `data-active`
+  // is also unstyled — it marks the first item active on open, which
+  // must not read as a selection before the user navigates.
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--focus-ring);
+  }
+
+  // The choice in force, drawn like a selected Select option so the two
+  // surfaces read the same. Weight as well as colour, so the mark survives
+  // a palette the user cannot distinguish.
+  &[aria-checked='true'] {
+    background: var(--accent-subtle);
+    color: var(--accent-text);
+    font-weight: var(--weight-bold);
+  }
+
+  &[aria-disabled='true'] {
+    opacity: var(--opacity-disabled);
+    cursor: default;
+  }
+
+  // The label says what the row does. The colour only repeats it.
+  &[data-danger] {
+    color: var(--error-text);
+
+    .menu-item-icon {
+      color: inherit;
+    }
+
+    &:hover:not([aria-disabled='true']) {
+      background: var(--error-bg);
+    }
+  }
+}
+
+.menu-item-icon,
+.menu-item-chevron {
+  flex-shrink: 0;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  stroke-width: var(--icon-stroke);
+  color: var(--text-muted);
+}
+
+.menu-item-label {
+  flex: 1;
+}
+
+.menu-item-shortcut {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+// A forced palette drops our backgrounds, and the checked row is the one
+// state a user must still be able to find. It also carries a bold weight,
+// so it never rests on colour alone.
+@media (forced-colors: active) {
+  .menu-item[aria-checked='true'] {
+    background: Highlight;
+    color: HighlightText;
+    forced-color-adjust: none;
+  }
+}

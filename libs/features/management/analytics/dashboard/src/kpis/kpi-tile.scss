@@ -1,0 +1,154 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+  min-width: 0;
+  height: 100%;
+}
+
+// A size container, so the figure scales to the tile.
+.kpi-tile {
+  --kpi-sparkline-height: calc(var(--space-6) + var(--space-1));
+
+  container: kpi-tile / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  height: 100%;
+  padding: var(--space-2) var(--space-3);
+  border-radius: a.radius(lg);
+  background: var(--surface-2);
+}
+
+// The tile draws the surface, so the figure inside it draws none. In bold tabular figures
+// 123.456,70 € is 4.9em wide, so 20cqi keeps it inside the tile.
+lib-stat {
+  --stat-value-size: clamp(var(--text-lg), 20cqi, var(--text-xl));
+
+  padding: 0;
+  background: none;
+  border-radius: 0;
+}
+
+// The change at the start, the sparkline in the rest of the row.
+.kpi-foot {
+  // The arrow, its gap and +12.5 pts, the widest change in bold tabular figures.
+  --kpi-change-width: calc(var(--icon-size-sm) + var(--space-1) + 3.6em);
+
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: auto;
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+}
+
+// One line tall. An inline box sits on the baseline and can make the line taller.
+.kpi-change,
+.kpi-change-stub {
+  display: flex;
+  flex: none;
+  height: 1lh;
+}
+
+.kpi-change {
+  // The stub width at the least, so the sparkline starts at one place in both states.
+  min-width: var(--kpi-change-width);
+  align-items: center;
+  gap: var(--space-1);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+
+  &[data-tone='good'] {
+    color: var(--success-text);
+  }
+
+  &[data-tone='bad'] {
+    color: var(--error-text);
+  }
+}
+
+.kpi-change-icon {
+  flex: none;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  stroke-width: var(--icon-stroke);
+}
+
+.kpi-sparkline {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  height: var(--kpi-sparkline-height);
+}
+
+// Opacity only, so the base layer's reduced-motion rule stops it.
+.kpi-stub {
+  border-radius: a.radius(sm);
+  background: var(--surface-sunken);
+  animation: kpi-pulse var(--dur-indeterminate) var(--ease-standard) infinite;
+}
+
+.kpi-change-stub {
+  width: var(--kpi-change-width);
+}
+
+// It sits inside the value and takes its size from it, so 1lh is the line of the figure.
+// The width is a typical figure of each KPI.
+.kpi-value-stub {
+  width: min(100%, var(--kpi-figure-width, 2em));
+  height: 1lh;
+
+  &[data-kpi='revenue'] {
+    --kpi-figure-width: 4em;
+  }
+
+  &[data-kpi='averageTicket'] {
+    --kpi-figure-width: 3.25em;
+  }
+
+  &[data-kpi='lostRate'] {
+    --kpi-figure-width: 2.5em;
+  }
+
+  &[data-kpi='averageRating'] {
+    --kpi-figure-width: 1.5em;
+  }
+}
+
+.kpi-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (forced-colors: active) {
+  .kpi-tile {
+    border: var(--border-width-hairline) solid CanvasText;
+  }
+
+  // The tile draws the edge, so the stat inside it draws none.
+  lib-stat {
+    border: 0;
+  }
+
+  // The global ring is a shadow, which the forced palette drops.
+  .kpi-tile:focus-visible {
+    outline: 2px solid Highlight;
+  }
+
+  // The forced palette drops the fills. A system color edge keeps the shape.
+  .kpi-stub {
+    outline: var(--border-width-hairline) solid GrayText;
+  }
+}
+
+@keyframes kpi-pulse {
+  50% {
+    opacity: 0.6;
+  }
+}

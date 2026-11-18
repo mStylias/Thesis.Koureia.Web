@@ -1,0 +1,75 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.map-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.map-container {
+  position: absolute;
+  inset: 0;
+}
+
+// Paired with .map-overlay-leave: same duration and easing, so the
+// loader fades out while the map settles in as one motion.
+.map-container--ready {
+  animation: map-reveal var(--dur-base) var(--ease-out);
+}
+
+@keyframes map-reveal {
+  from {
+    transform: scale(1.015);
+  }
+}
+
+// Bottom left: MapLibre keeps its own controls top right and its attribution bottom right.
+.map-recenter {
+  position: absolute;
+  inset-block-end: var(--space-4);
+  inset-inline-start: var(--space-4);
+  z-index: a.z(base);
+}
+
+.map-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: a.z(base);
+}
+
+.map-overlay-leave {
+  animation: map-overlay-leave var(--dur-base) var(--ease-out) forwards;
+}
+
+@keyframes map-overlay-leave {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-overlay-leave,
+  .map-container--ready {
+    animation: none;
+  }
+}
+
+// Centered, so the map controls in the corners never cover it.
+.map-error {
+  position: absolute;
+  inset: 0;
+  z-index: a.z(base);
+  block-size: fit-content;
+  max-inline-size: min(24rem, calc(100% - 2 * var(--space-4)));
+  margin: auto;
+}

@@ -1,0 +1,86 @@
+@use 'abstracts' as a;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.staff-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-6);
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+  }
+}
+
+.staff-count {
+  margin: 0 auto 0 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+// Three short words. The select's own minimum would make it as wide as a form field.
+.staff-filter {
+  --select-min-width: 0;
+
+  width: 9rem;
+}
+
+.staff-body {
+  padding: 0 var(--space-6) var(--space-8);
+}
+
+.staff-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.staff-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-12) var(--space-4);
+  text-align: center;
+}
+
+.staff-empty-icon {
+  width: var(--icon-size-lg);
+  height: var(--icon-size-lg);
+  stroke-width: var(--icon-stroke);
+  color: var(--text-muted);
+}
+
+.staff-empty-title {
+  margin: 0;
+  @include a.t-title;
+}
+
+.staff-empty-text {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+@include a.respond-down(sm) {
+  .staff-toolbar {
+    padding-inline: var(--space-4);
+  }
+
+  .staff-body {
+    padding-inline: var(--space-4);
+  }
+}

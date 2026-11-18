@@ -1,0 +1,53 @@
+@if (readonly()) {
+  <span
+    class="rating"
+    role="img"
+    [attr.aria-label]="
+      ariaLabel() || ('rating.summary' | uiCopy | transloco: { value: current(), max: safeMax() })
+    "
+    [attr.aria-describedby]="ariaDescribedby() || null"
+  >
+    @for (star of stars(); track star) {
+      <span class="star" [attr.data-on]="star <= current() ? '' : null">
+        <svg lucideStar aria-hidden="true"></svg>
+      </span>
+    }
+  </span>
+} @else {
+  <div
+    class="rating"
+    role="radiogroup"
+    [attr.aria-label]="
+      ariaLabel() || (!ariaLabelledby() ? ('rating.label' | uiCopy | transloco) : null)
+    "
+    [attr.aria-labelledby]="ariaLabelledby() || null"
+    [attr.aria-describedby]="ariaDescribedby() || null"
+    [attr.aria-invalid]="invalid() ? true : null"
+    [attr.aria-required]="required() ? true : null"
+    [attr.aria-disabled]="disabled() ? true : null"
+    (pointerleave)="hover(null)"
+  >
+    @for (star of stars(); track star) {
+      <button
+        #starButton
+        type="button"
+        role="radio"
+        class="star"
+        [attr.aria-checked]="star === current() ? 'true' : 'false'"
+        [attr.aria-label]="
+          (star === 1 ? 'rating.star.one' : 'rating.star.other')
+            | uiCopy
+            | transloco: { count: star }
+        "
+        [attr.tabindex]="star === tabStop() ? 0 : -1"
+        [attr.data-on]="star <= shown() ? '' : null"
+        [disabled]="disabled()"
+        (click)="select(star)"
+        (keydown)="onKeydown($event, star)"
+        (pointerenter)="hover(star)"
+      >
+        <svg lucideStar aria-hidden="true"></svg>
+      </button>
+    }
+  </div>
+}

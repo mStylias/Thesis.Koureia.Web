@@ -1,0 +1,175 @@
+@use 'abstracts' as a;
+
+:host {
+  --calendar-slide-distance: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: a.space(3);
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.cal-toolbar {
+  flex-shrink: 0;
+}
+
+// The side panel and the views share a row, so a pushing panel reflows the
+// views. No gap: a closed panel is still a flex item, and a gap after it would
+// push the views off the toolbar's left edge. The open panel brings its own.
+.cal-body {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.cal-main {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.cal-progress {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 5;
+  // Held back, so a fetch that answers quickly never flashes a bar. Reduced
+  // motion keeps the delay: it is a wait, not a movement.
+  animation: cal-fade-in var(--dur-base) var(--ease-out) 150ms both;
+}
+
+// The entrance stays in the list, so a bar still held back fades out from
+// nothing rather than flashing in at full strength to fade.
+.cal-progress-leave {
+  animation:
+    cal-fade-in var(--dur-base) var(--ease-out) 150ms both,
+    cal-fade-out var(--dur-fast) var(--ease-out) forwards;
+}
+
+.cal-stage {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  min-height: 0;
+}
+
+.cal-view {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+// A switch to a finer view grows in and the old one grows away, as if the
+// calendar zoomed in; a broader view does the reverse. Across the month and its
+// agenda it is a plain cross-fade. The exit is faster than the entrance, and
+// the outgoing view never catches a click.
+// The zoom carries a switched-to view, so its tiles and rows hold still. On the
+// first paint the view has no entrance and they rise in, the one motion at load.
+.cal-view-enter {
+  --calendar-motion: 0;
+  animation: cal-view-in var(--dur-base) var(--ease-out);
+}
+
+.cal-view-leave {
+  animation: cal-view-out var(--dur-fast) var(--ease-out) forwards;
+  pointer-events: none;
+}
+
+.cal-stage[data-zoom='in'] {
+  --cal-zoom-from: 0.98;
+  --cal-zoom-to: 1.02;
+}
+
+.cal-stage[data-zoom='out'] {
+  --cal-zoom-from: 1.02;
+  --cal-zoom-to: 0.98;
+}
+
+@keyframes cal-view-in {
+  from {
+    opacity: 0;
+    transform: scale(var(--cal-zoom-from, 1));
+  }
+}
+
+@keyframes cal-view-out {
+  to {
+    opacity: 0;
+    transform: scale(var(--cal-zoom-to, 1));
+  }
+}
+
+// A step slides the stage in from the side the dates came from. Two names per
+// direction, so the next step restarts the animation. The time grid slides
+// its own columns instead. Tiles and rows hold still while either runs:
+// `--calendar-motion` zeroes their entrance.
+.cal-stage[data-moving] {
+  --calendar-motion: 0;
+}
+
+.cal-stage[data-slide='next-0'] {
+  animation: cal-slide-next-a var(--dur-base) var(--ease-out);
+}
+
+.cal-stage[data-slide='next-1'] {
+  animation: cal-slide-next-b var(--dur-base) var(--ease-out);
+}
+
+.cal-stage[data-slide='previous-0'] {
+  animation: cal-slide-previous-a var(--dur-base) var(--ease-out);
+}
+
+.cal-stage[data-slide='previous-1'] {
+  animation: cal-slide-previous-b var(--dur-base) var(--ease-out);
+}
+
+@keyframes cal-slide-next-a {
+  from {
+    opacity: 0;
+    transform: translateX(var(--calendar-slide-distance));
+  }
+}
+
+@keyframes cal-slide-next-b {
+  from {
+    opacity: 0;
+    transform: translateX(var(--calendar-slide-distance));
+  }
+}
+
+@keyframes cal-slide-previous-a {
+  from {
+    opacity: 0;
+    transform: translateX(calc(-1 * var(--calendar-slide-distance)));
+  }
+}
+
+@keyframes cal-slide-previous-b {
+  from {
+    opacity: 0;
+    transform: translateX(calc(-1 * var(--calendar-slide-distance)));
+  }
+}
+
+@keyframes cal-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes cal-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+.cal-sr {
+  position: absolute;
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  white-space: nowrap;
+}

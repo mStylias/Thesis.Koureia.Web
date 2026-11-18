@@ -1,0 +1,30 @@
+:host {
+  display: inline-flex;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: currentColor;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-black);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-decoration: none;
+
+  img {
+    width: var(--wordmark-icon-size, var(--icon-size-lg));
+    height: var(--wordmark-icon-size, var(--icon-size-lg));
+    object-fit: contain;
+  }
+}
+
+// Tracks its surface: brighter over the hero, the AA-safe primary once the
+// header turns opaque. Transitioned so it moves with the bar rather than
+// snapping mid-scroll.
+.brand-accent {
+  color: var(--accent-text);
+  transition: color var(--dur-base) var(--ease-standard);
+}

@@ -1,0 +1,7 @@
+// Element defaults and semantic type classes.
+//
+// This file does not `@use` `_emit.scss`. That file only defines mixins, and a theme decides
+// where to call them. Core emits no tokens of its own.
+@use 'base';
+@use 'scrollbars';
+@use 'typography';

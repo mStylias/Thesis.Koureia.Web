@@ -1,0 +1,53 @@
+<article libCard appearance="elevated" class="shop-card">
+  <figure libCardMedia class="shop-card__media">
+    <!-- Out of the tab order: the title is the same link, one stop is enough. -->
+    <a class="shop-card__media-link" tabindex="-1" [langLink]="link()">
+      @if (shop().mainPhotoUrl; as photo) {
+        <img
+          [src]="photo"
+          [alt]="'barbershops.card.photoAlt' | transloco: { name: shop().name }"
+          loading="lazy"
+          decoding="async"
+        />
+      } @else {
+        <svg lucideScissors aria-hidden="true"></svg>
+      }
+    </a>
+  </figure>
+
+  @if (showLocate()) {
+    <button
+      libButton
+      iconOnly
+      rounded
+      raised
+      severity="secondary"
+      size="sm"
+      type="button"
+      class="shop-card__locate"
+      [libTooltip]="'barbershops.card.locate' | transloco"
+      [attr.aria-label]="'barbershops.card.locateLabel' | transloco: { name: shop().name }"
+      (click)="locate.emit()"
+    >
+      <svg lucideLocateFixed aria-hidden="true"></svg>
+    </button>
+  }
+
+  <div libCardBody>
+    <header libCardHeader>
+      <div class="shop-card__heading">
+        <h3 libCardTitle>
+          <a class="shop-card__link" [langLink]="link()">{{ shop().name }}</a>
+        </h3>
+        <p libCardSubtitle>{{ address() }}</p>
+      </div>
+    </header>
+
+    <footer libCardFooter>
+      <span class="shop-card__distance">{{ distance() }}</span>
+      <a libButton size="sm" [langLink]="bookingLink()">
+        {{ 'barbershops.card.view' | transloco }}
+      </a>
+    </footer>
+  </div>
+</article>

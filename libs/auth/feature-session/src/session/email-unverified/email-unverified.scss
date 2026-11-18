@@ -1,0 +1,49 @@
+@use 'abstracts' as a;
+
+// The host is an empty box until the notice arrives, and stays in the flow as the live region.
+// `display: contents` would take the box away and with it, in some browsers, the `role="status"`.
+:host {
+  display: block;
+}
+
+/*
+ * Anchored to the bottom of the viewport, and not to the top of the document.
+ *
+ * The top edge is already owned: the landing header is `position: fixed` over a full-viewport
+ * hero, so an in-flow bar above the outlet renders *under* it. Making room instead would mean
+ * every fixed header and every `100dvh` section reading a notice height that is usually zero —
+ * a session concern threaded through the layout of pages that have nothing to do with it.
+ *
+ * Down here it collides with nothing, and it costs no layout shift on arrival, which matters for
+ * something that appears one paint after hydration.
+ */
+.email-unverified {
+  position: fixed;
+  inset: auto 0 0;
+  // Above page content, below overlays: a drawer or a dialog backdrop must still cover it.
+  z-index: a.z(sticky);
+  background: var(--surface);
+  border-top: var(--border-width-hairline) solid var(--border);
+  box-shadow: var(--shadow-lg);
+}
+
+.email-unverified__inner {
+  @include a.container;
+  padding-top: a.space(3);
+  padding-bottom: a.space(3);
+  // Clears the home indicator and the address bar on a phone.
+  padding-bottom: max(#{a.space(3)}, env(safe-area-inset-bottom));
+}
+
+// Rises the depth of its own top border. It displaces nothing, so a longer travel would only
+// draw the eye to a bar that is meant to be noticed once and then ignored.
+.email-unverified-enter {
+  animation: email-unverified-in var(--dur-base) var(--ease-out);
+}
+
+@keyframes email-unverified-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-2));
+  }
+}

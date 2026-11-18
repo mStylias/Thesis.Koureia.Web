@@ -1,0 +1,265 @@
+// Consumes the design-system CSS custom properties emitted by the
+// shared @ui styles. The wrapper carries the
+// border and focus treatment (the inner input is chromeless), so the
+// step buttons and clear affordance sit inside the field.
+
+:host {
+  display: inline-flex;
+  flex-direction: column;
+  height: fit-content;
+  min-width: var(--input-number-min-width);
+  font-family: var(--font-sans);
+}
+
+:host([data-disabled]) {
+  opacity: var(--opacity-disabled);
+}
+
+.number-field {
+  display: flex;
+  align-items: stretch;
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border-strong);
+  border-radius: var(--radius-md);
+  transition:
+    border-color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard);
+
+  &:hover:not(:has(input:disabled)) {
+    border-color: var(--accent);
+  }
+
+  // Form-field focus: light the border to a 2px accent ring; the inner
+  // input suppresses the global :focus-visible ring (see below).
+  &:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+}
+
+// Composed into a frame the parent draws. The parent owns the border, the
+// background, the focus ring and the invalid state for the whole group; two
+// frames a hairline apart read as two controls. The border goes transparent
+// rather than away, so toggling it never changes the height.
+// The parent's frame supplies the leading inset; ours on top of it opens a gap
+// the value looks lost in. The trailing inset stays for the step and clear
+// buttons.
+:host([data-frameless]) .number-field > input {
+  padding-inline-start: 0;
+}
+
+:host([data-frameless]) .number-field {
+  border-color: transparent;
+  background: transparent;
+
+  &:hover:not(:has(input:disabled)),
+  &:focus-within {
+    border-color: transparent;
+    box-shadow: none;
+  }
+}
+
+// Read-only stays legible and focusable, so it keeps the resting border
+// but gives up the hover affordance that promises an edit.
+:host([data-readonly]) .number-field:hover {
+  border-color: var(--border-strong);
+}
+
+:host([data-invalid]) .number-field {
+  border-color: var(--error);
+
+  &:focus-within {
+    border-color: var(--error);
+    box-shadow: 0 0 0 1px var(--error);
+  }
+}
+
+// The parent's frame carries the invalid state too. A red hairline around the
+// inner field alone draws a box the composed control does not otherwise have,
+// inside a frame that stays neutral.
+:host([data-frameless][data-invalid]) .number-field {
+  border-color: transparent;
+
+  &:focus-within {
+    border-color: transparent;
+    box-shadow: none;
+  }
+}
+
+.number-field > input {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  // The label wrappers override the top inset via --field-pad-top to
+  // make room for in/IFTA labels.
+  padding: var(--field-pad-top, var(--input-pad-y)) var(--input-pad-x) var(--input-pad-y);
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--input-text);
+  line-height: var(--leading-snug);
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+
+  // The wrapper renders the focus treatment via :focus-within.
+  &:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+}
+
+// ---- Sizes → private properties ----
+
+:host([data-size='sm']) {
+  --input-pad-y: var(--space-1);
+  --input-pad-x: var(--space-2);
+  --input-text: var(--text-sm);
+}
+
+:host([data-size='md']) {
+  --input-pad-y: var(--space-2);
+  --input-pad-x: var(--space-3);
+  --input-text: var(--text-base);
+}
+
+:host([data-size='lg']) {
+  --input-pad-y: var(--space-3);
+  --input-pad-x: var(--space-4);
+  --input-text: var(--text-lg);
+}
+
+// ---- Adornments ----
+
+.number-clear,
+.number-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard);
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+  }
+
+  &:hover:not(:disabled) {
+    color: var(--text-primary);
+    background: var(--surface-2);
+  }
+
+  &:disabled {
+    opacity: var(--opacity-disabled);
+    cursor: default;
+  }
+}
+
+.number-clear {
+  padding: 0 var(--space-2);
+}
+
+// Stacked: half-height chevrons at the right edge.
+.number-steps {
+  display: flex;
+  flex-direction: column;
+  border-left: var(--border-width-hairline) solid var(--border);
+
+  .number-step {
+    flex: 1;
+    padding: 0 var(--space-2);
+
+    svg {
+      width: calc(var(--icon-size-sm) * 0.75);
+      height: calc(var(--icon-size-sm) * 0.75);
+    }
+  }
+
+  .number-step + .number-step {
+    border-top: var(--border-width-hairline) solid var(--border);
+  }
+}
+
+// Horizontal: − and + flank the input.
+.number-step-down {
+  border-right: var(--border-width-hairline) solid var(--border);
+  padding: 0 var(--space-2);
+}
+
+.number-step-up {
+  border-left: var(--border-width-hairline) solid var(--border);
+  padding: 0 var(--space-2);
+}
+
+:host([data-buttons='horizontal']) .number-field > input {
+  text-align: center;
+}
+
+// ---- Error ----
+// The invalid state must not be carried by the border colour alone, so the
+// translated message is part of the contract, not an optional extra.
+
+.number-error {
+  margin-top: var(--space-1);
+  color: var(--error-text);
+  font-size: var(--text-sm);
+}
+
+// Composed into a parent's frame, the control owns no layout of its own, so an
+// error in flow pushes the parent taller every time the user mistypes — in a
+// grid's filter row that re-flows the whole row under the pointer. It floats
+// over the control instead, sized to its text rather than to the column.
+//
+// `role="alert"` still announces it, and it stays in the control's own DOM, so
+// it can never desync from the field the way a separate overlay could. A host
+// that scrolls clips it — `@ui/date-picker` floats the same message in an
+// overlay because a data grid's viewport does exactly that.
+:host([data-frameless]) {
+  position: relative;
+}
+
+:host([data-frameless]) .number-error {
+  position: absolute;
+  bottom: calc(100% + var(--space-1));
+  inset-inline-start: 0;
+  z-index: 1;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(18rem, 70vw);
+  margin-top: 0;
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--error);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+// ---- Forced colors ----
+// Every field state here rides on border-color plus a box-shadow, both of
+// which a forced palette drops; restate them in system colours.
+
+@media (forced-colors: active) {
+  :host(:not([data-frameless])) .number-field {
+    border-color: CanvasText;
+  }
+
+  .number-field:focus-within {
+    outline: 2px solid Highlight;
+  }
+
+  .number-step:disabled,
+  .number-clear:disabled {
+    color: GrayText;
+  }
+}

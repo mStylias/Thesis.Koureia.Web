@@ -1,0 +1,34 @@
+@if (visible()) {
+  <div class="email-unverified" animate.enter="email-unverified-enter">
+    <div class="email-unverified__inner">
+      <lib-banner tone="warning" [icon]="mailIcon">
+        {{ 'auth.unverified.message' | transloco }}
+
+        <a
+          libButton
+          libBannerAction
+          size="sm"
+          [routerLink]="verifyLink()"
+          [queryParams]="{ returnUrl: currentUrl() }"
+        >
+          {{ 'auth.unverified.verify' | transloco }}
+        </a>
+
+        <button
+          libButton
+          libBannerAction
+          type="button"
+          variant="text"
+          severity="secondary"
+          size="sm"
+          iconOnly
+          rounded
+          [attr.aria-label]="'auth.unverified.dismiss' | transloco"
+          (click)="dismiss()"
+        >
+          <svg lucideX aria-hidden="true"></svg>
+        </button>
+      </lib-banner>
+    </div>
+  </div>
+}

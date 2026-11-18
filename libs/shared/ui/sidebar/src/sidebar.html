@@ -1,0 +1,200 @@
+<!-- Authored once, rendered in exactly one branch below (desktop nav or
+     mobile drawer), so element ids never duplicate. -->
+<ng-template #navTpl let-inDrawer>
+  <ul class="sidebar-list" role="list">
+    @for (group of visibleGroups(); track $index; let gi = $index) {
+      <li class="sidebar-group">
+        @if (group.label) {
+          <div class="sidebar-group-label" [id]="navId + '-group-' + gi">
+            {{ group.label }}
+          </div>
+        }
+        <!-- The heading is plain text, so name the list with it — otherwise
+             it is read as a stray label with no relationship to the options
+             that follow. -->
+        <ul
+          class="sidebar-group-list"
+          role="list"
+          [attr.aria-labelledby]="group.label ? navId + '-group-' + gi : null"
+        >
+          @for (item of group.items; track item; let ii = $index) {
+            @let children = visibleChildren(item);
+            <li>
+              @if (children.length > 0) {
+                <button
+                  type="button"
+                  class="sidebar-link sidebar-parent"
+                  [disabled]="item.disabled"
+                  [attr.aria-expanded]="isExpanded(item)"
+                  [attr.aria-controls]="navId + '-sub-' + gi + '-' + ii"
+                  [libTooltip]="item.label"
+                  tooltipPosition="right"
+                  [tooltipDisabled]="inDrawer || !collapsed() || !!item.disabled"
+                  (click)="toggleSubmenu(item)"
+                >
+                  @if (item.icon; as icon) {
+                    <svg [lucideIcon]="icon" class="sidebar-link-icon" aria-hidden="true"></svg>
+                  }
+                  <span class="sidebar-link-label">{{ item.label }}</span>
+                  <svg lucideChevronRight class="sidebar-parent-chevron" aria-hidden="true"></svg>
+                  <svg
+                    lucideChevronDown
+                    class="sidebar-parent-rail-indicator"
+                    aria-hidden="true"
+                  ></svg>
+                </button>
+                <!-- Grid-rows expansion (the documented layout-animation
+                     exception for auto height); inert keeps the closed
+                     children out of the tab order and the a11y tree. -->
+                <div
+                  class="sidebar-submenu"
+                  [id]="navId + '-sub-' + gi + '-' + ii"
+                  [class.is-open]="isExpanded(item)"
+                  [attr.inert]="isExpanded(item) ? null : ''"
+                >
+                  <div class="sidebar-submenu-inner">
+                    <ul class="sidebar-sublist" role="list">
+                      @for (child of children; track child) {
+                        <li>
+                          @if (child.routerLink) {
+                            <a
+                              class="sidebar-link sidebar-sublink"
+                              [routerLink]="child.disabled ? null : child.routerLink"
+                              [queryParams]="child.queryParams ?? null"
+                              routerLinkActive="is-active"
+                              ariaCurrentWhenActive="page"
+                              [routerLinkActiveOptions]="routerLinkActiveOptions()"
+                              [attr.aria-disabled]="child.disabled ? 'true' : null"
+                              [attr.tabindex]="child.disabled ? -1 : null"
+                              (click)="onSelect(child, $event)"
+                            >
+                              @if (child.icon; as icon) {
+                                <svg
+                                  [lucideIcon]="icon"
+                                  class="sidebar-link-icon"
+                                  aria-hidden="true"
+                                ></svg>
+                              }
+                              <span class="sidebar-link-label">{{ child.label }}</span>
+                            </a>
+                          } @else {
+                            <a
+                              class="sidebar-link sidebar-sublink"
+                              [attr.href]="child.disabled ? null : child.url"
+                              [attr.target]="child.target || null"
+                              [attr.rel]="child.target === '_blank' ? 'noopener' : null"
+                              [attr.aria-disabled]="child.disabled ? 'true' : null"
+                              [attr.tabindex]="child.disabled ? -1 : null"
+                              (click)="onSelect(child, $event)"
+                            >
+                              @if (child.icon; as icon) {
+                                <svg
+                                  [lucideIcon]="icon"
+                                  class="sidebar-link-icon"
+                                  aria-hidden="true"
+                                ></svg>
+                              }
+                              <span class="sidebar-link-label">{{ child.label }}</span>
+                            </a>
+                          }
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                </div>
+              } @else if (item.routerLink) {
+                <a
+                  class="sidebar-link"
+                  [routerLink]="item.disabled ? null : item.routerLink"
+                  [queryParams]="item.queryParams ?? null"
+                  routerLinkActive="is-active"
+                  ariaCurrentWhenActive="page"
+                  [routerLinkActiveOptions]="routerLinkActiveOptions()"
+                  [attr.aria-disabled]="item.disabled ? 'true' : null"
+                  [attr.tabindex]="item.disabled ? -1 : null"
+                  [libTooltip]="item.label"
+                  tooltipPosition="right"
+                  [tooltipDisabled]="inDrawer || !collapsed() || !!item.disabled"
+                  (click)="onSelect(item, $event)"
+                >
+                  <!-- A click on the icon <svg> bubbles to the anchor and
+                       navigates natively — no pointer-events workaround
+                       needed on plain anchors (unlike the aria tabs). -->
+                  @if (item.icon; as icon) {
+                    <svg [lucideIcon]="icon" class="sidebar-link-icon" aria-hidden="true"></svg>
+                  }
+                  <!-- Stays in the DOM while collapsed (faded, clipped) so
+                       the anchor keeps its accessible name from content. -->
+                  <span class="sidebar-link-label">{{ item.label }}</span>
+                </a>
+              } @else {
+                <a
+                  class="sidebar-link"
+                  [attr.href]="item.disabled ? null : item.url"
+                  [attr.target]="item.target || null"
+                  [attr.rel]="item.target === '_blank' ? 'noopener' : null"
+                  [attr.aria-disabled]="item.disabled ? 'true' : null"
+                  [attr.tabindex]="item.disabled ? -1 : null"
+                  [libTooltip]="item.label"
+                  tooltipPosition="right"
+                  [tooltipDisabled]="inDrawer || !collapsed() || !!item.disabled"
+                  (click)="onSelect(item, $event)"
+                >
+                  @if (item.icon; as icon) {
+                    <svg [lucideIcon]="icon" class="sidebar-link-icon" aria-hidden="true"></svg>
+                  }
+                  <span class="sidebar-link-label">{{ item.label }}</span>
+                </a>
+              }
+            </li>
+          }
+        </ul>
+      </li>
+    }
+  </ul>
+</ng-template>
+
+@if (isDesktop()) {
+  <!-- Brand only: the collapse toggle lives in `lib-topbar`, so nothing
+       in this row has to reposition while the rail narrows. The header
+       renders even without a brand — it draws the hairline the top bar's
+       own bottom border continues. -->
+  <div class="sidebar-header">
+    @if (brand(); as brandTpl) {
+      <div class="sidebar-brand">
+        <ng-container [ngTemplateOutlet]="brandTpl.templateRef" />
+      </div>
+    }
+  </div>
+  <nav
+    class="sidebar-nav"
+    [id]="navId"
+    [attr.aria-label]="ariaLabel() || ('sidebar.navLabel' | uiCopy | transloco)"
+  >
+    <ng-container [ngTemplateOutlet]="navTpl" [ngTemplateOutletContext]="{ $implicit: false }" />
+  </nav>
+} @else {
+  <lib-drawer
+    [(visible)]="mobileOpen"
+    position="left"
+    size="sm"
+    modal
+    dismissible
+    closeOnEscape
+    blockScroll
+    [closeAriaLabel]="'sidebar.closeLabel' | uiCopy | transloco"
+    [ariaLabel]="ariaLabel() || ('sidebar.navLabel' | uiCopy | transloco)"
+  >
+    @if (brand(); as brandTpl) {
+      <div libDrawerHeader class="sidebar-brand">
+        <ng-container [ngTemplateOutlet]="brandTpl.templateRef" />
+      </div>
+    }
+    <nav
+      class="sidebar-drawer-nav"
+      [attr.aria-label]="ariaLabel() || ('sidebar.navLabel' | uiCopy | transloco)"
+    >
+      <ng-container [ngTemplateOutlet]="navTpl" [ngTemplateOutletContext]="{ $implicit: true }" />
+    </nav>
+  </lib-drawer>
+}

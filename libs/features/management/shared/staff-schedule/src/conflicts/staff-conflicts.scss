@@ -1,0 +1,22 @@
+:host {
+  display: block;
+}
+
+.conflicts-text {
+  margin: 0;
+}
+
+.conflicts-list {
+  margin: var(--space-1) 0 0;
+  padding-inline-start: var(--space-4);
+  font-variant-numeric: tabular-nums;
+
+  a {
+    color: var(--accent-text);
+  }
+}
+
+// Space above the list when a save scrolls it into view.
+lib-banner {
+  scroll-margin-block: var(--space-4);
+}

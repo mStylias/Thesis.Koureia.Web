@@ -1,0 +1,42 @@
+@use 'abstracts' as a;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-4);
+  border-radius: a.radius(lg);
+  background: var(--surface-2);
+}
+
+.stat-value {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-sans);
+  font-size: var(--stat-value-size, var(--text-xl));
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--leading-tight);
+  color: var(--text-primary);
+}
+
+.stat-label {
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  color: var(--text-secondary);
+  // Keeps words whole. A word breaks only when it alone is wider than the line.
+  overflow-wrap: break-word;
+}
+
+:host([data-label-first]) .stat-label {
+  order: -1;
+}
+
+// The background disappears in forced colors, so the tile keeps an edge.
+@media (forced-colors: active) {
+  :host {
+    border: var(--border-width-hairline) solid CanvasText;
+  }
+}

@@ -1,0 +1,260 @@
+@for (item of items(); track item.key) {
+  @switch (item.kind) {
+    @case ('group') {
+      <div
+        class="dg-row dg-group-row"
+        role="row"
+        data-row-kind="group"
+        [attr.aria-rowindex]="item.ariaRowIndex"
+        [attr.aria-expanded]="item.expanded"
+        [attr.aria-level]="item.level + 1"
+        [attr.data-key]="item.keyText"
+        [attr.data-level]="item.level"
+        [style.top.px]="item.top"
+        [style.height.px]="item.height"
+      >
+        <!-- The label spans every track when nothing is aligned under a
+             column, and stops short of the first aligned aggregate otherwise.
+             Pointer and keyboard both reach it through the viewport's
+             delegated handlers, as every other cell does. -->
+        <div
+          class="dg-cell dg-group-label"
+          role="gridcell"
+          aria-colindex="1"
+          [attr.data-column]="item.columnId"
+          [attr.tabindex]="isRowFocused(item.key) ? 0 : -1"
+          [style.grid-column]="'1 / span ' + item.labelSpan"
+        >
+          <span class="dg-group-inner" [style.padding-inline-start.px]="item.level * 16">
+            <svg
+              lucideChevronRight
+              class="dg-group-chevron"
+              aria-hidden="true"
+              [attr.data-expanded]="item.expanded ? '' : null"
+            ></svg>
+            @if (item.template) {
+              <ng-container
+                [ngTemplateOutlet]="item.template"
+                [ngTemplateOutletContext]="item.context"
+              />
+            } @else if (item.component; as renderer) {
+              <ng-container
+                [ngComponentOutlet]="renderer.type"
+                [ngComponentOutletInputs]="renderer.inputs"
+              />
+            } @else {
+              <span class="dg-group-caption">{{ item.caption }}:</span>
+              <span class="dg-group-value">{{ item.text }}</span>
+              @if (item.count !== null) {
+                <span class="dg-group-count">({{ item.count }})</span>
+              }
+              @for (summary of item.summaries; track $index) {
+                <span class="dg-group-summary">
+                  <span class="dg-summary-label">{{ summary.labelKey | uiCopy | transloco }}</span>
+                  {{ summary.text }}
+                </span>
+              }
+            }
+          </span>
+        </div>
+        @if (item.cells; as cells) {
+          @for (cell of cells; track cell.columnId) {
+            <div
+              class="dg-cell dg-summary-cell"
+              role="gridcell"
+              [attr.aria-colindex]="cell.colIndex"
+              [attr.data-column]="cell.columnId"
+              [attr.data-pinned]="cell.pinned || null"
+              [attr.data-edge]="cell.edge ? '' : null"
+              tabindex="-1"
+              [style.left.px]="cell.insetStart"
+              [style.right.px]="cell.insetEnd"
+            >
+              @if (cell.template) {
+                <ng-container
+                  [ngTemplateOutlet]="cell.template"
+                  [ngTemplateOutletContext]="cell.context"
+                />
+              } @else if (cell.component; as renderer) {
+                <ng-container
+                  [ngComponentOutlet]="renderer.type"
+                  [ngComponentOutletInputs]="renderer.inputs"
+                />
+              } @else {
+                {{ cell.text }}
+              }
+            </div>
+          }
+        }
+      </div>
+    }
+    @case ('groupFooter') {
+      <div
+        class="dg-row dg-group-footer"
+        role="row"
+        data-row-kind="group-footer"
+        [attr.aria-rowindex]="item.ariaRowIndex"
+        [attr.data-key]="item.keyText"
+        [attr.data-level]="item.level"
+        [style.top.px]="item.top"
+        [style.height.px]="item.height"
+      >
+        @for (cell of item.cells; track cell.columnId) {
+          <div
+            class="dg-cell dg-summary-cell"
+            role="gridcell"
+            [attr.aria-colindex]="cell.colIndex"
+            [attr.data-column]="cell.columnId"
+            [attr.data-pinned]="cell.pinned || null"
+            [attr.data-edge]="cell.edge ? '' : null"
+            tabindex="-1"
+            [style.left.px]="cell.insetStart"
+            [style.right.px]="cell.insetEnd"
+          >
+            @if (cell.template) {
+              <ng-container
+                [ngTemplateOutlet]="cell.template"
+                [ngTemplateOutletContext]="cell.context"
+              />
+            } @else if (cell.component; as renderer) {
+              <ng-container
+                [ngComponentOutlet]="renderer.type"
+                [ngComponentOutletInputs]="renderer.inputs"
+              />
+            } @else {
+              {{ cell.text }}
+            }
+          </div>
+        }
+      </div>
+    }
+    @case ('detail') {
+      <!-- Instantiated on first expansion and destroyed on collapse, so a
+           detail region costs nothing while it is closed. -->
+      <div
+        class="dg-row dg-detail-row"
+        role="row"
+        data-row-kind="detail"
+        [attr.aria-rowindex]="item.ariaRowIndex"
+        [attr.data-key]="item.keyText"
+        [style.top.px]="item.top"
+        [style.height.px]="item.height"
+      >
+        <div class="dg-cell dg-detail-cell" role="gridcell" aria-colindex="1" tabindex="-1">
+          @if (item.template) {
+            <ng-container
+              [ngTemplateOutlet]="item.template"
+              [ngTemplateOutletContext]="item.context"
+            />
+          } @else if (item.component; as renderer) {
+            <ng-container
+              [ngComponentOutlet]="renderer.type"
+              [ngComponentOutletInputs]="renderer.inputs"
+            />
+          }
+        </div>
+      </div>
+    }
+    @default {
+      <div
+        class="dg-row"
+        role="row"
+        [class]="item.classes"
+        [style]="item.styles"
+        [libDatagridAttrs]="item.aria"
+        [attr.aria-rowindex]="item.ariaRowIndex"
+        [attr.aria-selected]="selectable() ? item.selected : null"
+        [attr.aria-expanded]="item.expanded"
+        [attr.aria-level]="item.level > 0 ? item.level + 1 : null"
+        [attr.data-key]="item.keyText"
+        [attr.data-odd]="item.index % 2 === 1 ? '' : null"
+        [attr.data-selected]="item.selected ? '' : null"
+        [attr.data-expanded]="item.expanded ? '' : null"
+        [style.top.px]="item.top"
+        [style.height.px]="item.height"
+      >
+        @for (cell of item.cells; track cell.columnId) {
+          <div
+            class="dg-cell"
+            role="gridcell"
+            [class]="cell.classes"
+            [style]="cell.styles"
+            [libDatagridAttrs]="cell.aria"
+            [attr.aria-colindex]="cell.colIndex"
+            [attr.aria-label]="cell.kind === 'detailToggle' ? expandRowLabel() : null"
+            [attr.aria-expanded]="cell.kind === 'detailToggle' ? item.expanded : null"
+            [attr.data-column]="cell.columnId"
+            [attr.data-kind]="cell.kind === 'data' ? null : cell.kind"
+            [attr.data-flash]="cell.flash"
+            [attr.data-pinned]="cell.pinned || null"
+            [attr.data-edge]="cell.edge ? '' : null"
+            [attr.tabindex]="isFocused(item, cell) ? 0 : -1"
+            [style.left.px]="cell.insetStart"
+            [style.right.px]="cell.insetEnd"
+          >
+            @switch (cell.kind) {
+              @case ('selection') {
+                <!-- Presentational. The viewport's delegated click handler owns
+                     selection because it is the only place the modifier keys are
+                     available; letting the box toggle itself as well would apply
+                     the change twice. -->
+                <lib-checkbox
+                  size="sm"
+                  tabIndex="-1"
+                  [value]="item.selected"
+                  [ariaLabel]="selectRowLabel()"
+                  (click)="$event.preventDefault()"
+                />
+              }
+              @case ('rowNumber') {
+                <span class="dg-row-number">{{ cell.text }}</span>
+              }
+              @case ('detailToggle') {
+                <!-- Drawn, not tabbed to: the cell owns the tab stop and
+                     forwards Enter, Space and the arrow keys, so no interactive
+                     element is nested inside another. The name lives on the
+                     cell, which is the thing the user reaches. -->
+                <svg
+                  lucideChevronRight
+                  class="dg-group-chevron"
+                  aria-hidden="true"
+                  [attr.data-expanded]="item.expanded ? '' : null"
+                ></svg>
+              }
+              @default {
+                @if (cell.template) {
+                  <ng-container
+                    [ngTemplateOutlet]="cell.template"
+                    [ngTemplateOutletContext]="cell.context"
+                  />
+                } @else {
+                  @if (cell.component; as renderer) {
+                    <ng-container
+                      [ngComponentOutlet]="renderer.type"
+                      [ngComponentOutletInputs]="renderer.inputs"
+                    />
+                  } @else {
+                    {{ cell.text }}
+                  }
+                }
+              }
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+}
+
+@for (skeleton of range(skeletonRows()); track skeleton) {
+  <div
+    class="dg-row dg-row-skeleton"
+    aria-hidden="true"
+    [style.top.px]="skeleton * rowHeight()"
+    [style.height.px]="rowHeight()"
+  >
+    @for (cell of range(skeletonColumns()); track cell) {
+      <div class="dg-cell"><span class="dg-skeleton-bar"></span></div>
+    }
+  </div>
+}

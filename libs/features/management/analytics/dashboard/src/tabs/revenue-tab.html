@@ -1,0 +1,39 @@
+<lib-chart-grid>
+  <lib-chart-card
+    wide
+    [heading]="'managementDashboard.charts.revenue.revenueOverTime.title' | transloco"
+    [note]="'managementDashboard.charts.revenue.revenueOverTime.note' | transloco"
+    [skeleton]="{ kind: 'line', legend: 2 }"
+    [height]="wideHeight"
+    [set]="data()?.revenueOverTime"
+    [option]="overTime()"
+    [context]="context()"
+    [loading]="entry().loading"
+    [failed]="entry().failed"
+    (retry)="retry.emit()"
+  />
+
+  <lib-chart-card
+    [heading]="'managementDashboard.charts.revenue.revenuePerStaff.title' | transloco"
+    [skeleton]="{ kind: 'bars-horizontal', count: staffRows() }"
+    [set]="staffSet()"
+    [option]="perStaff()"
+    [context]="context()"
+    [height]="staffHeight()"
+    [loading]="entry().loading"
+    [failed]="entry().failed"
+    (retry)="retry.emit()"
+  />
+
+  <lib-chart-card
+    [heading]="'managementDashboard.charts.revenue.revenuePerService.title' | transloco"
+    [skeleton]="{ kind: 'bars-horizontal', count: categoryRows() }"
+    [set]="categorySet()"
+    [option]="perCategory()"
+    [context]="context()"
+    [height]="categoryHeight()"
+    [loading]="entry().loading"
+    [failed]="entry().failed"
+    (retry)="retry.emit()"
+  />
+</lib-chart-grid>

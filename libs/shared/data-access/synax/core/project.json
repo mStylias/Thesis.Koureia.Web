@@ -1,0 +1,7 @@
+{
+  "name": "shared-data-access-synax-core",
+  "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/shared/data-access/synax/core/src",
+  "projectType": "library",
+  "tags": ["scope:shared", "type:data-access"]
+}

@@ -1,0 +1,32 @@
+<lib-page-section
+  sectionId="preferences"
+  [heading]="'managementProfile.preferences.title' | transloco"
+>
+  <div class="preference">
+    <span class="preference-label" id="preferences-theme-label">
+      {{ 'managementProfile.preferences.theme.label' | transloco }}
+    </span>
+    <lib-radio-group
+      orientation="horizontal"
+      ariaLabelledby="preferences-theme-label"
+      [options]="themeOptions()"
+      [value]="theme.preference()"
+      (valueChange)="chooseTheme($event)"
+    />
+  </div>
+
+  <div class="preference">
+    <span class="preference-label">
+      {{ 'managementProfile.preferences.language.label' | transloco }}
+    </span>
+    <p class="preference-hint" id="preferences-language-hint">
+      {{ 'managementProfile.preferences.language.hint' | transloco }}
+    </p>
+    <!-- Its own accessible name is the same word as the label above. -->
+    <lib-language-switcher
+      ariaDescribedby="preferences-language-hint"
+      [reloadUrl]="reloadUrl"
+      [beforeSwitch]="canSwitch"
+    />
+  </div>
+</lib-page-section>

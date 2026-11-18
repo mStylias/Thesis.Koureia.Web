@@ -1,0 +1,126 @@
+@use 'abstracts' as a;
+@use '../badge/calendar-badge' as badge;
+
+:host {
+  display: block;
+  width: var(--calendar-more-list-width);
+  max-width: 100%;
+}
+
+.more-heading {
+  margin: 0 0 a.space(2);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.more-list {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.more-row {
+  --more-swatch: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: a.space(2);
+  width: 100%;
+  min-width: 0;
+  padding: a.space(1) a.space(2);
+  border: 0;
+  border-radius: a.radius(sm);
+  background: none;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-align: start;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-standard);
+
+  &:hover {
+    background: var(--surface-sunken);
+  }
+
+  &[aria-current] {
+    background: var(--accent-subtle);
+  }
+}
+
+@for $step from 1 through 6 {
+  .more-row[data-swatch='#{$step}'] {
+    --more-swatch: var(--swatch-#{$step});
+  }
+}
+
+.more-bar {
+  flex: none;
+  width: calc(var(--border-width-strong) * 2);
+  align-self: stretch;
+  border-radius: a.radius(pill);
+  background: var(--more-swatch);
+}
+
+.more-time {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+.more-row[data-muted] {
+  color: var(--text-muted);
+
+  .more-time {
+    text-decoration: line-through;
+  }
+
+  .more-bar {
+    background: var(--border-strong);
+  }
+}
+
+.more-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.more-title,
+.more-subtitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.more-subtitle {
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+}
+
+.more-badge {
+  @include badge.calendar-badge;
+  flex: none;
+}
+
+@media (forced-colors: active) {
+  .more-row[aria-current] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}
+
+// The title and its marks on one line. The title gives way first.
+.more-title-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+
+  > .more-title {
+    min-width: 0;
+  }
+}

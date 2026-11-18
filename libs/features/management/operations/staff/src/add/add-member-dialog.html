@@ -1,0 +1,191 @@
+@let current = step();
+
+<lib-dialog
+  size="sm"
+  [(visible)]="visible"
+  [header]="'managementStaff.addMember.title' | transloco"
+>
+  @if (current.kind === 'email') {
+    <!-- Enter submits: `libForm` owns the submit and commits the lookup. -->
+    <form class="add-form" [libForm]="emailEditor">
+      <lib-form-errors />
+
+      <lib-field class="add-field" [field]="emailEditor.form.lookup">
+        <ng-template libFieldEditor>
+          <!--
+            Nothing may suggest an address. `type="text"`, not `email`: Chrome offers saved
+            addresses on an email field even with autocomplete off. Signal Forms owns `name`, so
+            the model member is `lookup`. `inputmode` still gives a phone the email keyboard.
+          -->
+          <input
+            libInputText
+            libFieldControl
+            type="text"
+            inputmode="email"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            size="sm"
+            placeholder=" "
+            [formField]="emailEditor.form.lookup"
+          />
+        </ng-template>
+      </lib-field>
+
+      @if (existing(); as member) {
+        <div class="add-existing">
+          @if (!member.isActive) {
+            <p>{{ 'managementStaff.addMember.inactiveHint' | transloco }}</p>
+          }
+          @if (member.isActive) {
+            <button libButton type="button" variant="outlined" size="sm" (click)="openExisting()">
+              {{ 'managementStaff.addMember.open' | transloco }}
+            </button>
+          } @else {
+            <button
+              libButton
+              type="button"
+              variant="outlined"
+              size="sm"
+              [loading]="activating()"
+              (click)="reactivate()"
+            >
+              {{ 'managementStaff.addMember.reactivate' | transloco }}
+            </button>
+          }
+        </div>
+      }
+    </form>
+  } @else {
+    <div class="add-found">
+      <p class="add-found-caption">{{ 'managementStaff.addMember.found' | transloco }}</p>
+      <div class="add-person">
+        <lib-staff-avatar size="sm" [initials]="candidateInitials()" />
+        <span class="add-person-text">
+          <span class="add-person-name"
+            >{{ current.candidate.firstName }} {{ current.candidate.lastName }}</span
+          >
+          <span class="add-person-email">{{ current.candidate.email }}</span>
+        </span>
+      </div>
+    </div>
+
+    @if (options() === null) {
+      <div class="add-options" role="status">
+        @if (optionsFailed()) {
+          <p class="add-error">{{ 'managementStaff.panel.optionsFailed' | transloco }}</p>
+          <button libButton type="button" variant="outlined" size="sm" (click)="reloadOptions()">
+            {{ 'managementStaff.panel.retry' | transloco }}
+          </button>
+        } @else {
+          <p>{{ 'managementStaff.panel.optionsLoading' | transloco }}</p>
+        }
+      </div>
+    } @else {
+      @let defaults = defaultsEditor.form;
+      <form class="add-form" [libForm]="defaultsEditor">
+        <lib-form-errors />
+
+        @if (canAssignRoles()) {
+          <lib-field class="add-field" [field]="defaults.roleId">
+            <ng-template libFieldEditor let-id let-describedBy="describedBy">
+              <lib-select
+                size="sm"
+                [inputId]="id"
+                [ariaDescribedby]="describedBy"
+                [options]="roleOptions()"
+                [ariaLabel]="'managementStaff.addMember.role' | transloco"
+                [formField]="defaults.roleId"
+              />
+            </ng-template>
+          </lib-field>
+        } @else {
+          <p class="add-hint">{{ 'managementStaff.addMember.roleByAdmin' | transloco }}</p>
+        }
+
+        <lib-field class="add-field" [field]="defaults.jobTitleCode">
+          <ng-template libFieldEditor let-id let-describedBy="describedBy">
+            <lib-select
+              size="sm"
+              [inputId]="id"
+              [ariaDescribedby]="describedBy"
+              [options]="jobTitleOptions()"
+              [ariaLabel]="'managementStaff.addMember.jobTitle' | transloco"
+              [formField]="defaults.jobTitleCode"
+            />
+          </ng-template>
+        </lib-field>
+
+        <div class="add-switch">
+          <lib-switch inputId="add-member-bookable" [formField]="defaults.isBookable" />
+          <label for="add-member-bookable">{{
+            'managementStaff.addMember.isBookable' | transloco
+          }}</label>
+        </div>
+
+        @if (defaults.isBookable().value()) {
+          <div class="add-defaults" role="group" aria-describedby="add-member-defaults-hint">
+            <lib-checkbox size="sm" [formField]="defaults.copyHours">
+              {{ 'managementStaff.addMember.copyHours' | transloco }}
+            </lib-checkbox>
+            <lib-checkbox size="sm" [formField]="defaults.allServices">
+              {{ 'managementStaff.addMember.allServices' | transloco }}
+            </lib-checkbox>
+            <p class="add-hint" id="add-member-defaults-hint">
+              {{ 'managementStaff.addMember.defaultsHint' | transloco }}
+            </p>
+          </div>
+        }
+      </form>
+    }
+  }
+
+  <ng-template libDialogFooter>
+    @if (current.kind === 'confirm') {
+      <button
+        libButton
+        type="button"
+        class="add-back"
+        severity="secondary"
+        variant="text"
+        [disabled]="defaultsEditor.submitting()"
+        (click)="back()"
+      >
+        {{ 'managementStaff.addMember.back' | transloco }}
+      </button>
+    }
+    <button
+      libButton
+      type="button"
+      severity="secondary"
+      variant="text"
+      [disabled]="emailEditor.submitting() || defaultsEditor.submitting()"
+      (click)="close()"
+    >
+      {{ 'managementStaff.addMember.cancel' | transloco }}
+    </button>
+    <!-- Never disabled by validity: the first press is what reveals it. -->
+    @if (current.kind === 'email') {
+      <button
+        libButton
+        type="button"
+        severity="primary"
+        [loading]="emailEditor.submitting()"
+        (click)="search()"
+      >
+        {{ 'managementStaff.addMember.search' | transloco }}
+      </button>
+    } @else {
+      <button
+        libButton
+        type="button"
+        severity="primary"
+        [loading]="defaultsEditor.submitting()"
+        [disabled]="options() === null"
+        (click)="confirm()"
+      >
+        {{ 'managementStaff.addMember.add' | transloco }}
+      </button>
+    }
+  </ng-template>
+</lib-dialog>

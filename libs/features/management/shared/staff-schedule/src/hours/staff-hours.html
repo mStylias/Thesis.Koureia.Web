@@ -1,0 +1,74 @@
+@if (conflicts().length > 0) {
+  <lib-staff-conflicts
+    class="hours-conflicts"
+    kind="hours"
+    [conflicts]="conflicts()"
+    [language]="language()"
+    (dismissed)="conflicts.set([])"
+  />
+}
+
+@if (editor.editing()) {
+  @let fields = editor.form;
+  <form class="hours-form" [libForm]="editor">
+    <lib-form-errors class="hours-errors" />
+
+    <div class="hours-intro">
+      <p class="hours-hint">{{ 'managementStaffSchedule.hours.hint' | transloco }}</p>
+      <button
+        libButton
+        type="button"
+        severity="secondary"
+        variant="outlined"
+        size="sm"
+        (click)="fromShop()"
+      >
+        <svg lucideStore libButtonIcon aria-hidden="true"></svg>
+        {{ 'managementStaffSchedule.hours.fromShop' | transloco }}
+      </button>
+    </div>
+
+    <lib-week-hours-grid
+      idPrefix="staff-hours"
+      [form]="fields"
+      [language]="language()"
+      [reference]="businessHours()"
+      [step]="interval()"
+    />
+  </form>
+} @else {
+  <section class="hours-section">
+    <h3 class="hours-heading">{{ 'managementStaffSchedule.hours.week' | transloco }}</h3>
+    @if (!hasHours()) {
+      <p class="hours-none">
+        {{ emptyText() || ('managementStaffSchedule.hours.none' | transloco) }}
+      </p>
+    }
+    <dl class="hours-grid">
+      @for (day of days(); track day.index) {
+        <div class="hours-row">
+          <dt class="hours-caption">{{ day.name }}</dt>
+          <dd class="hours-value">
+            @if (day.working) {
+              @for (range of day.ranges; track $index) {
+                <span class="hours-range-text" [attr.data-outside]="range.outside ? '' : null">
+                  {{ range.text }}
+                  @if (range.outside) {
+                    <span class="hours-note">{{
+                      'managementStaffSchedule.hours.outsideShop' | transloco
+                    }}</span>
+                  }
+                </span>
+              }
+            } @else {
+              <span class="hours-off-text">{{
+                'managementStaffSchedule.hours.dayOff' | transloco
+              }}</span>
+            }
+            <span class="hours-shop">{{ day.shopText }}</span>
+          </dd>
+        </div>
+      }
+    </dl>
+  </section>
+}

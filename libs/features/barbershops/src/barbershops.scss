@@ -1,0 +1,112 @@
+@use 'abstracts' as a;
+
+:host {
+  // How wide a popup card is drawn. MapLibre measures the rendered popup to choose its anchor,
+  // so this is the only place the width is stated.
+  --barbershops-popup-width: 18rem;
+
+  // What the page leaves clear at the bottom for the action bar: the bar's own button plus the
+  // padding around it, and one gap so the paginator does not sit against it.
+  --barbershops-actionbar-reserve: calc(var(--space-16) + var(--space-6));
+
+  display: block;
+  min-height: 100dvh;
+}
+
+.barbershops-page {
+  display: grid;
+  min-height: 100dvh;
+  background: var(--bg);
+}
+
+.barbershops-results {
+  display: grid;
+  align-content: start;
+  gap: var(--space-6);
+  min-width: 0;
+  padding: var(--space-6) var(--space-4) var(--barbershops-actionbar-reserve);
+}
+
+.barbershops-results__body {
+  display: grid;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.barbershops-paginator {
+  justify-self: center;
+}
+
+// Below `lg` the map is not in the layout at all; the action bar below opens it in a panel.
+.barbershops-map {
+  display: none;
+}
+
+// A bar, not a button floating over the list: it carries the page's one way into the map, so
+// it reads as the app's own chrome. Its surface and its top edge are what separate it — the
+// page is `--bg` and the bar is `--surface`, and the list scrolls under it.
+.barbershops-actionbar {
+  position: fixed;
+  inset-block-end: 0;
+  inset-inline: 0;
+  z-index: a.z(sticky);
+  display: grid;
+  justify-items: center;
+  // The home indicator on a phone sits exactly where this bar does, so the inset wins whenever
+  // it is the larger of the two.
+  padding: var(--space-3) var(--space-4) max(var(--space-3), env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-block-start: var(--border-width-hairline) solid var(--border);
+}
+
+.barbershops-map-button {
+  gap: var(--space-2);
+  // The bar's only action, so it takes the bar's width rather than sitting in the middle of it
+  // — up to the width beyond which a single button stops reading as one target.
+  width: min(100%, 24rem);
+}
+
+// The map is the panel. Zeroing the drawer's own padding is what takes it edge to edge under
+// the header; the height claims everything the header leaves.
+.barbershops-map-drawer {
+  --drawer-content-padding: 0;
+}
+
+.barbershops-map-panel {
+  display: block;
+  height: 100%;
+}
+
+// The popup has no frame of its own, so the card is the whole surface. The viewport cap is
+// what keeps a pin near an edge from opening a popup that runs off the screen.
+.shop-popup__card {
+  display: block;
+  width: var(--barbershops-popup-width);
+  max-width: calc(100vw - var(--space-12));
+}
+
+@include a.respond(lg) {
+  // Two equal halves: the list and its filters against the map.
+  .barbershops-page {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .barbershops-results {
+    padding: var(--space-10) var(--space-8) var(--space-16);
+  }
+
+  .barbershops-actionbar {
+    display: none;
+  }
+
+  // Sticky rather than a scroll container of its own: the page scrolls as one document, which
+  // is what keeps scroll restoration and anchor scrolling working.
+  .barbershops-map {
+    display: block;
+    position: sticky;
+    inset-block-start: 0;
+    height: 100dvh;
+    border-inline-start: var(--border-width-hairline) solid var(--border);
+  }
+}

@@ -1,0 +1,146 @@
+@use 'abstracts' as a;
+
+// Without `overlay` the bar takes its own room in the flow and sticks on scroll.
+:host {
+  position: sticky;
+  top: 0;
+  z-index: a.z(sticky);
+  display: block;
+}
+
+:host([data-overlay]) {
+  position: fixed;
+  inset: 0 0 auto;
+}
+
+// The bar carries the surface context, not the host: over a hero photograph
+// it declares `data-surface="dark"`, which the template drops on scroll so
+// these same tokens resolve to the page's own theme. Nothing here is written
+// twice for the two states.
+//
+// It sits on the bar rather than the host deliberately — `lib-drawer` is a
+// sibling of `<header>`, so the mobile menu never inherits the dark context.
+.site-header {
+  color: var(--text-primary);
+  background: var(--surface);
+  border-bottom: var(--border-width-hairline) solid var(--border-subtle);
+  transition:
+    background-color var(--dur-base) var(--ease-standard),
+    border-color var(--dur-base) var(--ease-standard),
+    color var(--dur-base) var(--ease-standard);
+}
+
+:host([data-overlay]:not(.is-scrolled)) .site-header {
+  background: transparent;
+  border-color: transparent;
+}
+
+.site-header-inner {
+  @include a.container;
+  display: flex;
+  align-items: center;
+  min-height: var(--space-16);
+  gap: var(--space-4);
+}
+
+.desktop-center {
+  display: none;
+  align-items: center;
+  gap: var(--space-6);
+
+  a {
+    color: currentColor;
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-standard);
+
+    // `--accent-text` and not `--accent-hover`: the foreground accent is the
+    // one that tracks its surface, so this stays legible over the hero
+    // instead of dropping to a 2.7:1 --accent-hover on near-black.
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        color: var(--accent-text);
+      }
+    }
+  }
+}
+
+.desktop-controls {
+  display: none;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+// The auth and menu buttons need no per-state overrides: `severity="secondary"`
+// reads `--text-primary`, `--border-strong` and `--surface-2`, which the
+// surface context has already re-pointed for them.
+
+// In the drawer the auth action gets the full width, like the Book button above it.
+.mobile-auth-entry {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: var(--border-width-hairline) solid var(--border-subtle);
+}
+
+.menu-button {
+  margin-left: auto;
+
+  svg {
+    width: var(--icon-size-md);
+    height: var(--icon-size-md);
+    stroke-width: var(--icon-stroke);
+  }
+}
+
+.mobile-nav {
+  display: grid;
+  gap: var(--space-2);
+
+  a {
+    padding: var(--space-3) 0;
+    border-bottom: var(--border-width-hairline) solid var(--border-subtle);
+    color: var(--text-primary);
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: var(--weight-bold);
+    text-decoration: none;
+  }
+}
+
+.mobile-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+@include a.respond(md) {
+  /*
+   * Three tracks, the outer two equal: that is what puts the middle group on the screen's
+   * centre line rather than merely between its neighbours. A flex row with `margin-left:
+   * auto` centres the nav in the *leftover* space, so it drifts off centre by half the
+   * difference between the wordmark and the control cluster — and that cluster grew a
+   * language switcher and a theme toggle, so the drift would be visible.
+   *
+   * `minmax(0, 1fr)` and not `1fr`: an equal track whose minimum is its content refuses to
+   * shrink below the widest side, which pushes the centre group off centre again at the
+   * narrow end of this breakpoint.
+   */
+  .site-header-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+
+  .desktop-center,
+  .desktop-controls {
+    display: flex;
+  }
+
+  .menu-button {
+    display: none;
+  }
+}

@@ -1,0 +1,67 @@
+// The MapLibre structural styles for its canvas, controls and attribution. OpenFreeMap
+// supplies the map data and tiles at runtime.
+@use '../../../../../node_modules/maplibre-gl/dist/maplibre-gl';
+@use '../abstracts' as a;
+
+// The popup chrome is MapLibre's own DOM, built outside any component, so emulated
+// encapsulation cannot reach it and it has to be handled here.
+//
+// The frame is given up entirely rather than restyled: whatever a popup renders is already a
+// design-system surface with its own border, radius and shadow, and a second frame around it
+// reads as a card inside a box. MapLibre also flattens one corner per anchor direction with a
+// selector more specific than anything written here, so a restyled frame could never keep its
+// radius on the side the tip is on.
+.maplibregl-popup-content {
+  padding: 0;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+// The tip is a bordered triangle drawn with `border-color`, so it takes the surface rather
+// than a background. It is the one piece of the frame that has to stay, and it must match the
+// surface of whatever the popup holds.
+.maplibregl-popup-anchor-top .maplibregl-popup-tip,
+.maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+.maplibregl-popup-anchor-top-right .maplibregl-popup-tip {
+  border-bottom-color: var(--surface);
+}
+
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
+  border-top-color: var(--surface);
+}
+
+.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  border-right-color: var(--surface);
+}
+
+.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+  border-left-color: var(--surface);
+}
+
+// The close button sits on the content, which now has no padding of its own to hold it clear.
+.maplibregl-popup-close-button {
+  inset-block-start: var(--space-2);
+  inset-inline-end: var(--space-2);
+  z-index: a.z(base);
+  width: var(--space-8);
+  height: var(--space-8);
+  color: var(--text-primary);
+  font-size: var(--text-lg);
+  background: var(--surface);
+  border-radius: a.radius(pill);
+  box-shadow: var(--shadow-sm);
+
+  &:hover {
+    background: var(--surface-2);
+  }
+
+  &:focus-visible {
+    box-shadow: 0 0 0 2px var(--focus-ring);
+    outline: none;
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "theme-koureia",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/themes/koureia/src",
+  "projectType": "library",
+  "tags": ["scope:shared", "type:theme"]
+}

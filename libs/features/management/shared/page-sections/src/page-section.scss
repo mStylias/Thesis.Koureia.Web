@@ -1,0 +1,64 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+  scroll-margin-block-start: a.space(6);
+}
+
+.section-heading {
+  display: grid;
+  min-width: 0;
+}
+
+.section-hint {
+  color: var(--text-muted);
+}
+
+.section-actions {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: a.space(2);
+}
+
+.section-skeleton {
+  display: grid;
+  gap: a.space(2);
+  animation: section-skeleton-pulse var(--dur-indeterminate) var(--ease-standard) infinite;
+}
+
+.skeleton-line {
+  display: block;
+  height: a.space(4);
+  border-radius: a.radius(sm);
+  background: var(--surface-2);
+}
+
+.skeleton-caption {
+  width: 25%;
+  height: a.space(3);
+}
+
+.skeleton-value {
+  width: 60%;
+  margin-block-end: a.space(2);
+}
+
+.section-failed {
+  display: grid;
+  justify-items: start;
+  gap: a.space(3);
+}
+
+.section-failed-text {
+  @include a.t-body;
+
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+@keyframes section-skeleton-pulse {
+  50% {
+    opacity: 0.6;
+  }
+}

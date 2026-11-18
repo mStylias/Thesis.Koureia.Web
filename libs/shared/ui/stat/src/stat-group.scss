@@ -1,0 +1,6 @@
+// Equal tiles, as many to a row as fit their minimum width.
+:host {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--stat-min-width, 7rem), 1fr));
+  gap: var(--space-3);
+}

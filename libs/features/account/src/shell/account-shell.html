@@ -1,0 +1,26 @@
+<lib-site-header />
+
+<main class="account" id="main-content">
+  <header class="account-heading">
+    <h1 class="account-title">{{ 'account.shell.title' | transloco }}</h1>
+    @if (firstName()) {
+      <p class="account-greeting">
+        {{ 'account.shell.greeting' | transloco: { name: firstName() } }}
+      </p>
+    }
+  </header>
+
+  <lib-tab-menu
+    class="account-tabs"
+    [items]="tabs()"
+    [routerLinkActiveOptions]="activeOptions"
+    [ariaLabel]="'account.shell.sections' | transloco"
+  />
+
+  <div class="account-page" [class.account-page--wide]="wide()">
+    <router-outlet
+      #outlet="outlet"
+      (activate)="wide.set(outlet.activatedRouteData['wide'] === true)"
+    />
+  </div>
+</main>

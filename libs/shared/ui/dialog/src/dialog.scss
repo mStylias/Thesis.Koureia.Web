@@ -1,0 +1,319 @@
+:host {
+  display: contents;
+}
+
+.dialog {
+  --dialog-gutter: var(--space-4);
+  --dialog-width: var(--dialog-size-md);
+  --dialog-max-height: calc(100dvh - var(--dialog-gutter) * 2);
+  --dialog-effective-max-height: min(
+    var(--dialog-max-height),
+    calc(100dvh - var(--dialog-gutter) * 2)
+  );
+
+  position: fixed;
+  z-index: var(--z-modal);
+  width: min(var(--dialog-width), calc(100dvw - var(--dialog-gutter) * 2));
+  max-width: none;
+  max-height: var(--dialog-effective-max-height);
+  padding: 0;
+  border: 0;
+  overflow: visible;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+
+  &::backdrop {
+    background: var(--scrim);
+    opacity: 0;
+    transition: opacity var(--dur-base) var(--ease-out);
+  }
+
+  &[open]::backdrop {
+    opacity: 1;
+
+    @starting-style {
+      opacity: 0;
+    }
+  }
+
+  &[data-closing]::backdrop {
+    opacity: 0;
+    transition-duration: var(--dur-fast);
+  }
+}
+
+.dialog[data-size='sm'] {
+  --dialog-width: var(--dialog-size-sm);
+}
+.dialog[data-size='md'] {
+  --dialog-width: var(--dialog-size-md);
+}
+.dialog[data-size='lg'] {
+  --dialog-width: var(--dialog-size-lg);
+}
+.dialog[data-size='xl'] {
+  --dialog-width: var(--dialog-size-xl);
+}
+
+.dialog[data-max-height='sm'] {
+  --dialog-max-height: var(--dialog-height-sm);
+}
+
+.dialog[data-max-height='md'] {
+  --dialog-max-height: var(--dialog-height-md);
+}
+
+.dialog[data-max-height='lg'] {
+  --dialog-max-height: var(--dialog-height-lg);
+}
+
+.dialog-frame {
+  display: flex;
+  flex-direction: column;
+  max-height: var(--dialog-effective-max-height);
+  overflow: hidden;
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transform: translateY(var(--space-2)) scale(0.98);
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+
+.dialog[open] .dialog-frame {
+  opacity: 1;
+  transform: none;
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(var(--space-2)) scale(0.98);
+  }
+}
+
+.dialog[data-closing] .dialog-frame {
+  opacity: 0;
+  transform: translateY(var(--space-2)) scale(0.98);
+  transition-duration: var(--dur-fast);
+}
+
+// Semantic viewport placements. Free dragging composes through the separate
+// CSS `translate` property, leaving these base transforms untouched.
+.dialog[data-position='center'] {
+  inset: 0;
+  margin: auto;
+}
+
+.dialog[data-position='top'] {
+  inset: var(--dialog-gutter) auto auto 50%;
+  margin: 0;
+  transform: translateX(-50%);
+}
+
+.dialog[data-position='top-right'] {
+  inset: var(--dialog-gutter) var(--dialog-gutter) auto auto;
+  margin: 0;
+}
+
+.dialog[data-position='right'] {
+  inset: 50% var(--dialog-gutter) auto auto;
+  margin: 0;
+  transform: translateY(-50%);
+}
+
+.dialog[data-position='bottom-right'] {
+  inset: auto var(--dialog-gutter) var(--dialog-gutter) auto;
+  margin: 0;
+}
+
+.dialog[data-position='bottom'] {
+  inset: auto auto var(--dialog-gutter) 50%;
+  margin: 0;
+  transform: translateX(-50%);
+}
+
+.dialog[data-position='bottom-left'] {
+  inset: auto auto var(--dialog-gutter) var(--dialog-gutter);
+  margin: 0;
+}
+
+.dialog[data-position='left'] {
+  inset: 50% auto auto var(--dialog-gutter);
+  margin: 0;
+  transform: translateY(-50%);
+}
+
+.dialog[data-position='top-left'] {
+  inset: var(--dialog-gutter) auto auto var(--dialog-gutter);
+  margin: 0;
+}
+
+.dialog[data-full-screen] {
+  inset: 0;
+  width: 100dvw;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  transform: none;
+  translate: none;
+
+  .dialog-frame {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+  }
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-4) var(--space-6);
+  border-bottom: var(--border-width-hairline) solid var(--border);
+}
+
+.dialog-header[data-draggable] {
+  cursor: grab;
+  touch-action: none;
+}
+
+.dialog[data-dragging] .dialog-header {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.dialog-heading {
+  flex: 1;
+  min-width: 0;
+  outline: none;
+}
+
+.dialog-title {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+}
+
+.dialog-tools {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: var(--space-1);
+}
+
+.dialog-tools svg,
+.dialog-move-option svg {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  stroke-width: var(--icon-stroke);
+}
+
+.dialog-move-control {
+  position: relative;
+}
+
+.dialog-move-menu {
+  position: absolute;
+  z-index: var(--z-base);
+  top: calc(100% + var(--space-2));
+  right: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+// The selected position is also carried by aria-pressed, so it never rests on
+// colour alone.
+.dialog-move-option[aria-pressed='true'] {
+  background: var(--accent-subtle);
+  color: var(--accent-text);
+}
+
+.dialog-move-enter {
+  animation: dialog-move-in var(--dur-base) var(--ease-out);
+}
+
+.dialog-move-leave {
+  animation: dialog-move-out var(--dur-fast) var(--ease-out);
+}
+
+@keyframes dialog-move-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--space-1) * -1)) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes dialog-move-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(calc(var(--space-1) * -1)) scale(0.98);
+  }
+}
+
+.dialog-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space-6);
+  overscroll-behavior: contain;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  border-top: var(--border-width-hairline) solid var(--border);
+}
+
+// In headless mode the template owns all internal spacing and chrome while
+// the outer frame retains sizing, elevation, and lifecycle motion.
+.dialog-frame[data-headless] {
+  display: block;
+  overflow: auto;
+}
+
+// Motion is CSS-driven throughout; the base layer collapses every
+// transition and animation globally under `prefers-reduced-motion`, so
+// there is no per-component query here.
+
+// A forced palette drops the tint that marks the selected position and the
+// surface borders that separate the chooser from the dialog behind it.
+@media (forced-colors: active) {
+  .dialog-frame,
+  .dialog-move-menu {
+    border: var(--border-width-hairline) solid CanvasText;
+  }
+
+  .dialog-move-option[aria-pressed='true'] {
+    outline: var(--border-width-strong) solid Highlight;
+    outline-offset: calc(var(--border-width-strong) * -1);
+  }
+}

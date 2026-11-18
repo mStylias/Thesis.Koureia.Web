@@ -1,0 +1,84 @@
+@let fields = editor.form;
+
+<lib-dialog
+  size="sm"
+  [(visible)]="visible"
+  [header]="'managementCustomers.block.title' | transloco"
+>
+  <form class="block-form" [libForm]="editor">
+    <p class="block-text">{{ 'managementCustomers.block.text' | transloco }}</p>
+
+    <lib-form-errors />
+
+    <lib-field [field]="fields.reason">
+      <ng-template libFieldEditor>
+        <textarea
+          libTextarea
+          libFieldControl
+          rows="3"
+          size="sm"
+          autoResize
+          placeholder=" "
+          [formField]="fields.reason"
+        ></textarea>
+      </ng-template>
+    </lib-field>
+
+    <div
+      class="block-choices"
+      role="group"
+      [attr.aria-label]="'managementCustomers.block.choicesLabel' | transloco"
+    >
+      @for (choice of choices; track choice) {
+        <button
+          libButton
+          type="button"
+          size="sm"
+          variant="outlined"
+          severity="secondary"
+          (click)="choose(choice)"
+        >
+          {{ 'managementCustomers.block.choices.' + choice | transloco }}
+        </button>
+      }
+    </div>
+
+    @if (customer().upcomingCount > 0) {
+      <lib-banner tone="warning" role="note">
+        {{ 'managementCustomers.block.upcoming' | transloco: { count: customer().upcomingCount } }}
+        @if (appointmentsLink(); as link) {
+          <a class="block-link" [routerLink]="link">
+            {{ 'managementCustomers.actions.allAppointments' | transloco }}
+          </a>
+        }
+      </lib-banner>
+    }
+
+    @if (customer().isWalkIn) {
+      <p class="block-hint">{{ 'managementCustomers.block.walkInHint' | transloco }}</p>
+    }
+  </form>
+
+  <ng-template libDialogFooter>
+    <button
+      libButton
+      type="button"
+      severity="secondary"
+      variant="text"
+      [disabled]="editor.submitting()"
+      (click)="close()"
+    >
+      {{ 'managementCustomers.block.cancel' | transloco }}
+    </button>
+    <!-- Never disabled by validity: the first press is what reveals it. -->
+    <button
+      libButton
+      type="button"
+      severity="error"
+      [loading]="editor.submitting()"
+      (click)="save()"
+    >
+      {{ 'managementCustomers.block.confirm' | transloco }}
+    </button>
+  </ng-template>
+</lib-dialog>

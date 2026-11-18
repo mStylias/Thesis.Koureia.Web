@@ -1,0 +1,13 @@
+@use 'abstracts' as a;
+
+// Each card takes two row tracks: its header, then its chart. The cards of a row share both
+// tracks, so their charts start at one height and are one height tall.
+:host {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+
+  @include a.respond(md) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

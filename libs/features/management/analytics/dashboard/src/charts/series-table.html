@@ -1,0 +1,25 @@
+<table>
+  <caption>
+    {{
+      caption()
+    }}
+  </caption>
+  <thead>
+    <tr>
+      <td></td>
+      @for (column of columns(); track column.key) {
+        <th scope="col">{{ column.name }}</th>
+      }
+    </tr>
+  </thead>
+  <tbody>
+    @for (row of rows(); track $index) {
+      <tr>
+        <th scope="row">{{ row.label }}</th>
+        @for (cell of row.cells; track $index) {
+          <td>{{ cell }}</td>
+        }
+      </tr>
+    }
+  </tbody>
+</table>

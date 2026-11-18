@@ -1,0 +1,8 @@
+{
+  "name": "shared-ui-saved-views-core",
+  "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/shared/ui/saved-views/core/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["scope:shared", "type:ui"]
+}

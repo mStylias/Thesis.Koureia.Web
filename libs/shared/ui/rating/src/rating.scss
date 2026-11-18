@@ -1,0 +1,94 @@
+// A filled star is the selected state and an outlined star the empty one, so the state is
+// in the shape, not only the color.
+
+:host {
+  display: inline-flex;
+  --rating-star: var(--icon-size-md);
+}
+
+:host([data-size='sm']) {
+  --rating-star: var(--icon-size-sm);
+}
+
+:host([data-size='lg']) {
+  --rating-star: var(--icon-size-lg);
+}
+
+:host([data-disabled]) {
+  opacity: var(--opacity-disabled);
+}
+
+.rating {
+  display: inline-flex;
+  align-items: center;
+}
+
+.star {
+  display: inline-grid;
+  place-items: center;
+  padding: var(--space-1);
+  margin: 0;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  transition:
+    color var(--dur-fast) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-out);
+
+  svg {
+    width: var(--rating-star);
+    height: var(--rating-star);
+    stroke-width: var(--icon-stroke);
+    fill: none;
+    transition: fill var(--dur-fast) var(--ease-standard);
+  }
+
+  &[data-on] {
+    color: var(--accent);
+
+    svg {
+      fill: currentColor;
+    }
+  }
+}
+
+// The read-only display sits in a line of text, so it drops the hit-area padding.
+:host([data-readonly]) .star {
+  padding: 0;
+}
+
+button.star {
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.92);
+  }
+}
+
+:host([data-invalid]) .star:not([data-on]) {
+  color: var(--error);
+}
+
+@media (forced-colors: active) {
+  .star {
+    color: CanvasText;
+
+    &[data-on] {
+      color: Highlight;
+    }
+  }
+
+  button.star:disabled {
+    color: GrayText;
+  }
+
+  button.star:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 1px;
+  }
+}

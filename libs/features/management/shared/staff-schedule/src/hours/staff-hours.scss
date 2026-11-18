@@ -1,0 +1,95 @@
+@use 'abstracts' as a;
+
+:host {
+  // The space beside the content. A host that pads its own content sets
+  // `--staff-schedule-inset: 0`.
+  --schedule-inset: var(--staff-schedule-inset, #{a.space(6)});
+
+  @include a.detail-panel(var(--schedule-inset));
+}
+
+.hours-conflicts {
+  margin: var(--space-5) var(--schedule-inset) 0;
+}
+
+.hours-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--schedule-inset);
+}
+
+.hours-errors:not(:empty) {
+  display: block;
+}
+
+.hours-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.hours-hint,
+.hours-none {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  color: var(--text-muted);
+}
+
+.hours-shop {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.hours-intro svg {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  stroke-width: var(--icon-stroke);
+}
+
+// The read-only week, as every details panel reads.
+.hours-section {
+  @include a.detail-section;
+}
+
+.hours-heading {
+  @include a.detail-heading;
+}
+
+.hours-grid {
+  @include a.detail-grid;
+}
+
+.hours-row {
+  @include a.detail-row;
+}
+
+.hours-caption {
+  @include a.detail-caption;
+}
+
+.hours-value {
+  @include a.detail-value;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.hours-range-text[data-outside] {
+  color: var(--text-secondary);
+}
+
+.hours-note {
+  display: block;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.hours-off-text {
+  color: var(--text-secondary);
+}

@@ -1,0 +1,74 @@
+@use 'abstracts' as a;
+
+// A name breaks inside a word, so the table never gets wider than its card. The row height is the
+// table skeleton's in `chart-card.scss`, so nothing moves when the rows arrive.
+.top-customers {
+  width: 100%;
+  border-collapse: collapse;
+  @include a.t-body-sm;
+  color: var(--text-primary);
+
+  tr {
+    height: var(--space-8);
+  }
+
+  th,
+  td {
+    padding: 0 var(--space-3);
+    text-align: start;
+    vertical-align: middle;
+    border-bottom: var(--border-width-hairline) solid var(--border-subtle);
+  }
+
+  th:first-child,
+  td:first-child {
+    padding-inline-start: 0;
+  }
+
+  th:last-child,
+  td:last-child {
+    padding-inline-end: 0;
+  }
+
+  thead th {
+    @include a.t-field-label;
+    border-bottom-color: var(--border);
+  }
+
+  tbody th {
+    font-weight: var(--weight-medium);
+    overflow-wrap: anywhere;
+  }
+
+  tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+
+  .is-number {
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .is-rank {
+    width: 1%;
+    color: var(--text-secondary);
+  }
+
+  // On a phone the row order gives the rank, so the name gets the rank's width.
+  @include a.respond-down(sm) {
+    th,
+    td {
+      padding-inline: var(--space-2);
+    }
+
+    .is-rank {
+      display: none;
+    }
+
+    th:nth-child(2),
+    td:nth-child(2) {
+      padding-inline-start: 0;
+    }
+  }
+}

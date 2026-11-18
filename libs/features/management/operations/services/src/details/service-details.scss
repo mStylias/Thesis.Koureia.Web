@@ -1,0 +1,313 @@
+@use 'abstracts' as a;
+
+// Wide enough for a barber's name beside two own values. Declared before the breakpoint block,
+// which must win at the same specificity. Every section pads itself, so the content slot does not.
+lib-drawer {
+  --drawer-md-width: 34rem;
+  --drawer-content-padding: 0;
+}
+
+// Below the shell's breakpoint the panel takes the whole width and starts under the top bar,
+// whose menu button is the way back to the rest of the app. Same rules as the other drawers.
+@include a.respond-down(lg) {
+  lib-drawer {
+    --drawer-md-width: 100vw;
+    --drawer-max-width: 100vw;
+    --drawer-inset-top: var(--shell-header-height);
+    --drawer-edge-border-width: 0;
+  }
+}
+
+// The drawer's header styles cannot reach projected content, so the heading repeats them.
+.service-details-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.service-details-icon {
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
+  stroke-width: var(--icon-stroke);
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+.service-details-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  overflow-wrap: anywhere;
+}
+
+// The end slot's icons. Drawer styles do not reach projected content.
+lib-drawer-actions svg {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  stroke-width: var(--icon-stroke);
+  flex-shrink: 0;
+}
+
+.service-details-status {
+  margin: 0;
+  padding: var(--space-6);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.service-details-notice {
+  margin: var(--space-4) var(--space-6);
+}
+
+// The loading shape. The block pulses as one surface. Opacity only, so the base layer's
+// reduced-motion rule stops it.
+.service-details-skeleton {
+  display: flex;
+  flex-direction: column;
+  animation: service-skeleton-pulse 1.6s var(--ease-standard) infinite;
+}
+
+.skeleton-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-6);
+
+  & + & {
+    border-top: var(--border-width-hairline) solid var(--border);
+  }
+}
+
+.skeleton-line,
+.service-details-skeleton-button {
+  display: block;
+  border-radius: a.radius(sm);
+  background: var(--surface-2);
+}
+
+.skeleton-line {
+  height: var(--space-4);
+}
+
+.skeleton-caption {
+  width: 25%;
+  height: var(--space-3);
+}
+
+.skeleton-long {
+  width: 80%;
+}
+
+.skeleton-medium {
+  width: 50%;
+}
+
+.service-details-skeleton-button {
+  width: var(--space-20);
+  height: var(--space-8);
+  border-radius: a.radius(md);
+  animation: service-skeleton-pulse 1.6s var(--ease-standard) infinite;
+}
+
+@keyframes service-skeleton-pulse {
+  50% {
+    opacity: 0.6;
+  }
+}
+
+// ---------------------------------------------------------------------------------------------
+// The form
+// ---------------------------------------------------------------------------------------------
+
+.service-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.service-form-errors:not(:empty) {
+  display: block;
+  padding: var(--space-4) var(--space-6) 0;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-5) var(--space-6);
+
+  & + & {
+    border-top: var(--border-width-hairline) solid var(--border);
+  }
+}
+
+.form-heading {
+  @include a.detail-heading;
+}
+
+// Lines the label up with a `sm` field's horizontal padding. The wrapper inherits the property.
+.form-field {
+  --field-label-inset: var(--space-2);
+
+  min-width: 0;
+}
+
+// One block per language. The legend names the language, the fields name what they hold.
+.form-language {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  & + & {
+    margin-top: var(--space-2);
+  }
+}
+
+.form-language-name {
+  margin-bottom: var(--space-1);
+  padding: 0;
+  @include a.t-field-label;
+}
+
+// The select takes the row, the category buttons sit at the end of the control.
+.form-category {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+
+  .form-field {
+    flex: 1 1 auto;
+  }
+
+  button {
+    flex-shrink: 0;
+    // Level with the control, under the field's label area.
+    margin-top: var(--space-1);
+  }
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+  }
+}
+
+.form-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3) var(--space-4);
+  align-items: start;
+}
+
+.form-hint {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  color: var(--text-muted);
+}
+
+.form-summary {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+// The barbers: a name with its tick, then the two own values, in one grid so the columns align.
+.barbers {
+  // Fits "€ 1.234,56" and "480 λεπτά" in a `sm` number input.
+  --barbers-value-width: 8.5rem;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--barbers-value-width) var(--barbers-value-width);
+  column-gap: var(--space-3);
+  row-gap: var(--space-2);
+  align-items: center;
+}
+
+.barbers-head,
+.barbers-row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+}
+
+.barbers-head {
+  @include a.t-field-label;
+}
+
+.barbers-row {
+  // The control's own minimum is wider than a value column, so it overflowed into the next one.
+  --input-number-min-width: 0;
+
+  padding: var(--space-1) 0;
+  border-top: var(--border-width-hairline) solid var(--border);
+
+  lib-input-number {
+    width: 100%;
+  }
+
+  // An unticked barber reads as secondary: the own values are disabled with them.
+  &:not([data-selected]) .barbers-label {
+    color: var(--text-secondary);
+  }
+}
+
+.barbers-label {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  overflow-wrap: anywhere;
+}
+
+.barbers-meta {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.form-switch {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.form-switch-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.form-switch-label {
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+}
+
+// On a phone, the own values move under the name, one each.
+@include a.respond-down(sm) {
+  .form-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .barbers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .barbers-head {
+    display: none;
+  }
+
+  .barbers-name {
+    grid-column: 1 / -1;
+  }
+}

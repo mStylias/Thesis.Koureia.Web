@@ -1,0 +1,33 @@
+<kc-auth-frame [title]="i18n.msgStr('emailLinkIdpTitle')" [description]="description()">
+  @let message = kcContext.message;
+  @if (message) {
+    <lib-banner
+      class="message"
+      [tone]="message.type"
+      [attr.role]="message.type === 'error' ? 'alert' : 'status'"
+    >
+      <span [innerHTML]="message.summary"></span>
+    </lib-banner>
+  }
+
+  <div class="link-email-actions">
+    <p>{{ i18n.msgStr('emailVerifyNotReceived') }}</p>
+
+    <!-- Both controls post to `loginAction`, which is Keycloak's design: the same request resends
+         the mail and picks the flow up again once the link has been opened elsewhere. They are
+         two controls because they answer two different questions the visitor is asking. -->
+    <a
+      libButton
+      variant="outlined"
+      severity="secondary"
+      size="lg"
+      [href]="kcContext.url.loginAction"
+    >
+      {{ i18n.msgStr('emailVerifyResend') }}
+    </a>
+
+    <a libButton variant="text" severity="secondary" [href]="kcContext.url.loginAction">
+      {{ i18n.msgStr('idpLinkEmailConfirmedElsewhere') }}
+    </a>
+  </div>
+</kc-auth-frame>

@@ -1,0 +1,58 @@
+@let card = member();
+
+<!-- Keeps `?tab=`, so moving to another member stays on the open tab. -->
+<a
+  class="staff-card"
+  [routerLink]="[card.id]"
+  queryParamsHandling="preserve"
+  [attr.data-inactive]="card.isActive ? null : ''"
+>
+  <span class="card-head">
+    <lib-staff-avatar [avatarUrl]="card.avatarUrl" [initials]="card.initials" />
+    <span class="card-who">
+      <span class="card-name">{{ card.fullName }}</span>
+      @if (subtitle()) {
+        <span class="card-subtitle">{{ subtitle() }}</span>
+      }
+    </span>
+  </span>
+
+  @if (!card.isActive || !card.isBookable) {
+    <span class="card-tags">
+      @if (!card.isActive) {
+        <span class="card-tag">{{ 'managementStaff.status.inactive' | transloco }}</span>
+      } @else {
+        <span class="card-tag">{{ 'managementStaff.status.notBookable' | transloco }}</span>
+      }
+    </span>
+  }
+
+  @if (today()) {
+    <span class="card-line" [attr.data-time-off]="card.currentTimeOff ? '' : null">{{
+      today()
+    }}</span>
+  }
+
+  @if (card.isActive) {
+    <span class="card-facts">
+      <span>{{ 'managementStaff.card.services' | transloco: { count: card.serviceCount } }}</span>
+      @if (rating(); as value) {
+        <span>{{
+          'managementStaff.card.reviews' | transloco: { rating: value, count: card.reviewCount }
+        }}</span>
+      }
+      @if (next(); as when) {
+        <span>{{ 'managementStaff.card.next' | transloco: { when } }}</span>
+      }
+    </span>
+  }
+
+  @if (card.bookingBlockers.length > 0) {
+    <lib-banner class="card-alert" tone="warning">
+      {{ 'managementStaff.card.notBookableOnline' | transloco }}:
+      @for (blocker of card.bookingBlockers; track blocker; let last = $last) {
+        {{ 'managementStaff.blockers.' + blocker | transloco }}{{ last ? '' : ', ' }}
+      }
+    </lib-banner>
+  }
+</a>

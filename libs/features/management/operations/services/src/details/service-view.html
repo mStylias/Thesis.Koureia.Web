@@ -1,0 +1,129 @@
+@let viewed = service();
+
+<div class="service-view">
+  @if (notBookableReason(); as reason) {
+    <lib-banner
+      class="view-callout"
+      tone="warning"
+      role="status"
+      [heading]="'managementServices.view.notBookable' | transloco"
+    >
+      {{ 'managementServices.view.' + reason | transloco }}
+    </lib-banner>
+  }
+
+  <section class="view-section">
+    <dl class="view-grid">
+      @for (translation of viewed.translations; track translation.languageCode) {
+        <div class="view-row">
+          <dt class="view-caption">
+            {{ 'managementServices.languages.' + translation.languageCode | transloco }}
+          </dt>
+          <dd class="view-value">
+            <span>{{ translation.name }}</span>
+            @if (translation.description) {
+              <span class="view-description">{{ translation.description }}</span>
+            }
+          </dd>
+        </div>
+      }
+      <div class="view-row">
+        <dt class="view-caption">{{ 'managementServices.form.category' | transloco }}</dt>
+        <dd class="view-value">{{ categoryName() }}</dd>
+      </div>
+      <div class="view-row">
+        <dt class="view-caption">{{ 'managementServices.view.status' | transloco }}</dt>
+        <dd class="view-value">
+          <span class="view-badge" [attr.data-tone]="viewed.isActive ? 'success' : 'neutral'">
+            {{
+              'managementServices.status.' + (viewed.isActive ? 'active' : 'inactive') | transloco
+            }}
+          </span>
+        </dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="view-section">
+    <h3 class="view-heading">{{ 'managementServices.sections.pricing' | transloco }}</h3>
+    <dl class="view-grid">
+      <div class="view-row">
+        <dt class="view-caption">{{ 'managementServices.view.basePrice' | transloco }}</dt>
+        <dd class="view-value view-number">{{ money().format(viewed.price) }}</dd>
+      </div>
+      <div class="view-row">
+        <dt class="view-caption">{{ 'managementServices.view.duration' | transloco }}</dt>
+        <dd class="view-value view-number">
+          {{ 'managementServices.minutes' | transloco: { count: viewed.durationMinutes } }}
+        </dd>
+      </div>
+      @if (viewed.bufferBeforeMinutes > 0 || viewed.bufferAfterMinutes > 0) {
+        <div class="view-row">
+          <dt class="view-caption">{{ 'managementServices.view.buffers' | transloco }}</dt>
+          <dd class="view-value view-number">
+            {{
+              'managementServices.view.buffersValue'
+                | transloco
+                  : {
+                      before:
+                        ('managementServices.minutes'
+                        | transloco: { count: viewed.bufferBeforeMinutes }),
+                      after:
+                        ('managementServices.minutes'
+                        | transloco: { count: viewed.bufferAfterMinutes }),
+                    }
+            }}
+          </dd>
+        </div>
+        <div class="view-row">
+          <dt class="view-caption">{{ 'managementServices.view.calendarTime' | transloco }}</dt>
+          <dd class="view-value view-number">
+            {{
+              'managementServices.minutes'
+                | transloco
+                  : {
+                      count:
+                        viewed.durationMinutes +
+                        viewed.bufferBeforeMinutes +
+                        viewed.bufferAfterMinutes,
+                    }
+            }}
+          </dd>
+        </div>
+      }
+      <div class="view-row">
+        <dt class="view-caption">{{ 'managementServices.view.timesBooked' | transloco }}</dt>
+        <dd class="view-value view-number">{{ viewed.timesBooked }}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="view-section">
+    <h3 class="view-heading">{{ 'managementServices.sections.barbers' | transloco }}</h3>
+    @if (assigned().length === 0) {
+      <p class="view-empty">{{ 'managementServices.view.noneAssigned' | transloco }}</p>
+    } @else {
+      <dl class="view-grid">
+        @for (member of assigned(); track member.staffMemberId) {
+          <div class="view-row">
+            <dt class="view-caption">
+              {{ member.displayName }}
+              @if (!member.isActive) {
+                <span class="view-meta"
+                  >· {{ 'managementServices.form.inactive' | transloco }}</span
+                >
+              }
+            </dt>
+            <dd class="view-value view-number">
+              {{ money().format(member.customPrice ?? viewed.price) }} ·
+              {{
+                'managementServices.minutes'
+                  | transloco: { count: member.customDurationMinutes ?? viewed.durationMinutes }
+              }}
+            </dd>
+          </div>
+        }
+      </dl>
+    }
+  </section>
+</div>

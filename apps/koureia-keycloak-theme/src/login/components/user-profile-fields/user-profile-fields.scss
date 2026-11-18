@@ -1,0 +1,54 @@
+:host {
+  display: grid;
+  gap: var(--space-3);
+}
+
+// `align-content` and not `align-items`: a field beside a taller one is stretched to match it,
+// and auto rows share that spare height out between themselves. The error message under one name
+// then made the other name's input taller and pushed it half a line down the row.
+.field {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+}
+
+// `auto-fit` and not a media query: the row answers to the width of the auth column, which the
+// frame narrows well before any viewport breakpoint does. Below two 10rem cells the names stack.
+.name-row {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
+@media (min-width: 64rem) and (min-height: 48rem) {
+  :host {
+    gap: var(--space-5);
+  }
+
+  .field {
+    gap: var(--space-2);
+  }
+
+  .name-row {
+    gap: var(--space-4);
+  }
+}
+
+label {
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-normal);
+}
+
+input[libInputText],
+lib-password-input {
+  width: 100%;
+}
+
+.field-error {
+  margin: 0;
+  color: var(--error-text);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}

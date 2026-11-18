@@ -1,0 +1,31 @@
+<section class="cs-group">
+  <h3 class="cs-heading" [id]="scaleHeadingId">{{ 'calendar.timeScale' | uiCopy | transloco }}</h3>
+  <lib-radio-group
+    orientation="horizontal"
+    size="sm"
+    [options]="scaleOptions()"
+    [value]="timeScale()"
+    [ariaLabelledby]="scaleHeadingId"
+    (valueChange)="onScalePick($event)"
+  />
+</section>
+
+@if (hasTiles()) {
+  <section class="cs-group">
+    <lib-switch size="sm" [(value)]="showTime">
+      {{ 'calendar.showTime' | uiCopy | transloco }}
+    </lib-switch>
+  </section>
+}
+
+@if (view() === 'day') {
+  <section class="cs-group">
+    <lib-switch
+      size="sm"
+      [value]="dayColumns() === 'perResource'"
+      (valueChange)="onColumnsToggle($event)"
+    >
+      {{ dayColumnsLabel() || ('calendar.dayColumns' | uiCopy | transloco) }}
+    </lib-switch>
+  </section>
+}

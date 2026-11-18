@@ -1,0 +1,31 @@
+<div
+  class="dg-footer-row"
+  role="row"
+  [attr.aria-rowindex]="ariaRowIndex() || null"
+  [attr.aria-label]="label() || null"
+>
+  @for (cell of cells(); track cell.columnId) {
+    <div
+      class="dg-footer-cell"
+      role="gridcell"
+      [attr.aria-colindex]="cell.colIndex"
+      [attr.data-column]="cell.columnId"
+      [attr.data-pinned]="cell.pinned || null"
+      [attr.data-edge]="cell.edge ? '' : null"
+      tabindex="-1"
+      [style.left.px]="cell.insetStart"
+      [style.right.px]="cell.insetEnd"
+    >
+      @if (cell.template) {
+        <ng-container [ngTemplateOutlet]="cell.template" [ngTemplateOutletContext]="cell.context" />
+      } @else if (cell.component; as renderer) {
+        <ng-container
+          [ngComponentOutlet]="renderer.type"
+          [ngComponentOutletInputs]="renderer.inputs"
+        />
+      } @else {
+        {{ cell.text }}
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,8 @@
+{
+  "name": "features-management-profile",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/features/management/profile/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["scope:app", "type:feature"]
+}

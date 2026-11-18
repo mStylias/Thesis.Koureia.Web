@@ -1,0 +1,277 @@
+@let fields = editor.form;
+
+<lib-drawer
+  position="right"
+  [modal]="false"
+  [closeGuard]="closeGuard"
+  [visible]="open()"
+  ariaLabelledby="customer-details-title"
+  (visibleChange)="onVisibleChange($event)"
+>
+  <div libDrawerHeader class="details-heading">
+    @if (customer(); as shown) {
+      <span class="details-initials" aria-hidden="true">{{ initials() }}</span>
+    }
+    <div class="details-heading-text">
+      <h2 class="details-title" id="customer-details-title">{{ heading() }}</h2>
+      @if (customer(); as shown) {
+        <p class="details-tags">
+          <span class="details-tag" [attr.data-tone]="shown.isWalkIn ? null : 'accent'">
+            {{
+              (shown.isWalkIn
+                ? 'managementCustomers.account.walkIn'
+                : 'managementCustomers.account.account'
+              ) | transloco
+            }}
+          </span>
+          @if (shown.block) {
+            <span class="details-tag" data-tone="error">
+              {{ 'managementCustomers.blocked' | transloco }}
+            </span>
+          }
+        </p>
+      }
+    </div>
+  </div>
+
+  <!-- Pinned, so Save stays reachable however long the form below it is. -->
+  <lib-drawer-actions
+    libDrawerToolbar
+    [actions]="toolbarActions()"
+    [paused]="switching()"
+    [attr.aria-label]="'managementCustomers.actions.label' | transloco"
+  >
+    @if (editor.editing()) {
+      <button
+        libButton
+        type="button"
+        severity="secondary"
+        variant="outlined"
+        size="sm"
+        [disabled]="editor.submitting()"
+        (click)="cancelEdit()"
+      >
+        {{ 'managementCustomers.actions.cancelEdit' | transloco }}
+      </button>
+      <!-- Never disabled by validity: the first press is what reveals it. -->
+      <button
+        libButton
+        type="button"
+        severity="primary"
+        size="sm"
+        [loading]="editor.submitting()"
+        (click)="save()"
+      >
+        <svg lucideSave libButtonIcon aria-hidden="true"></svg>
+        {{ 'managementCustomers.actions.save' | transloco }}
+      </button>
+    } @else if (customer() !== null) {
+      @if (canUpdate()) {
+        <button
+          libButton
+          type="button"
+          severity="secondary"
+          variant="outlined"
+          size="sm"
+          (click)="edit()"
+        >
+          <svg lucidePencil libButtonIcon aria-hidden="true"></svg>
+          {{ 'managementCustomers.actions.edit' | transloco }}
+        </button>
+      }
+    } @else if (reading()) {
+      <span class="details-skeleton-button" aria-hidden="true"></span>
+    }
+  </lib-drawer-actions>
+
+  @if (reading()) {
+    <div class="details-skeleton" aria-hidden="true">
+      @for (placeholder of [1, 2, 3]; track placeholder) {
+        <section class="skeleton-section">
+          <span class="skeleton-line skeleton-caption"></span>
+          <span class="skeleton-line skeleton-long"></span>
+          <span class="skeleton-line skeleton-medium"></span>
+        </section>
+      }
+    </div>
+    <p class="sr-only" role="status">{{ 'managementCustomers.panel.loading' | transloco }}</p>
+  } @else if (readErrorText()) {
+    <lib-banner class="details-notice" tone="error" role="alert">
+      {{ readErrorText() }}
+      <button
+        libButton
+        libBannerAction
+        type="button"
+        variant="outlined"
+        size="sm"
+        (click)="reload()"
+      >
+        {{ 'managementCustomers.panel.retry' | transloco }}
+      </button>
+    </lib-banner>
+  } @else if (editor.editing()) {
+    <!-- `libForm` carries the editor to the fields and sets `novalidate`. The toolbar's Save commits. -->
+    <form class="customer-form" [libForm]="editor">
+      <lib-form-errors class="customer-form-errors" />
+
+      <section class="form-section">
+        <h3 class="form-heading">{{ 'managementCustomers.form.contact' | transloco }}</h3>
+        @if (contactMode() === 'view') {
+          <p class="form-hint">{{ 'managementCustomers.form.readOnlyHint' | transloco }}</p>
+        }
+
+        <div class="form-pair">
+          <lib-field class="form-field" [field]="fields.firstName" [mode]="contactMode()">
+            <ng-template libFieldEditor>
+              <input
+                libInputText
+                libFieldControl
+                type="text"
+                size="sm"
+                autocomplete="off"
+                placeholder=" "
+                [formField]="fields.firstName"
+              />
+            </ng-template>
+          </lib-field>
+
+          @if (contactMode() !== 'view' || fields.lastName().value()) {
+            <lib-field class="form-field" [field]="fields.lastName" [mode]="contactMode()">
+              <ng-template libFieldEditor>
+                <input
+                  libInputText
+                  libFieldControl
+                  type="text"
+                  size="sm"
+                  autocomplete="off"
+                  placeholder=" "
+                  [formField]="fields.lastName"
+                />
+              </ng-template>
+            </lib-field>
+          }
+        </div>
+
+        @if (contactMode() !== 'view' || fields.phoneNumber().value()) {
+          <lib-field
+            class="form-field"
+            labelStyle="plain"
+            [field]="fields.phoneNumber"
+            [mode]="contactMode()"
+          >
+            <ng-template libFieldEditor let-id let-describedBy="describedBy">
+              <lib-phone-input
+                size="sm"
+                [inputId]="id"
+                [ariaDescribedby]="describedBy"
+                [formField]="fields.phoneNumber"
+              />
+            </ng-template>
+          </lib-field>
+        }
+
+        @if (contactMode() !== 'view' || fields.email().value()) {
+          <lib-field class="form-field" [field]="fields.email" [mode]="contactMode()">
+            <ng-template libFieldEditor>
+              <input
+                libInputText
+                libFieldControl
+                type="email"
+                inputmode="email"
+                size="sm"
+                autocomplete="off"
+                placeholder=" "
+                [formField]="fields.email"
+              />
+            </ng-template>
+          </lib-field>
+          @if (clashOwnerId(); as otherId) {
+            <button
+              libButton
+              type="button"
+              class="form-merge"
+              severity="secondary"
+              variant="outlined"
+              size="sm"
+              (click)="mergeFromClash(otherId)"
+            >
+              <svg lucideMerge libButtonIcon aria-hidden="true"></svg>
+              {{ 'managementCustomers.actions.merge' | transloco }}
+            </button>
+          }
+        }
+      </section>
+
+      <section class="form-section">
+        <h3 class="form-heading">{{ 'managementCustomers.form.shopData' | transloco }}</h3>
+
+        <lib-field class="form-field" [field]="fields.note">
+          <ng-template libFieldEditor>
+            <textarea
+              libTextarea
+              libFieldControl
+              rows="4"
+              size="sm"
+              autoResize
+              placeholder=" "
+              aria-describedby="customer-note-hint customer-note-count"
+              [formField]="fields.note"
+            ></textarea>
+          </ng-template>
+        </lib-field>
+        <div class="form-note-meta">
+          <p class="form-hint" id="customer-note-hint">
+            {{ 'managementCustomers.form.noteHint' | transloco }}
+          </p>
+          <p
+            class="form-count"
+            id="customer-note-count"
+            [attr.data-over]="noteLength() > noteMax ? '' : null"
+          >
+            {{ noteLength() }} / {{ noteMax }}
+          </p>
+        </div>
+
+        <lib-field class="form-field" [field]="fields.preferredStaffMemberId">
+          <ng-template libFieldEditor let-id let-describedBy="describedBy">
+            <lib-select
+              size="sm"
+              [inputId]="id"
+              [ariaDescribedby]="describedBy"
+              [options]="barberOptions()"
+              [formField]="fields.preferredStaffMemberId"
+            />
+          </ng-template>
+        </lib-field>
+      </section>
+    </form>
+  } @else if (customer(); as viewed) {
+    <lib-customer-view
+      [customer]="viewed"
+      [language]="language()"
+      [timezone]="timezone()"
+      [canSeeSpend]="canSeeSpend()"
+      [canReadAppointments]="canReadAppointments()"
+      [appointmentsLink]="appointmentsLink()"
+      [appointmentLink]="appointmentLink"
+      [revision]="revision()"
+    />
+  }
+</lib-drawer>
+
+@if (customer(); as shown) {
+  <lib-block-customer-dialog
+    [(visible)]="blockOpen"
+    [customer]="shown"
+    [appointmentsLink]="canReadAppointments() ? appointmentsLink() : null"
+    (blocked)="showSaved($event)"
+  />
+  @if (shown.canMerge) {
+    <lib-merge-customers-dialog
+      [(visible)]="mergeOpen"
+      [customer]="shown"
+      [otherId]="mergeOtherId()"
+      (merged)="showSaved($event)"
+    />
+  }
+}

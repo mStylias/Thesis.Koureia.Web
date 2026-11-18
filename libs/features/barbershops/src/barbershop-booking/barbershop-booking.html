@@ -1,0 +1,388 @@
+@if (shopRefusal(); as refusal) {
+  <main class="booking booking--state">
+    <lib-banner class="booking-shop-refusal" tone="warning" role="status">
+      {{ 'barbershops.booking.shopRefusal.text' | transloco }}
+      @if (refusal.phone) {
+        <a libButton libBannerAction severity="primary" [href]="phoneHref(refusal.phone)">
+          <svg lucidePhone libButtonIcon aria-hidden="true"></svg>
+          {{ 'barbershops.booking.shopRefusal.call' | transloco: { phone: refusal.phone } }}
+        </a>
+      }
+    </lib-banner>
+  </main>
+} @else if (reschedule.status === 'unavailable' || moveClosed()) {
+  <main class="booking booking--state">
+    <lib-banner class="booking-shop-refusal" tone="warning" role="status">
+      {{ 'barbershops.booking.reschedule.unavailable' | transloco }}
+      <a libButton libBannerAction severity="primary" [routerLink]="appointmentLink()">
+        {{ 'barbershops.booking.reschedule.backToAppointment' | transloco }}
+      </a>
+    </lib-banner>
+  </main>
+} @else if (page.status === 'found') {
+  <main class="booking">
+    <lib-stepper
+      class="booking__stepper"
+      [steps]="steps()"
+      [activeStep]="state.step()"
+      [completedSteps]="state.completedSteps()"
+      (stepSelected)="onStepSelected($event)"
+    />
+
+    <div class="booking__layout">
+      <div class="booking__step">
+        <!--
+          The wide screen's back control, level with the step's title. Below `lg` the sheet's
+          bar carries it instead, where the thumb is.
+        -->
+        <button
+          libButton
+          class="booking__back booking__back--page"
+          type="button"
+          variant="outlined"
+          severity="secondary"
+          [attr.aria-label]="'barbershops.booking.back' | transloco"
+          (click)="goBack()"
+        >
+          <svg lucideArrowLeft libButtonIcon aria-hidden="true"></svg>
+        </button>
+
+        <!--
+          The whole repair in one sentence, inline rather than as a toast: the customer may
+          arrive here straight from a redirect and must not be able to miss it.
+        -->
+        @if (movingNotice(); as moving) {
+          <lib-banner class="booking__notice" role="status">
+            {{ 'barbershops.booking.reschedule.moving' | transloco: moving }}
+          </lib-banner>
+        }
+
+        @if (repairNotice(); as notice) {
+          <lib-banner
+            class="booking__notice"
+            tone="warning"
+            role="status"
+            animate.enter="booking-notice-enter"
+          >
+            {{ notice }}
+          </lib-banner>
+        }
+
+        @switch (state.step()) {
+          @case ('services') {
+            <lib-booking-services [animate.enter]="stepEnter()" />
+          }
+          @case ('barber') {
+            <lib-booking-barber [animate.enter]="stepEnter()" />
+          }
+          @case ('when') {
+            <lib-booking-datetime [animate.enter]="stepEnter()" />
+          }
+          @case ('confirm') {
+            <!--
+              Wide only. Narrow, this step has no body: the sheet is pinned open below and
+              holds the same fields, so they exist exactly once.
+            -->
+            @if (!confirmInSheet()) {
+              <lib-booking-confirm
+                [animate.enter]="stepEnter()"
+                [gate]="gate()"
+                [failure]="failure()"
+                [submitting]="submitting()"
+                [newTotal]="newTotal()"
+                [(phone)]="phone"
+                (commit)="commit()"
+              />
+            }
+          }
+        }
+      </div>
+    </div>
+  </main>
+
+  <!--
+    The wide-screen surface: a bar across the foot of the page, always open and always whole.
+    It is the sheet's opposite number, not a second one — CSS shows exactly one of them.
+  -->
+  <aside class="booking__bar" [attr.aria-label]="'barbershops.booking.summary.title' | transloco">
+    <div class="booking__bar-inner">
+      <lib-booking-summary
+        class="booking__bar-summary"
+        layout="inline"
+        [shop]="state.options()"
+        [chosen]="state.chosen()"
+        [totals]="state.totals()"
+        [barberName]="barberName()"
+        [date]="state.date()"
+        [time]="state.time()"
+        [step]="state.step()"
+      />
+      <div class="booking__advance">
+        <!-- Left of the forward action and pushed off it: the two undo each other and must
+             not read as a pair of equal choices. A move has nothing to start over from. -->
+        @if (state.hasChoices() && !state.rescheduling()) {
+          <button
+            libButton
+            class="booking__reset"
+            type="button"
+            variant="text"
+            severity="secondary"
+            size="sm"
+            (click)="startOver()"
+          >
+            <svg lucideRotateCcw libButtonIcon aria-hidden="true"></svg>
+            {{ 'barbershops.booking.reset.action' | transloco }}
+          </button>
+        }
+        <ng-container [ngTemplateOutlet]="cta" />
+      </div>
+    </div>
+  </aside>
+
+  <!--
+    The narrow-screen surface. Collapsed it is a bar carrying the shop and what the choices add
+    up to; expanded it lists them. On the confirm step it is pinned open and is the whole
+    screen, so there is nothing left to collapse it to.
+  -->
+  <div class="booking__sheet">
+    <lib-bottom-sheet
+      [(expanded)]="sheetExpanded"
+      [collapsible]="!confirmInSheet()"
+      [toggleLabel]="'barbershops.booking.summary.title' | transloco"
+    >
+      <div libBottomSheetPeek class="peek">
+        @if (state.options()?.logoUrl; as logo) {
+          <img class="peek__logo" [src]="logo" alt="" width="40" height="40" decoding="async" />
+        } @else {
+          <span class="peek__logo peek__logo--empty" aria-hidden="true">{{
+            state.options()?.name?.charAt(0)
+          }}</span>
+        }
+        <span class="peek__text">
+          <span class="peek__name">{{ state.options()?.name }}</span>
+          <!--
+            Replayed rather than re-entered. There is exactly one head and one tail, and the
+            middle truncation below depends on that: a second copy of either, incoming or
+            outgoing, would take width from the one being read.
+          -->
+          <span class="peek__choices">
+            @let line = choices();
+            @if (line.tail) {
+              <span
+                class="peek__choices-head"
+                [libReplayOnChange]="line.head"
+                animationClass="peek-line-enter"
+                >{{ line.head }}</span
+              >
+              <span
+                class="peek__choices-tail"
+                [libReplayOnChange]="line.tail"
+                animationClass="peek-line-enter"
+                >{{ line.tail }}</span
+              >
+            } @else {
+              <span class="peek__choices-head">{{
+                'barbershops.booking.summary.nothingYet' | transloco
+              }}</span>
+            }
+          </span>
+        </span>
+      </div>
+
+      <!-- At the end of the bar, which is the one place inside it a control is reachable. -->
+      <button
+        libBottomSheetTrailing
+        libButton
+        class="booking__back"
+        type="button"
+        variant="text"
+        severity="secondary"
+        [attr.aria-label]="'barbershops.booking.back' | transloco"
+        (click)="goBack()"
+      >
+        <svg lucideArrowLeft libButtonIcon aria-hidden="true"></svg>
+      </button>
+
+      <!--
+        On screen in both states: the flow must be advanceable without expanding the sheet. The
+        button is alone here and takes the whole width — the amount is in the panel, under what
+        it is the sum of.
+      -->
+      <div libBottomSheetActions class="booking__sheet-actions">
+        <div class="booking__advance">
+          <ng-container [ngTemplateOutlet]="cta" />
+        </div>
+      </div>
+
+      <!-- No shop header: the bar above carries it and stays on screen. -->
+      <lib-booking-summary
+        [shop]="state.options()"
+        [chosen]="state.chosen()"
+        [totals]="state.totals()"
+        [barberName]="barberName()"
+        [date]="state.date()"
+        [time]="state.time()"
+        [step]="state.step()"
+        [showShop]="false"
+        [showTotal]="false"
+      />
+
+      @if (confirmInSheet()) {
+        @if (state.rescheduling()) {
+          <lib-booking-reschedule class="booking__sheet-fields" [newTotal]="newTotal()" />
+        }
+        <lib-booking-confirm-fields
+          class="booking__sheet-fields"
+          [gate]="gate()"
+          [(phone)]="phone"
+        />
+
+        @if (gate() === 'anonymous') {
+          <lib-banner
+            class="booking__sheet-notice"
+            role="status"
+            animate.enter="booking-notice-enter"
+            [icon]="shieldIcon"
+          >
+            {{ 'barbershops.booking.confirm.kept' | transloco }}
+          </lib-banner>
+        }
+
+        @if (gate() === 'unverified') {
+          <lib-banner
+            class="booking__sheet-notice"
+            role="status"
+            animate.enter="booking-notice-enter"
+            [icon]="shieldIcon"
+          >
+            {{ 'barbershops.booking.confirm.verifyLead' | transloco }}
+          </lib-banner>
+        }
+      }
+
+      <!-- Inside the panel, so throwing the selection away takes a deliberate opening of the
+           sheet. The collapsed row is the one action that moves the flow forward. -->
+      @if (state.hasChoices() && !state.rescheduling()) {
+        <div class="booking__sheet-reset">
+          <button
+            libButton
+            class="booking__reset"
+            type="button"
+            variant="text"
+            severity="secondary"
+            size="sm"
+            (click)="startOver()"
+          >
+            <svg lucideRotateCcw libButtonIcon aria-hidden="true"></svg>
+            {{ 'barbershops.booking.reset.action' | transloco }}
+          </button>
+        </div>
+      }
+
+      <!-- Under everything it is the sum of, and above the button it is the price of. -->
+      @if (state.chosen().length > 0) {
+        <p class="booking__sheet-total">
+          <span class="booking__sheet-total-label">
+            {{ 'barbershops.booking.summary.total' | transloco }}
+          </span>
+          <span class="booking__sheet-total-value">
+            @if (!state.totals().exact) {
+              <span class="booking__sheet-from">
+                {{ 'barbershops.booking.summary.from' | transloco }}
+              </span>
+            }
+            <!-- The number the customer is deciding on, so a toggle four lines above has to
+                 be visible down here. -->
+            <span
+              class="booking__sheet-amount"
+              [libReplayOnChange]="sheetTotal()"
+              animationClass="booking-total-enter"
+              >{{ sheetTotal() }}</span
+            >
+          </span>
+        </p>
+      }
+
+      <!-- Last, so a refusal is the line directly above the button that was refused. -->
+      @if (confirmInSheet() && failure(); as message) {
+        <lib-banner
+          class="booking__sheet-notice"
+          tone="error"
+          role="alert"
+          animate.enter="booking-notice-enter"
+        >
+          {{ message }}
+        </lib-banner>
+      }
+    </lib-bottom-sheet>
+  </div>
+
+  <!--
+    One definition, rendered in the bar and in the sheet. CSS shows whichever surface the width
+    calls for, and `display: none` keeps the hidden copy out of the accessibility tree, so the
+    button is never announced twice.
+  -->
+  <ng-template #cta>
+    <!--
+      The confirm step commits from the same place every other step advances from, so the
+      button the customer has pressed four times does not move for the fifth.
+    -->
+    @if (state.step() === 'confirm') {
+      @switch (gate()) {
+        @case ('ready') {
+          <button
+            libButton
+            class="booking__commit"
+            type="button"
+            size="lg"
+            [loading]="submitting()"
+            (click)="commit()"
+          >
+            @if (state.rescheduling()) {
+              {{ 'barbershops.booking.reschedule.confirm' | transloco }}
+            } @else {
+              {{ 'barbershops.booking.confirm.book' | transloco }}
+            }
+          </button>
+        }
+        @case ('unverified') {
+          <button libButton class="booking__commit" type="button" size="lg" (click)="verify()">
+            {{ 'barbershops.booking.confirm.verify' | transloco }}
+          </button>
+        }
+        @case ('anonymous') {
+          <button libButton class="booking__commit" type="button" size="lg" (click)="signIn()">
+            {{ 'barbershops.booking.confirm.signIn' | transloco }}
+          </button>
+        }
+        @case ('deciding') {
+          <!-- The space the action will take, held but not guessed at. -->
+          <button libButton type="button" size="lg" disabled aria-hidden="true">
+            {{ 'barbershops.booking.confirm.book' | transloco }}
+          </button>
+        }
+      }
+    } @else {
+      <button
+        libButton
+        class="booking__continue"
+        type="button"
+        size="lg"
+        [disabled]="!canAdvance()"
+        (click)="advance()"
+      >
+        {{ 'barbershops.booking.continue' | transloco }}
+      </button>
+    }
+  </ng-template>
+} @else {
+  <main class="booking booking--state">
+    <lib-banner tone="error" role="alert">
+      @if (page.status === 'not-found') {
+        {{ 'barbershops.booking.notFound' | transloco }}
+      } @else {
+        {{ 'barbershops.booking.failed' | transloco }}
+      }
+    </lib-banner>
+  </main>
+}

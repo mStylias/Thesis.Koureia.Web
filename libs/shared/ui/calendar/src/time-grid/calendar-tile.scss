@@ -1,0 +1,327 @@
+@use 'sass:math';
+@use 'abstracts' as a;
+@use '../badge/calendar-badge' as badge;
+
+// The host is the positioned box the grid sizes. It is transparent, and the
+// frame inside it keeps `--calendar-tile-inset` clear of the grid lines on
+// every side, while the widths stay a plain fraction of the column.
+:host {
+  --tile-swatch: var(--text-muted);
+  position: absolute;
+  top: calc(var(--tg-hour) * var(--tile-start) / 60);
+  height: calc(var(--tg-hour) * (var(--tile-end) - var(--tile-start)) / 60);
+  left: calc(100% * var(--tile-column) / var(--tile-columns));
+  width: calc(100% / var(--tile-columns));
+  box-sizing: border-box;
+  z-index: 2;
+  display: block;
+  margin: 0;
+  padding: var(--calendar-tile-inset);
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  container: tile / size;
+}
+
+@for $step from 1 through 6 {
+  :host([data-swatch='#{$step}']) {
+    --tile-swatch: var(--swatch-#{$step});
+  }
+}
+
+.tile-frame {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 0 a.space(1);
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+  padding: a.space(1) a.space(2);
+  border-inline-start: calc(var(--border-width-strong) * 2) solid var(--tile-swatch);
+  border-radius: a.radius(sm);
+  background: color-mix(in oklab, var(--tile-swatch) 14%, var(--surface));
+  color: var(--text-primary);
+  font-size: var(--text-xs);
+  line-height: var(--leading-tight);
+  // The ring of the opened event is an outline, so it goes round the swatch
+  // bar rather than inside it, and fits the tile's inset. It eases in rather
+  // than snapping. A press, so `--ease-out`.
+  outline: var(--border-width-strong) solid transparent;
+  outline-offset: 0;
+  transition: outline-color var(--dur-fast) var(--ease-out);
+}
+
+// Under the time, or the whole tile without it. Its own size container: its
+// height is what the time row leaves, so one set of bands below serves the
+// tile with or without the time.
+.tile-body {
+  container: tile-body / size;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.tile-row {
+  display: flex;
+  flex: none;
+  // The first line, not the middle: a title on two lines keeps the resource
+  // beside its first.
+  align-items: baseline;
+  gap: 0 a.space(1);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.tile-time {
+  flex: none;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+// The resource as a dot and its initials: the dot for the eye, the letters
+// for a reader who cannot tell the six swatches apart.
+.tile-resource {
+  display: inline-flex;
+  // Never shrinks: squeezed, the initials ran into the title.
+  flex: none;
+  align-items: center;
+  gap: a.space(1);
+  min-width: 0;
+  color: var(--text-secondary);
+}
+
+.tile-dot {
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: a.radius(pill);
+  background: var(--tile-swatch);
+}
+
+.tile-title,
+.tile-subtitle,
+.tile-badge-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// The title wraps to `--tile-title-lines`, which the bands raise. A word too
+// long for its line ends in an ellipsis on that line rather than splitting:
+// there is no Greek hyphenation to split it well. Beside the resource it needs
+// 4rem, and given less it drops under the resource once the row may wrap.
+.tile-title {
+  display: -webkit-box;
+  flex: 1 1 4rem;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--tile-title-lines, 1);
+  line-clamp: var(--tile-title-lines, 1);
+  white-space: normal;
+  overflow-wrap: normal;
+  font-weight: var(--weight-medium);
+}
+
+.tile-subtitle {
+  flex: 1 1 auto;
+  color: var(--text-secondary);
+}
+
+// The subtitle gives way first. The badge is the state, so it shrinks last.
+.tile-meta {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: a.space(1);
+  min-width: 0;
+  margin-block-start: calc(var(--space-1) / 2);
+}
+
+.tile-badge {
+  @include badge.calendar-badge;
+  flex: 0 1 auto;
+  min-width: 0;
+
+  svg {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+}
+
+// A muted event is cancelled or missed: it keeps its place and loses its
+// colour, and the struck time says so without the colour.
+:host([data-muted]) .tile-frame {
+  border-inline-start-color: var(--border-strong);
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+
+:host([data-muted]) .tile-time {
+  text-decoration: line-through;
+}
+
+:host([data-selected]) .tile-frame {
+  outline-color: var(--accent);
+}
+
+:host(:hover) .tile-frame {
+  background: color-mix(in oklab, var(--tile-swatch) 22%, var(--surface));
+}
+
+// Height decides the layout, so no text is measured. Each band is the worst
+// case of what it allows, rounded up, so nothing it allows can be clipped, and
+// wrapping happens only where the width runs out.
+$line: 0.91rem; // `--text-xs` at `--leading-tight`
+$badge: 1.16rem; // a line and the badge's own padding
+$gap: 0.125rem; // above the meta row, and between its two lines once stacked
+$step: 0.125rem;
+
+@function band($height) {
+  @return math.ceil(math.div($height, $step)) * $step;
+}
+
+$meta-row: band($line + $gap + $badge);
+$stacked: band(2 * $line + 2 * $gap + $badge);
+
+// The subtitle and the badge share a row, or go.
+@container tile-body (height < #{$meta-row}) {
+  .tile-meta {
+    display: none;
+  }
+}
+
+// The badge takes a line of its own rather than an ellipsis, and the subtitle
+// under it takes whatever height is left, cut at a whole line: no band can
+// know how many lines the title used. The pixel keeps a line that measures a
+// fraction short, which would otherwise round to none.
+@container tile-body (height >= #{$stacked}) {
+  .tile-meta {
+    display: grid;
+    flex: 1 1 0;
+    grid-template-rows: auto minmax(0, 1fr);
+    align-content: start;
+    justify-items: start;
+    gap: $gap;
+    min-height: 0;
+  }
+
+  .tile-badge {
+    grid-row: 1;
+    max-width: 100%;
+  }
+
+  .tile-subtitle {
+    grid-row: 2;
+    align-self: start;
+    justify-self: stretch;
+    max-height: round(down, calc(100% + 1px), #{$line});
+    white-space: normal;
+  }
+}
+
+// The title under the resource, in a tile too narrow for both on one line.
+@container tile-body (height >= #{band(3 * $line + 2 * $gap + $badge)}) {
+  .tile-row {
+    flex-wrap: wrap;
+  }
+}
+
+// The title is what a tile is read by, so it gets each extra line first.
+@container tile-body (height >= #{band(4 * $line + 2 * $gap + $badge)}) {
+  .tile-title {
+    --tile-title-lines: 2;
+  }
+}
+
+@container tile-body (height >= #{band(5 * $line + 2 * $gap + $badge)}) {
+  .tile-title {
+    --tile-title-lines: 3;
+  }
+}
+
+// With no meta row, or with it gone for height, the title takes its lines.
+@container tile-body (height >= #{band(2 * $line)}) and (height < #{$meta-row}) {
+  .tile-title {
+    --tile-title-lines: 2;
+  }
+}
+
+@container tile-body (height >= #{band(2 * $line)}) {
+  .tile-body:not(:has(.tile-meta)) .tile-title {
+    --tile-title-lines: 2;
+  }
+}
+
+@container tile-body (height >= #{band(3 * $line)}) {
+  .tile-body:not(:has(.tile-meta)) .tile-title {
+    --tile-title-lines: 3;
+  }
+}
+
+// The resource drops under the time once the body still keeps a meta row.
+@container tile (height >= #{band(2 * $line + $meta-row + 0.5rem)}) {
+  .tile-head {
+    flex-wrap: wrap;
+  }
+}
+
+// Too narrow for the range, the tile says when it starts rather than cutting
+// the range in half. The range is 81px of mono, and the frame takes 21px more.
+@container tile (width < 6.25rem) {
+  .tile-time-end {
+    display: none;
+  }
+}
+
+// One row: the time keeps its width and the title takes what is left, so the
+// two can never draw over each other.
+@container tile (height < 2.5rem) {
+  .tile-frame {
+    flex-direction: row;
+    align-items: center;
+    padding-block: 0;
+  }
+
+  .tile-body {
+    align-self: stretch;
+    justify-content: center;
+  }
+}
+
+// Entering tiles rise three pixels, all at once: the data arrived at once.
+// `--calendar-motion: 0` from a surrounding view that is itself moving holds them still.
+:host(.tile-enter) {
+  animation: tile-rise calc(var(--dur-slower) * var(--calendar-motion, 1)) var(--ease-out) both;
+}
+
+@keyframes tile-rise {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .tile-frame {
+    border: 1px solid CanvasText;
+    border-inline-start-width: 4px;
+  }
+
+  :host([data-selected]) .tile-frame {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}

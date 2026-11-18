@@ -1,0 +1,191 @@
+import type { Translation } from '@jsverse/transloco';
+
+const en: Translation = {
+  toolbar: {
+    label: 'Analytics filters',
+    range: 'Dates',
+    compareTo: 'Compare to',
+    compareHint: 'The comparison applies to the KPIs and to "Revenue over time".',
+    granularity: 'Interval',
+    staff: 'Barber',
+    staffAll: 'All barbers',
+    staffInactive: '{{ name }} (inactive)',
+    staffTeamTab: 'This tab compares every barber.',
+  },
+  compareTo: {
+    PreviousPeriod: 'Previous period',
+    PreviousYear: 'Same dates last year',
+  },
+  comparison: {
+    PreviousPeriod: 'Previous period',
+    PreviousYear: 'Last year',
+  },
+  granularity: {
+    auto: 'Auto',
+    Day: 'Day',
+    Week: 'Week',
+    Month: 'Month',
+  },
+  kpis: {
+    label: 'KPIs',
+    revenue: 'Revenue',
+    appointments: 'Appointments',
+    averageTicket: 'Average ticket',
+    uniqueCustomers: 'Unique customers',
+    lostRate: 'Lost appointments',
+    averageRating: 'Average rating',
+    previous: '{{ comparison }} ({{ dates }}): {{ value }}',
+    trend: 'Trend: {{ label }}',
+    up: 'Up',
+    down: 'Down',
+    flat: 'No change',
+    none: 'No comparison',
+    points: '{{ value }} pts',
+    failed: 'The KPIs could not be loaded.',
+  },
+  tabs: {
+    label: 'Analytics sections',
+    revenue: 'Revenue',
+    demand: 'Demand',
+    team: 'Team',
+    services: 'Services',
+    customers: 'Customers',
+    lost: 'Lost business',
+    quality: 'Quality',
+  },
+  card: {
+    empty: 'No data for this period.',
+    failed: 'Loading failed.',
+    retry: 'Try again',
+    reloading: 'Updating the chart',
+    legend: 'Chart series',
+  },
+  units: {
+    hours: '{{ count }} h',
+    minutes: '{{ count }} min',
+    hoursAndMinutes: '{{ hours }} h {{ minutes }} min',
+    hoursOf: '{{ booked }} / {{ available }} hours',
+    stars: '{{ value }} ★',
+  },
+  ranges: {
+    sameDay: 'Same day',
+    oneDay: '1 day',
+    days: '{{ count }} days',
+    span: '{{ from }}–{{ to }} days',
+    open: '{{ from }}+ days',
+  },
+  weekdays: {
+    1: 'Mon',
+    2: 'Tue',
+    3: 'Wed',
+    4: 'Thu',
+    5: 'Fri',
+    6: 'Sat',
+    7: 'Sun',
+  },
+  axisKeys: {
+    online: 'Online',
+    staff: 'By the shop',
+    customer: 'Customer',
+    shop: 'Shop',
+    uncategorized: 'Uncategorized',
+  },
+  series: {
+    value: 'Value',
+    revenue: 'Revenue',
+    completedAppointments: 'Completed appointments',
+    appointments: 'Appointments',
+    bookedMinutes: 'Booked time',
+    availableMinutes: 'Available time',
+    utilization: 'Utilization',
+    averageRating: 'Average rating',
+    reviews: 'Reviews',
+    new: 'New',
+    returning: 'Returning',
+    cancellationRate: 'Cancellations',
+    noShowRate: 'No-shows',
+    visits: 'Visits',
+    bookings: 'Bookings',
+    spend: 'Spend',
+    online: 'Online',
+    staff: 'By the shop',
+  },
+  tooltip: {
+    previous: '{{ name }} ({{ dates }})',
+  },
+  charts: {
+    revenue: {
+      revenueOverTime: {
+        title: 'Revenue over time',
+        note: 'Completed appointments only.',
+      },
+      revenuePerStaff: { title: 'Revenue per barber' },
+      revenuePerService: { title: 'Revenue per service category' },
+    },
+    demand: {
+      appointmentsByStatus: { title: 'Appointments by status' },
+      upcomingLoad: {
+        title: 'Next 14 days',
+        note: 'Does not follow the dates in the filters.',
+      },
+      busiestHours: { title: 'Busiest hours' },
+      busyHeatmap: { title: 'Load by day and hour' },
+      bookingLeadTime: { title: 'How early appointments are booked' },
+      bookingSource: { title: 'Booking source' },
+    },
+    team: {
+      appointmentsPerStaff: { title: 'Appointments per barber' },
+      staffUtilization: {
+        title: 'Utilization per barber',
+        noSchedule: 'No working hours',
+      },
+      ratingPerStaff: {
+        title: 'Rating per barber',
+        noReviews: 'No reviews',
+      },
+    },
+    services: {
+      bookingsPerService: { title: 'Bookings per service' },
+      revenuePerService: { title: 'Revenue per service' },
+    },
+    customers: {
+      newVsReturning: { title: 'New and returning customers' },
+      daysBetweenVisits: {
+        title: 'Days between visits',
+        note: 'Counts visits, not customers.',
+      },
+      topCustomers: {
+        title: 'Top customers',
+        rank: 'Rank',
+        name: 'Customer',
+        visits: 'Visits',
+        spend: 'Spend',
+      },
+    },
+    lost: {
+      statusMix: { title: 'Appointments by status' },
+      lostRateOverTime: { title: 'Cancellations and no-shows over time' },
+      cancelledBy: {
+        title: 'Who cancelled',
+        note: 'Customers cannot cancel on their own yet.',
+      },
+    },
+    quality: {
+      ratingOverTime: {
+        title: 'Rating over time',
+        note: 'Dated by the appointment, not by the review.',
+      },
+      ratingDistribution: { title: 'Rating distribution' },
+    },
+  },
+  errors: {
+    ANALYTICS_INVALID_PERIOD: 'The dates are not valid. Showing the last 30 days.',
+    ANALYTICS_INVALID_GRANULARITY:
+      'A daily interval allows at most 92 days. The interval is now automatic.',
+    ANALYTICS_STAFF_MEMBER_NOT_FOUND: 'The barber is not at this shop. Showing all barbers.',
+    ANALYTICS_FETCH_FAILED: 'The analytics could not be loaded.',
+    COMPANY_NOT_FOUND: 'The shop was not found.',
+  },
+};
+
+export default en;

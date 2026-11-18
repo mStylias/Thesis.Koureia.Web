@@ -1,0 +1,8 @@
+{
+  "name": "features-management-settings-roles",
+  "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/features/management/settings/roles/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["scope:app", "type:feature"]
+}

@@ -1,0 +1,71 @@
+@use 'abstracts' as a;
+
+// The drawer is in flow in push mode, so the host is the flex item that gives
+// it the calendar's height.
+:host {
+  display: flex;
+  flex-shrink: 0;
+  min-height: 0;
+}
+
+// The space before the views opens and closes with the drawer's own width, on
+// the same curve, so the two read as one movement.
+:host(:not([data-overlay])) {
+  margin-inline-end: 0;
+  transition: margin-inline-end var(--dur-slow) var(--ease-out);
+}
+
+:host([data-open]:not([data-overlay])) {
+  margin-inline-end: a.space(3);
+  transition-duration: var(--dur-slower);
+}
+
+// Pushed in beside the views, the panel wears their frame: the same border and
+// radius, and no shadow, since nothing sits under it.
+:host(:not([data-overlay])) {
+  --drawer-frame-border-width: var(--border-width-hairline);
+  --drawer-radius: #{a.radius(lg)};
+  --drawer-shadow: none;
+}
+
+// In overlay mode the drawer is fixed and the host takes no room at all.
+:host([data-overlay]) {
+  display: contents;
+}
+
+.sp-stack {
+  display: grid;
+}
+
+.sp-pane {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+.sp-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: a.space(2);
+}
+
+.sp-enter {
+  animation: sp-fade-in var(--dur-base) var(--ease-out);
+}
+
+// Exits are faster than entrances, and the outgoing body never catches a click.
+.sp-leave {
+  animation: sp-fade-out var(--dur-fast) var(--ease-out) forwards;
+  pointer-events: none;
+}
+
+@keyframes sp-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes sp-fade-out {
+  to {
+    opacity: 0;
+  }
+}

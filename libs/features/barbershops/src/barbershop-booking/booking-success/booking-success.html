@@ -1,0 +1,85 @@
+<main class="success">
+  @if (loading()) {
+    <p class="success__state" role="status">
+      {{ 'barbershops.booking.success.loading' | transloco }}
+    </p>
+  } @else if (appointment(); as booked) {
+    <!--
+      The one screen in the flow that is allowed to be a little more than quick: it is seen
+      once per booking, and it is the answer to the only irreversible press on the page. The
+      mark settles first, then the lines that say what was booked, in reading order.
+    -->
+    <header class="success__header">
+      <span class="success__icon" aria-hidden="true" animate.enter="success-mark-enter">
+        <svg lucideCalendarCheck></svg>
+      </span>
+      <h1 class="success__title" animate.enter="success-line-enter" style="--success-step: 1">
+        {{ 'barbershops.booking.success.title' | transloco }}
+      </h1>
+      <p class="success__lead" animate.enter="success-line-enter" style="--success-step: 2">
+        {{ 'barbershops.booking.success.lead' | transloco: { shop: booked.companyName } }}
+      </p>
+    </header>
+
+    <dl class="success__details" animate.enter="success-line-enter" style="--success-step: 3">
+      <div class="success__row">
+        <dt>{{ 'barbershops.booking.summary.when' | transloco }}</dt>
+        <dd>{{ dateLabel() }}, {{ booked.localTime }}</dd>
+      </div>
+      <div class="success__row">
+        <dt>{{ 'barbershops.booking.summary.barber' | transloco }}</dt>
+        <dd>{{ booked.staffDisplayName }}</dd>
+      </div>
+      <div class="success__row">
+        <dt>{{ 'barbershops.booking.summary.services' | transloco }}</dt>
+        <dd>
+          @for (service of booked.services; track service.serviceId) {
+            <span class="success__service">
+              {{ service.name }} • {{ duration(service.durationMinutes) }} •
+              {{ servicePrice(service.price) }}
+            </span>
+          }
+        </dd>
+      </div>
+      @if (booked.notes) {
+        <div class="success__row">
+          <dt>{{ 'barbershops.booking.confirm.note' | transloco }}</dt>
+          <dd>{{ booked.notes }}</dd>
+        </div>
+      }
+    </dl>
+
+    <p class="success__total" animate.enter="success-line-enter" style="--success-step: 4">
+      <span>{{ 'barbershops.booking.summary.total' | transloco }}</span>
+      <span class="success__total-value">{{ totalLabel() }}</span>
+    </p>
+
+    @if (booked.canAddToCalendar) {
+      <lib-banner
+        class="success__calendar"
+        animate.enter="success-line-enter"
+        style="--success-step: 5"
+      >
+        {{ 'barbershops.booking.success.calendarNote' | transloco }}
+      </lib-banner>
+    }
+
+    <!-- Its own fade-in, last in the sequence. It appears once the push state is known. -->
+    <lib-reminder-card class="success__reminders" cue />
+
+    <a
+      libButton
+      variant="outlined"
+      severity="secondary"
+      animate.enter="success-line-enter"
+      style="--success-step: 6"
+      [routerLink]="shopLink()"
+    >
+      {{ 'barbershops.booking.success.backToShop' | transloco }}
+    </a>
+  } @else {
+    <p class="success__state" role="alert">
+      {{ 'barbershops.booking.success.failed' | transloco }}
+    </p>
+  }
+</main>

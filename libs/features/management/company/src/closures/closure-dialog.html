@@ -1,0 +1,142 @@
+@let fields = editor.form;
+
+<lib-dialog
+  size="sm"
+  [(visible)]="visible"
+  [header]="'managementCompany.closures.dialog.title' | transloco"
+  (closed)="closed.emit()"
+>
+  <form class="closure-form" [libForm]="editor">
+    <lib-form-errors />
+
+    <div class="closure-pair">
+      <lib-field class="closure-field" [field]="fields.startsOn">
+        <ng-template libFieldEditor let-id let-describedBy="describedBy">
+          <lib-date-picker
+            size="sm"
+            [inputId]="id"
+            [ariaDescribedby]="started() ? describedBy + ' closure-started' : describedBy"
+            [locale]="language()"
+            [excludedRanges]="startsOnExcluded()"
+            [today]="today()"
+            [ariaLabel]="'managementCompany.closures.dialog.startsOn' | transloco"
+            [formField]="fields.startsOn"
+            (valueChange)="onStartsOnChange($event)"
+          />
+        </ng-template>
+      </lib-field>
+      <lib-field class="closure-field" [field]="fields.endsOn">
+        <ng-template libFieldEditor let-id let-describedBy="describedBy">
+          <lib-date-picker
+            size="sm"
+            [inputId]="id"
+            [ariaDescribedby]="describedBy"
+            [locale]="language()"
+            [excludedRanges]="endsOnExcluded()"
+            [today]="today()"
+            [ariaLabel]="'managementCompany.closures.dialog.endsOn' | transloco"
+            [formField]="fields.endsOn"
+          />
+        </ng-template>
+      </lib-field>
+    </div>
+    @if (started()) {
+      <p class="closure-hint" id="closure-started">
+        {{ 'managementCompany.closures.dialog.running' | transloco }}
+      </p>
+    }
+
+    <lib-switch inputId="closure-closed-all-day" [formField]="fields.closedAllDay">
+      {{ 'managementCompany.closures.dialog.closedAllDay' | transloco }}
+    </lib-switch>
+
+    @if (!fields.closedAllDay().value()) {
+      <div class="closure-pair">
+        <lib-field class="closure-field closure-time" [field]="fields.openTime">
+          <ng-template libFieldEditor let-id let-describedBy="describedBy">
+            <lib-time-picker
+              size="sm"
+              [inputId]="id"
+              [ariaDescribedby]="describedBy + ' closure-special-hint'"
+              [interval]="step"
+              [ariaLabel]="'managementCompany.closures.dialog.openTime' | transloco"
+              [placeholder]="'managementCompany.closures.dialog.timePlaceholder' | transloco"
+              [formField]="fields.openTime"
+            />
+          </ng-template>
+        </lib-field>
+        <lib-field class="closure-field closure-time" [field]="fields.closeTime">
+          <ng-template libFieldEditor let-id let-describedBy="describedBy">
+            <lib-time-picker
+              size="sm"
+              [inputId]="id"
+              [ariaDescribedby]="describedBy + ' closure-special-hint'"
+              [interval]="step"
+              [ariaLabel]="'managementCompany.closures.dialog.closeTime' | transloco"
+              [placeholder]="'managementCompany.closures.dialog.timePlaceholder' | transloco"
+              [formField]="fields.closeTime"
+            />
+          </ng-template>
+        </lib-field>
+      </div>
+      <p class="closure-hint" id="closure-special-hint">
+        {{ 'managementCompany.closures.dialog.specialHint' | transloco }}
+      </p>
+    }
+
+    <lib-field class="closure-field" [field]="fields.name">
+      <ng-template libFieldEditor>
+        <input
+          libInputText
+          libFieldControl
+          type="text"
+          size="sm"
+          autocomplete="off"
+          placeholder=" "
+          [formField]="fields.name"
+        />
+      </ng-template>
+    </lib-field>
+    <div
+      class="closure-names"
+      role="group"
+      [attr.aria-label]="'managementCompany.closures.dialog.name' | transloco"
+    >
+      @for (name of names; track name) {
+        <button
+          libButton
+          type="button"
+          severity="secondary"
+          variant="outlined"
+          size="sm"
+          (click)="setName(name)"
+        >
+          {{ 'managementCompany.closures.dialog.names.' + name | transloco }}
+        </button>
+      }
+    </div>
+  </form>
+
+  <ng-template libDialogFooter>
+    <button
+      libButton
+      type="button"
+      severity="secondary"
+      variant="text"
+      [disabled]="editor.submitting()"
+      (click)="close()"
+    >
+      {{ 'managementCompany.actions.cancel' | transloco }}
+    </button>
+    <!-- Never disabled by validity: the first press is what reveals it. -->
+    <button
+      libButton
+      type="button"
+      severity="primary"
+      [loading]="editor.submitting()"
+      (click)="save()"
+    >
+      {{ 'managementCompany.actions.save' | transloco }}
+    </button>
+  </ng-template>
+</lib-dialog>

@@ -1,0 +1,115 @@
+@let list = reviews.list();
+
+@switch (list.status) {
+  @case ('failed') {
+    <lib-banner tone="error" role="alert">
+      {{ 'account.common.failed' | transloco }}
+      <button
+        libButton
+        libBannerAction
+        type="button"
+        variant="outlined"
+        severity="secondary"
+        size="sm"
+        (click)="reviews.reload()"
+      >
+        {{ 'account.common.retry' | transloco }}
+      </button>
+    </lib-banner>
+  }
+  @case ('ready') {
+    @if (list.items.length === 0) {
+      <p class="reviews-state">{{ 'account.reviews.empty' | transloco }}</p>
+    } @else {
+      <ul class="reviews">
+        @for (review of list.items; track review.id) {
+          <li>
+            <article libCard class="review">
+              <header class="review-header">
+                <h3 class="review-shop">{{ review.companyName }}</h3>
+                <p class="review-visit">
+                  {{
+                    'account.reviews.visit'
+                      | transloco: { date: visitDate(review), name: review.staffDisplayName }
+                  }}
+                </p>
+              </header>
+              <lib-rating readonly size="sm" [value]="review.rating" />
+              @if (review.comment) {
+                <p class="review-comment">{{ review.comment }}</p>
+              }
+              <div class="review-actions">
+                <button
+                  libButton
+                  type="button"
+                  size="sm"
+                  variant="outlined"
+                  severity="secondary"
+                  [attr.aria-label]="
+                    'account.reviews.editLabel' | transloco: { shop: review.companyName }
+                  "
+                  (click)="edit(review)"
+                >
+                  {{ 'account.reviews.edit' | transloco }}
+                </button>
+                <button
+                  libButton
+                  type="button"
+                  size="sm"
+                  variant="text"
+                  severity="error"
+                  [attr.aria-label]="
+                    'account.reviews.deleteLabel' | transloco: { shop: review.companyName }
+                  "
+                  (click)="remove(review)"
+                >
+                  {{ 'account.reviews.delete' | transloco }}
+                </button>
+              </div>
+            </article>
+          </li>
+        }
+      </ul>
+
+      @if (list.moreFailed) {
+        <lib-banner tone="error" role="alert">
+          {{ 'account.common.failed' | transloco }}
+          <button
+            libButton
+            libBannerAction
+            type="button"
+            size="sm"
+            variant="outlined"
+            severity="secondary"
+            (click)="reviews.more()"
+          >
+            {{ 'account.common.retry' | transloco }}
+          </button>
+        </lib-banner>
+      } @else if (list.hasMore) {
+        <div class="reviews-more">
+          <button
+            libButton
+            type="button"
+            variant="outlined"
+            severity="secondary"
+            [loading]="list.loadingMore"
+            (click)="reviews.more()"
+          >
+            {{ 'account.common.showMore' | transloco }}
+          </button>
+        </div>
+      }
+    }
+  }
+  @default {
+    <p class="reviews-state" role="status">{{ 'account.common.loading' | transloco }}</p>
+  }
+}
+
+<lib-review-dialog
+  [(visible)]="dialogOpen"
+  [target]="target()"
+  (saved)="saved($event)"
+  (stale)="reviews.reload()"
+/>

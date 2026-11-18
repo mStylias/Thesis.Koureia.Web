@@ -1,0 +1,101 @@
+@use 'abstracts' as a;
+
+:host {
+  box-sizing: border-box;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: a.space(2);
+  min-height: var(--dg-row-height);
+  padding: a.space(2) a.space(3);
+  border-block-end: var(--border-width-hairline) solid var(--border);
+  background: var(--surface-2);
+  transition: background-color var(--dur-fast) var(--ease-standard);
+}
+
+// The drop target reads as live through a border as well as a tint, so the
+// state is not colour alone.
+:host([data-drop-active]) {
+  border-block-end-color: var(--accent);
+  background: var(--accent-subtle);
+  box-shadow: inset 0 0 0 var(--border-width-strong) var(--accent);
+}
+
+.dg-group-hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.dg-group-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.space(2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// Stretch keeps the shorter remove button at full chip height, so its hover
+// fill reaches the chip edges.
+.dg-group-chip {
+  display: inline-flex;
+  align-items: stretch;
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(pill);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.dg-chip-direction,
+.dg-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  gap: a.space(1);
+  padding: a.space(1) a.space(2);
+  border: 0;
+  background: none;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.dg-chip-remove {
+  padding-inline: a.space(1) a.space(2);
+  color: var(--text-secondary);
+}
+
+.dg-chip-direction:hover,
+.dg-chip-remove:hover {
+  background: var(--surface-sunken);
+}
+
+.dg-chip-direction:focus-visible,
+.dg-chip-remove:focus-visible {
+  outline: var(--border-width-strong) solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.dg-chip-position {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.dg-chip-icon {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  :host([data-drop-active]) {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}

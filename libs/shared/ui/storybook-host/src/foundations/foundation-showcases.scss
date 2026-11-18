@@ -1,0 +1,350 @@
+@use '../../../../styles/src/abstracts' as a;
+
+:host {
+  display: block;
+  color: var(--text-primary);
+}
+
+.foundation {
+  display: grid;
+  gap: var(--space-10);
+  max-width: var(--container-max);
+  padding: var(--space-4);
+  margin-inline: auto;
+}
+
+.foundation__header {
+  display: grid;
+  gap: var(--space-2);
+  max-width: var(--dialog-size-lg);
+}
+
+.foundation__header :is(h2, p),
+.motion-card p {
+  margin: 0;
+}
+
+.foundation__section {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.foundation__section h3 {
+  margin: 0;
+}
+
+.foundation-callout {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: var(--border-width-hairline) solid var(--accent-subtle-border);
+  border-radius: var(--radius-lg);
+  background: var(--accent-subtle);
+}
+
+.foundation-callout p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.colour-grid,
+.elevation-grid,
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--dialog-size-sm)), 1fr));
+  gap: var(--space-4);
+}
+
+.token-card,
+.elevation-card,
+.icon-card,
+.motion-token {
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.token-card {
+  overflow: hidden;
+}
+
+.colour-swatch {
+  min-height: var(--space-16);
+  border-bottom: var(--border-width-hairline) solid var(--border-subtle);
+}
+
+.token-card__copy,
+.elevation-card,
+.icon-card {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.type-list,
+.spacing-list {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.type-sample {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2);
+  padding-block: var(--space-4);
+  border-bottom: var(--border-width-hairline) solid var(--border-subtle);
+}
+
+.type-sample > p {
+  margin: 0;
+}
+
+.type-sample__meta {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.spacing-row {
+  display: grid;
+  grid-template-columns: max-content 1fr auto;
+  align-items: center;
+  gap: var(--space-4);
+  min-width: max-content;
+}
+
+.spacing-bar {
+  height: var(--space-4);
+  min-width: var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+}
+
+.spacing-row span,
+.elevation-card span,
+.motion-token span {
+  color: var(--text-muted);
+}
+
+.elevation-grid {
+  gap: var(--space-8);
+  padding: var(--space-4);
+}
+
+.elevation-card {
+  min-height: var(--space-20);
+  align-content: center;
+}
+
+.motion-tokens {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--space-20), 1fr));
+  gap: var(--space-3);
+}
+
+.motion-token {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4);
+}
+
+.motion-demo__heading {
+  display: flex;
+  align-items: stretch;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.motion-demo__heading p {
+  margin-block: var(--space-1) 0;
+}
+
+.foundation-button {
+  flex: none;
+  min-height: var(--space-10);
+  padding-inline: var(--space-4);
+  border: var(--border-width-hairline) solid var(--accent);
+  border-radius: var(--radius-md);
+  color: var(--accent-fg);
+  background: var(--accent);
+  font: inherit;
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
+}
+
+.foundation-button:hover {
+  border-color: var(--accent-hover);
+  background: var(--accent-hover);
+}
+
+// ---- Easing comparison ----
+// Every track runs the same distance for the same duration, so the only
+// variable on the page is the curve. `--dur-slower` (the 300ms cap) is
+// deliberate here: the longer the run, the more of the shape is legible.
+// This is a documentation demo, not product motion.
+
+.easing-family {
+  margin-block-start: var(--space-5);
+}
+
+.easing-family > p {
+  max-width: 65ch;
+  margin-block: var(--space-1) var(--space-3);
+  color: var(--text-muted);
+}
+
+.easing-row {
+  display: grid;
+  grid-template-columns: minmax(9rem, max-content) 1fr;
+  align-items: center;
+  gap: var(--space-3);
+  margin-block-end: var(--space-2);
+}
+
+.easing-track {
+  // Container query unit, so the dot's travel follows a fluid track
+  // instead of a hardcoded distance. `translateX(100%)` would resolve
+  // against the DOT's width, which is not what we want.
+  container-type: inline-size;
+  position: relative;
+  height: var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+}
+
+.easing-dot {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  // transform only — the whole point of the page.
+  transition: transform var(--dur-slower);
+}
+
+.easing-dot.is-running {
+  // Stop a little short of the right edge: the springs overshoot past
+  // 100%, and a clipped bounce reads as a hard stop — the opposite of
+  // what the row is demonstrating.
+  transform: translateX(calc(100cqw - 100% - var(--space-3)));
+}
+
+.motion-stage {
+  display: grid;
+  place-items: center;
+  min-height: var(--dialog-height-sm);
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  background: var(--surface-sunken);
+}
+
+.motion-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: var(--border-width-hairline) solid var(--accent-subtle-border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.motion-card__mark {
+  width: var(--space-3);
+  height: var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--success);
+}
+
+.motion-card p {
+  color: var(--text-muted);
+}
+
+.foundation-motion-enter {
+  animation: foundation-enter var(--dur-slow) var(--ease-out);
+}
+
+.foundation-motion-leave {
+  animation: foundation-leave var(--dur-base) var(--ease-out);
+}
+
+@keyframes foundation-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-3));
+  }
+}
+
+@keyframes foundation-leave {
+  to {
+    opacity: 0;
+    transform: translateY(var(--space-3));
+  }
+}
+
+.icon-card {
+  justify-items: start;
+}
+
+.icon-card svg {
+  width: var(--icon-size-lg);
+  height: var(--icon-size-lg);
+  color: var(--accent-text);
+  stroke-width: var(--icon-stroke);
+}
+
+.icon-sizes {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.icon-sizes > div {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+}
+
+.icon-sizes svg {
+  color: var(--text-primary);
+  stroke-width: var(--icon-stroke);
+}
+
+@include a.respond(md) {
+  .foundation {
+    padding: var(--space-6);
+  }
+
+  .type-sample {
+    grid-template-columns: minmax(var(--space-20), auto) 1fr;
+    align-items: baseline;
+    gap: var(--space-6);
+  }
+
+  .motion-demo__heading {
+    align-items: start;
+    flex-direction: row;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .foundation-button {
+    transition: none;
+  }
+
+  .foundation-motion-enter,
+  .foundation-motion-leave {
+    animation: none;
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "$id": "KoureiaLibrary",
+  "title": "Library",
+  "description": "Creates a library in the workspace layout and registers its import alias.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Kebab-case name. A feature can nest it in folders: `management/operations/staff`.",
+      "pattern": "^[a-z][a-z0-9-]*(/[a-z][a-z0-9-]*)*$",
+      "$default": { "$source": "argv", "index": 0 },
+      "x-prompt": "Library name (kebab-case):"
+    },
+    "kind": {
+      "type": "string",
+      "description": "Sets the folder, the Nx tags and the import alias.",
+      "enum": ["ui", "feature", "shared-feature", "data-access", "util"],
+      "x-prompt": {
+        "message": "Which kind of library?",
+        "type": "list",
+        "items": [
+          { "value": "ui", "label": "ui — libs/shared/ui/<name>, @ui/<name>" },
+          { "value": "feature", "label": "feature — libs/features/<name>, @features/<name>" },
+          {
+            "value": "shared-feature",
+            "label": "shared-feature — libs/shared/features/<name>, @features/<name>"
+          },
+          {
+            "value": "data-access",
+            "label": "data-access — libs/shared/data-access/<name>, @api/<name>"
+          },
+          { "value": "util", "label": "util — libs/shared/util-<name>, @util/<name>" }
+        ]
+      }
+    },
+    "component": {
+      "type": "boolean",
+      "description": "Adds a starter component, with its spec and story, named after the library. Defaults to true for ui."
+    },
+    "storyGroup": {
+      "type": "string",
+      "description": "Storybook group of the starter story. Used only with a starter component.",
+      "enum": [
+        "Actions",
+        "Data",
+        "Feedback & status",
+        "Forms & input",
+        "Layout & Navigation",
+        "Overlays"
+      ],
+      "default": "Data"
+    }
+  },
+  "required": ["name", "kind"]
+}

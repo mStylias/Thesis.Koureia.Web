@@ -1,0 +1,103 @@
+<div
+  class="staff-toolbar"
+  role="toolbar"
+  [attr.aria-label]="'managementStaff.listLabel' | transloco"
+>
+  <p class="staff-count" role="status">
+    @if (store.members(); as members) {
+      {{ 'managementStaff.count' | transloco: { count: shown().length } }}
+    }
+  </p>
+
+  <lib-select
+    class="staff-filter"
+    size="sm"
+    [options]="filterOptions()"
+    [ariaLabel]="'managementStaff.filter.label' | transloco"
+    [value]="filter()"
+    (valueChange)="filter.set($event ?? 'active')"
+  />
+
+  <button
+    libButton
+    type="button"
+    severity="secondary"
+    variant="outlined"
+    size="sm"
+    iconOnly
+    [attr.aria-busy]="store.membersLoading() || null"
+    [attr.aria-label]="'managementStaff.refresh' | transloco"
+    [libTooltip]="'managementStaff.refresh' | transloco"
+    (click)="refresh()"
+  >
+    <svg lucideRefreshCw [libSpin]="store.membersLoading()" aria-hidden="true"></svg>
+  </button>
+
+  @if (canAdd()) {
+    <button libButton type="button" severity="primary" size="sm" (click)="openAdd()">
+      <svg lucidePlus libButtonIcon aria-hidden="true"></svg>
+      {{ 'managementStaff.add' | transloco }}
+    </button>
+  }
+</div>
+
+<section
+  class="staff-body"
+  [attr.aria-label]="'managementStaff.listLabel' | transloco"
+  [attr.aria-busy]="firstLoad() || null"
+>
+  @if (firstLoad()) {
+    <ul class="staff-grid" aria-hidden="true">
+      @for (placeholder of [1, 2, 3]; track placeholder) {
+        <li><lib-staff-card-skeleton /></li>
+      }
+    </ul>
+  } @else if (store.membersFailed() && store.members() === null) {
+    <lib-banner tone="error" role="alert">
+      {{ 'managementStaff.loadFailed' | transloco }}
+      <button
+        libButton
+        libBannerAction
+        type="button"
+        variant="outlined"
+        size="sm"
+        (click)="refresh()"
+      >
+        {{ 'managementStaff.retry' | transloco }}
+      </button>
+    </lib-banner>
+  } @else if ((store.members() ?? []).length === 0) {
+    <div class="staff-empty">
+      <svg lucideUsers class="staff-empty-icon" aria-hidden="true"></svg>
+      <p class="staff-empty-title">{{ 'managementStaff.empty.title' | transloco }}</p>
+      <p class="staff-empty-text">{{ 'managementStaff.empty.text' | transloco }}</p>
+      @if (canAdd()) {
+        <button libButton type="button" severity="primary" size="sm" (click)="openAdd()">
+          <svg lucidePlus libButtonIcon aria-hidden="true"></svg>
+          {{ 'managementStaff.add' | transloco }}
+        </button>
+      }
+    </div>
+  } @else if (shown().length === 0) {
+    <p class="staff-empty-text">{{ 'managementStaff.empty.filtered' | transloco }}</p>
+  } @else {
+    <ul class="staff-grid">
+      @for (member of shown(); track member.id) {
+        <li>
+          <lib-staff-card
+            [member]="member"
+            [timezone]="store.timezone()"
+            [language]="language()"
+            [now]="now()"
+          />
+        </li>
+      }
+    </ul>
+  }
+</section>
+
+@if (canAdd()) {
+  <lib-add-member-dialog [(visible)]="addOpen" />
+}
+
+<router-outlet />

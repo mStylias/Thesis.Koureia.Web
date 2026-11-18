@@ -1,0 +1,38 @@
+<lib-chart-grid>
+  <!-- The wide chart goes first, so the two donuts share a row. -->
+  <lib-chart-card
+    wide
+    [heading]="'managementDashboard.charts.lost.lostRateOverTime.title' | transloco"
+    [skeleton]="{ kind: 'line', legend: 2 }"
+    [height]="wideHeight"
+    [set]="data()?.lostRateOverTime"
+    [option]="overTime()"
+    [context]="context()"
+    [loading]="entry().loading"
+    [failed]="entry().failed"
+    (retry)="retry.emit()"
+  />
+
+  <lib-chart-card
+    [heading]="'managementDashboard.charts.lost.statusMix.title' | transloco"
+    [skeleton]="{ kind: 'donut', legend: 5 }"
+    [set]="data()?.statusMix"
+    [option]="statusMix()"
+    [context]="context()"
+    [loading]="entry().loading"
+    [failed]="entry().failed"
+    (retry)="retry.emit()"
+  />
+
+  <lib-chart-card
+    [heading]="'managementDashboard.charts.lost.cancelledBy.title' | transloco"
+    [skeleton]="{ kind: 'donut', legend: 2 }"
+    [note]="'managementDashboard.charts.lost.cancelledBy.note' | transloco"
+    [set]="data()?.cancelledBy"
+    [option]="cancelledBy()"
+    [context]="context()"
+    [loading]="entry().loading"
+    [failed]="entry().failed"
+    (retry)="retry.emit()"
+  />
+</lib-chart-grid>

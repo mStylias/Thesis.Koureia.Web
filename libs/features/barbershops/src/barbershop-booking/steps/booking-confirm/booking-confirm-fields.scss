@@ -1,0 +1,37 @@
+@use 'abstracts' as a;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(6);
+}
+
+.fields__phone {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(2);
+}
+
+.fields__note {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(2);
+}
+
+.fields__label {
+  @include a.t-label;
+  margin: 0;
+}
+
+.fields__count {
+  @include a.t-caption;
+  align-self: flex-end;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.fields__hint {
+  @include a.t-caption;
+  margin: 0;
+  color: var(--text-muted);
+}

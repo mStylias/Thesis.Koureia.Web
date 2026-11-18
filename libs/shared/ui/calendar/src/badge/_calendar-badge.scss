@@ -1,0 +1,16 @@
+@use 'abstracts' as a;
+
+// A state on an event: text first, tone second. The colours are the product's tag recipe, the
+// same as a status in the grid and the drawer. A pale tone disappeared against the tile behind it.
+@mixin calendar-badge {
+  @include a.tag;
+
+  display: inline-flex;
+  align-items: center;
+  gap: a.space(1);
+  padding: calc(var(--space-1) / 2) a.space(2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-tight);
+  white-space: nowrap;
+}

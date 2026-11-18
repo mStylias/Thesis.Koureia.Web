@@ -1,0 +1,182 @@
+<div
+  ngCombobox
+  #combobox="ngCombobox"
+  class="select-trigger"
+  [attr.id]="inputId() || null"
+  [attr.aria-label]="ariaLabel() || null"
+  [attr.aria-labelledby]="labelledBy() || null"
+  [attr.aria-describedby]="ariaDescribedby() || null"
+  [attr.aria-invalid]="invalid() ? true : null"
+  [attr.aria-required]="required() ? true : null"
+  [attr.aria-busy]="busy() ? true : null"
+  [disabled]="disabled()"
+  [expanded]="expanded()"
+  (expandedChange)="onExpandedChange($event)"
+  (keydown)="onTriggerKeydown($event)"
+>
+  <span class="select-value">
+    @if (selectedOption(); as selected) {
+      @if (selectedItemTemplate(); as itemTemplate) {
+        <ng-container
+          *ngTemplateOutlet="itemTemplate.templateRef; context: { $implicit: selected }"
+        />
+      } @else {
+        {{ selected.label }}
+      }
+    } @else if (unresolved()) {
+      <!-- The value is kept, not cleared: a role the user cannot see is still
+           the role the form has to save back. -->
+      <span class="select-unavailable">
+        {{ unavailableMessage() || ('select.unavailable' | uiCopy | transloco) }}
+      </span>
+    } @else {
+      <span class="select-placeholder">{{ placeholder() }}</span>
+    }
+  </span>
+
+  @if (showClear() && hasValue() && !disabled()) {
+    <!-- Pointer-only affordance (a nested button would break the combobox
+         ARIA contract); keyboard users clear with Delete/Backspace. Hidden
+         from assistive tech, so the label is a tooltip — an
+         `aria-label` here would be markup the a11y tree never reaches. -->
+    <svg
+      lucideX
+      class="select-clear"
+      aria-hidden="true"
+      [libTooltip]="clearAriaLabel() || ('select.clear' | uiCopy | transloco)"
+      (click)="clear($event)"
+    ></svg>
+  }
+
+  @if (busy()) {
+    <svg lucideLoaderCircle class="select-spinner" aria-hidden="true"></svg>
+  } @else {
+    <svg lucideChevronDown class="select-chevron" aria-hidden="true"></svg>
+  }
+</div>
+
+@if (dataSource()) {
+  <div class="select-live" aria-live="polite" aria-atomic="true">
+    @if (expanded()) {
+      @switch (panelState()) {
+        @case ('error') {
+          {{ loadErrorMessage() || ('select.loadError' | uiCopy | transloco) }}
+        }
+        @case ('empty') {
+          {{ emptyMessage() || ('select.empty' | uiCopy | transloco) }}
+        }
+        @case ('ready') {
+          {{ 'select.results' | uiCopy | transloco: { count: resultCount() } }}
+        }
+      }
+    }
+  </div>
+}
+
+<ng-template ngComboboxPopup [combobox]="combobox">
+  <!-- The widget is the panel, not the list: the combobox relays the trigger's
+       keys to this element, and routing them on from here is what lets a
+       source-bound select keep typed characters for its query. The keydown is that
+       relay, not a user interacting with the panel — focus never moves here. -->
+  <!-- eslint-disable-next-line @angular-eslint/template/interactive-supports-focus -->
+  <div
+    #panelEl
+    ngComboboxWidget
+    class="select-panel"
+    [id]="panelId"
+    [activeDescendant]="navigated() ? listbox.activeDescendant() : undefined"
+    animate.enter="select-panel-enter"
+    (keydown)="onPanelKeydown($event)"
+    (scroll)="onPanelScroll($event)"
+  >
+    @if (dataSource()) {
+      <!-- A real field, so the caret is where the user expects it. It sits inside
+           the widget element, so focus landing here keeps the combobox expanded,
+           and it forwards the navigation keys the listbox needs. -->
+      <div class="select-search" (pointerdown)="onSearchRowPointerdown($event)">
+        <svg lucideSearch class="select-search-icon" aria-hidden="true"></svg>
+        <input
+          #searchInput
+          type="text"
+          class="select-search-input"
+          autocomplete="off"
+          [value]="searchText()"
+          [attr.placeholder]="searchHint() || ('select.typeToSearch' | uiCopy | transloco)"
+          [attr.aria-label]="searchAriaLabel() || ('select.search' | uiCopy | transloco)"
+          [attr.aria-controls]="listbox.id()"
+          [attr.aria-activedescendant]="(navigated() && listbox.activeDescendant()) || null"
+          (input)="onSearchInput($event)"
+          (keydown)="onSearchFieldKeydown($event)"
+        />
+        @if (searchText()) {
+          <!-- Pointer-only, like the trigger's ×: the field is cleared from the
+               keyboard by deleting the text that is already in it. -->
+          <svg
+            lucideX
+            class="select-search-clear"
+            aria-hidden="true"
+            [libTooltip]="'select.clearSearch' | uiCopy | transloco"
+            (click)="clearSearch($event)"
+          ></svg>
+        }
+      </div>
+    }
+
+    <!-- Focusable through the tabindex the ngListbox directive binds;
+         the linter cannot see attribute bindings from directives. -->
+    <!-- eslint-disable-next-line @angular-eslint/template/interactive-supports-focus -->
+    <ul
+      #listboxEl
+      ngListbox
+      #listbox="ngListbox"
+      class="select-list"
+      focusMode="activedescendant"
+      selectionMode="explicit"
+      [value]="listboxValue()"
+      (valueChange)="onListboxValueChange($event)"
+      (click)="onListClick($event)"
+      (keydown.enter)="onEnter()"
+    >
+      @for (option of listOptions(); track option.value) {
+        <li
+          ngOption
+          class="select-option"
+          [value]="option.value"
+          [label]="option.label"
+          [disabled]="option.disabled ?? false"
+        >
+          @if (optionTemplate(); as template) {
+            <ng-container
+              *ngTemplateOutlet="template.templateRef; context: { $implicit: option }"
+            />
+          } @else {
+            {{ option.label }}
+          }
+        </li>
+      }
+    </ul>
+
+    @switch (panelState()) {
+      @case ('loading') {
+        <div class="select-empty" role="status">{{ 'select.loading' | uiCopy | transloco }}</div>
+      }
+      @case ('error') {
+        <div class="select-empty" role="status">
+          {{ loadErrorMessage() || ('select.loadError' | uiCopy | transloco) }}
+        </div>
+      }
+      @case ('empty') {
+        <div class="select-empty">
+          {{ emptyMessage() || ('select.empty' | uiCopy | transloco) }}
+        </div>
+      }
+    }
+
+    @if (panelState() === 'ready' && busy()) {
+      <div class="select-more" role="status">
+        <svg lucideLoaderCircle aria-hidden="true"></svg>
+        {{ 'select.loading' | uiCopy | transloco }}
+      </div>
+    }
+  </div>
+</ng-template>

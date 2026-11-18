@@ -1,0 +1,41 @@
+<section class="steps-section" [id]="sectionId()" [attr.aria-labelledby]="titleId()">
+  <div class="steps-inner">
+    <header class="section-heading" libLandingReveal>
+      <p class="eyebrow">{{ i18nKey() + '.eyebrow' | transloco }}</p>
+      <h2 [id]="titleId()">{{ i18nKey() + '.title' | transloco }}</h2>
+      <p>{{ i18nKey() + '.lead' | transloco }}</p>
+    </header>
+
+    <ol class="steps">
+      @for (step of steps(); track step.key) {
+        <li libLandingReveal>
+          <span class="step-number">0{{ $index + 1 }}</span>
+          <span class="step-icon">
+            @switch (step.icon) {
+              @case ('map-pin') {
+                <svg lucideMapPin aria-hidden="true"></svg>
+              }
+              @case ('scissors') {
+                <svg lucideScissors aria-hidden="true"></svg>
+              }
+              @case ('calendar-check') {
+                <svg lucideCalendarCheck aria-hidden="true"></svg>
+              }
+              @case ('layout-dashboard') {
+                <svg lucideLayoutDashboard aria-hidden="true"></svg>
+              }
+              @case ('calendar-days') {
+                <svg lucideCalendarDays aria-hidden="true"></svg>
+              }
+              @case ('check') {
+                <svg lucideCheck aria-hidden="true"></svg>
+              }
+            }
+          </span>
+          <h3>{{ i18nKey() + '.' + step.key + '.title' | transloco }}</h3>
+          <p>{{ i18nKey() + '.' + step.key + '.body' | transloco }}</p>
+        </li>
+      }
+    </ol>
+  </div>
+</section>

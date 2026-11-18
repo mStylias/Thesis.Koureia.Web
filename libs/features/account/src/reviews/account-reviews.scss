@@ -1,0 +1,65 @@
+@use 'abstracts' as a;
+
+:host {
+  display: grid;
+  gap: a.space(4);
+}
+
+.reviews {
+  display: grid;
+  gap: a.space(3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.review {
+  display: grid;
+  gap: a.space(3);
+  padding: a.space(4);
+}
+
+.review-header {
+  display: grid;
+  gap: a.space(1);
+}
+
+.review-shop {
+  @include a.t-title;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.review-visit {
+  @include a.t-body-sm;
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.review-comment {
+  @include a.t-body;
+  margin: 0;
+  color: var(--text-primary);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.space(2);
+}
+
+.reviews-state {
+  @include a.t-body;
+  display: grid;
+  justify-items: start;
+  gap: a.space(3);
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.reviews-more {
+  display: flex;
+  justify-content: center;
+}

@@ -1,0 +1,128 @@
+@use 'abstracts' as a;
+@use '../step-header' as header;
+
+:host {
+  display: block;
+}
+
+@include header.step-header;
+
+.when {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: a.space(6);
+
+  // Side by side once there is room for both. Changing the day then swaps the slots in place
+  // and the calendar never moves, which is what makes going back and forth one action.
+  @include a.respond(lg) {
+    grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+    gap: a.space(8);
+    align-items: start;
+  }
+}
+
+.when__calendar {
+  min-inline-size: 0;
+}
+
+.when__timezone {
+  @include a.t-caption;
+  margin: a.space(3) 0 0;
+  color: var(--text-muted);
+}
+
+.when__days-error {
+  margin-block-start: a.space(3);
+}
+
+.when__slots {
+  min-inline-size: 0;
+}
+
+// The chosen day, and the way back to the calendar. Sticky only where the calendar has
+// scrolled away, which is below `lg`.
+.when__day {
+  position: sticky;
+  top: 0;
+  z-index: a.z(base);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: a.space(3);
+  inline-size: 100%;
+  appearance: none;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  padding: a.space(3) 0;
+  margin-block-end: a.space(3);
+  background: var(--bg);
+  border: 0;
+  border-block-end: var(--border-width-hairline) solid var(--border);
+
+  @include a.respond(lg) {
+    position: static;
+    cursor: default;
+  }
+}
+
+.when__day-label {
+  @include a.t-title;
+  color: var(--text-primary);
+}
+
+.when__day-change {
+  @include a.t-caption;
+  color: var(--accent-text);
+
+  @include a.respond(lg) {
+    display: none;
+  }
+}
+
+.when__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
+  gap: a.space(2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+// The whole grid pulses as one surface, not a tile at a time: a dozen independent blinks read
+// as a fault rather than as a wait. Opacity only, so the base layer's reduced-motion rule
+// stops it.
+.when__grid--loading {
+  animation: when-slots-pulse 1.6s var(--ease-standard) infinite;
+}
+
+.when__skeleton {
+  block-size: 2.75rem;
+  border-radius: a.radius(md);
+  background: var(--surface-2);
+}
+
+@keyframes when-slots-pulse {
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.when__empty {
+  @include a.t-body-sm;
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.when__next {
+  @include a.t-body-sm;
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin-block-start: a.space(2);
+  font: inherit;
+  color: var(--accent-text);
+  cursor: pointer;
+  text-decoration: underline;
+}

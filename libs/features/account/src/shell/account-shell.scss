@@ -1,0 +1,43 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: var(--bg);
+}
+
+.account {
+  @include a.container;
+  display: grid;
+  // An `auto` column grows to the tab menu's full width. The menu must scroll inside it.
+  grid-template-columns: minmax(0, 1fr);
+  gap: a.space(6);
+  padding-block: a.space(8) a.space(16);
+}
+
+.account-heading {
+  display: grid;
+  gap: a.space(1);
+}
+
+.account-title {
+  @include a.t-h1;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.account-greeting {
+  @include a.t-body;
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+// The page under the tabs never stretches wider than a comfortable reading column.
+.account-page {
+  max-width: var(--account-page-max-width, 48rem);
+}
+
+// A page with `data: { wide: true }` takes the whole column.
+.account-page--wide {
+  max-width: none;
+}

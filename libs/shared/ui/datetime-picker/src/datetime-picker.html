@@ -1,0 +1,144 @@
+<div class="datetime-field">
+  <button
+    type="button"
+    class="datetime-calendar-button"
+    [attr.aria-label]="'datetimePicker.open' | uiCopy | transloco"
+    aria-haspopup="dialog"
+    [attr.aria-controls]="panelId"
+    [disabled]="disabled()"
+    (click)="togglePanel()"
+  >
+    <svg lucideCalendarClock aria-hidden="true"></svg>
+  </button>
+  <input
+    #field
+    class="datetime-input"
+    type="text"
+    inputmode="numeric"
+    autocomplete="off"
+    spellcheck="false"
+    [attr.id]="inputId() || fieldId"
+    [attr.name]="name() || null"
+    [attr.placeholder]="
+      placeholder() === undefined
+        ? ('datetimePicker.placeholder' | uiCopy | transloco)
+        : placeholder() || null
+    "
+    [attr.aria-label]="
+      ariaLabel() || (!ariaLabelledby() ? ('datetimePicker.label' | uiCopy | transloco) : null)
+    "
+    [attr.aria-labelledby]="ariaLabelledby() || null"
+    [attr.aria-describedby]="ariaDescribedby() || null"
+    [attr.aria-invalid]="invalid() ? true : null"
+    [attr.aria-required]="required() ? true : null"
+    [attr.aria-controls]="panelId"
+    [disabled]="disabled()"
+    [readOnly]="readonly()"
+    [value]="draft()"
+    (input)="onInput($event)"
+    (keydown)="onInputKeydown($event)"
+    (blur)="commitDraft()"
+  />
+  @if (value() && !disabled() && !readonly()) {
+    <button
+      type="button"
+      class="datetime-clear"
+      [attr.aria-label]="'datetimePicker.clear' | uiCopy | transloco"
+      (click)="clear()"
+    >
+      <svg lucideX aria-hidden="true"></svg>
+    </button>
+  }
+</div>
+
+<ng-template #panel>
+  <section
+    class="datetime-panel"
+    role="dialog"
+    [id]="panelId"
+    [attr.aria-label]="'datetimePicker.panel' | uiCopy | transloco"
+  >
+    <div class="datetime-date">
+      <lib-date-picker
+        mode="inline"
+        compact
+        borderless
+        [showInput]="false"
+        [showToday]="true"
+        showNow
+        [value]="panelDateValue()"
+        [disabled]="disabled()"
+        [readonly]="readonly()"
+        (valueChange)="setDate($event)"
+        (nowSelected)="selectNow($event)"
+      />
+    </div>
+    <div class="datetime-time">
+      <div class="datetime-time-toggle">
+        <span>{{ 'datetimePicker.includeTime' | uiCopy | transloco }}</span>
+        <lib-switch
+          class="datetime-time-switch"
+          size="sm"
+          [value]="panelTimeEnabled()"
+          [disabled]="disabled() || readonly()"
+          [ariaLabel]="'datetimePicker.includeTime' | uiCopy | transloco"
+          (valueChange)="setPanelTimeEnabled($event)"
+        />
+      </div>
+      <div class="datetime-time-body">
+        @if (panelTimeEnabled()) {
+          <div
+            class="datetime-time-on"
+            [animate.enter]="panelModeChanged() ? 'datetime-mode-enter' : ''"
+            [animate.leave]="panelModeChanged() ? 'datetime-mode-leave' : ''"
+          >
+            <lib-time-picker
+              mode="dropdown"
+              showClock
+              size="sm"
+              [interval]="interval()"
+              [value]="panelTime()"
+              [disabled]="disabled()"
+              [readonly]="readonly()"
+              (valueChange)="setTime($event)"
+            />
+          </div>
+        } @else {
+          <div
+            class="datetime-time-off"
+            [animate.enter]="panelModeChanged() ? 'datetime-mode-enter' : ''"
+            [animate.leave]="panelModeChanged() ? 'datetime-mode-leave' : ''"
+          >
+            {{ 'datetimePicker.dateOnly' | uiCopy | transloco }}
+          </div>
+        }
+      </div>
+      <div class="datetime-midnight-footer" [attr.data-visible]="panelTimeEnabled() ? '' : null">
+        @if (panelTimeEnabled()) {
+          <button
+            type="button"
+            class="datetime-midnight-button"
+            [disabled]="disabled() || readonly()"
+            (click)="selectMidnight()"
+          >
+            00:00
+          </button>
+        }
+      </div>
+    </div>
+    <footer class="datetime-actions">
+      <button libButton type="button" severity="secondary" size="sm" (click)="cancelPanel()">
+        {{ 'datetimePicker.cancel' | uiCopy | transloco }}
+      </button>
+      <button
+        libButton
+        type="button"
+        size="sm"
+        [disabled]="disabled() || readonly()"
+        (click)="applyPanel()"
+      >
+        {{ 'datetimePicker.apply' | uiCopy | transloco }}
+      </button>
+    </footer>
+  </section>
+</ng-template>

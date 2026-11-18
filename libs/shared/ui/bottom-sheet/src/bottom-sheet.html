@@ -1,0 +1,61 @@
+@if (expanded() && collapsible()) {
+  <!-- A real button, not a div with a click: the scrim is a dismiss control and
+       the keyboard must reach it like any other. -->
+  <button
+    class="sheet__backdrop"
+    type="button"
+    animate.enter="sheet__backdrop--in"
+    animate.leave="sheet__backdrop--out"
+    [attr.aria-label]="'bottomSheet.collapse' | uiCopy | transloco"
+    (click)="collapse()"
+  ></button>
+}
+
+<div #surface class="sheet__surface">
+  <!-- The grab area. The panel below it scrolls, so a drag started there is a scroll. -->
+  <div #header class="sheet__header" (pointerdown)="onGrabStart($event)">
+    <div class="sheet__grip" aria-hidden="true"></div>
+    <div class="sheet__peek">
+      <!--
+        One empty button laid over the whole bar. A bar that wrapped the projected
+        content in a button would nest whatever the consumer projects inside an
+        interactive element. It paints nothing: the grip above is the affordance,
+        and the name lives on `aria-label`.
+      -->
+      @if (collapsible()) {
+        <button
+          #toggle
+          class="sheet__toggle"
+          type="button"
+          [attr.aria-expanded]="expanded()"
+          [attr.aria-controls]="panelId"
+          [attr.aria-label]="toggleLabel() || ('bottomSheet.toggle' | uiCopy | transloco)"
+          (click)="onToggleClick()"
+        ></button>
+      }
+      <div class="sheet__peek-content">
+        <ng-content select="[libBottomSheetPeek]" />
+      </div>
+      <!--
+        After the toggle in the DOM and positioned, so it takes the press the toggle would
+        otherwise swallow. `pointerdown` stops here too: a press on a control is a press, not
+        the start of a drag that eats it.
+      -->
+      <div class="sheet__trailing" (pointerdown)="$event.stopPropagation()">
+        <ng-content select="[libBottomSheetTrailing]" />
+      </div>
+    </div>
+  </div>
+
+  <!--
+    Inside the collapsed sheet's visible band, so what is projected here is on screen in both
+    states. Outside the header, so a press on it is a press and not the start of a drag.
+  -->
+  <div #actions class="sheet__actions">
+    <ng-content select="[libBottomSheetActions]" />
+  </div>
+
+  <div #panel class="sheet__panel" [id]="panelId" tabindex="-1" [attr.inert]="inertPanel()">
+    <ng-content />
+  </div>
+</div>

@@ -1,0 +1,16 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.not-back-label {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+// Fits "180 ημέρες" without a jump when the choice changes.
+lib-select {
+  min-width: 9rem;
+}

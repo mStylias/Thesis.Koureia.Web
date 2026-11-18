@@ -1,0 +1,131 @@
+// The splash, `@ui/loading-screen`.
+//
+// Global and not a component stylesheet, which is the exception this folder exists for: the same
+// markup is written by hand in an app's `index.html` so that a client-rendered address paints the
+// splash before the bundle boots, and the component then takes the screen over. One stylesheet is
+// what keeps the handover invisible.
+//
+// The sweep is the accepted exception to "no infinite loops": it is a status display, not a
+// transition.
+
+@use 'abstracts' as a;
+
+// The overlay is fixed, so the host needs no box of its own: with `loading` down the component
+// must occupy nothing in the consumer's layout.
+lib-loading-screen {
+  display: contents;
+}
+
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: a.z(splash);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: a.space(8);
+  // Opaque: the splash hides a half-built page, so anything showing through defeats it.
+  background: var(--surface);
+}
+
+.loading-screen-logo {
+  inline-size: var(--loading-screen-logo-size);
+  block-size: var(--loading-screen-logo-size);
+  object-fit: contain;
+}
+
+.loading-screen-logo-enter {
+  animation: loading-screen-logo-enter var(--dur-slower) var(--ease-out) both;
+}
+
+// Firing on first paint is what this is for — the splash has no earlier state to enter from.
+@keyframes loading-screen-logo-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(a.space(2));
+  }
+}
+
+.loading-screen-leave {
+  animation: loading-screen-leave var(--dur-slow) var(--ease-out) both;
+}
+
+@keyframes loading-screen-leave {
+  to {
+    opacity: 0;
+  }
+}
+
+// The mark opens out as the surface fades, so the page underneath is revealed rather than
+// uncovered. More specific than the enter rule, which wins the cascade if both classes are
+// still on the element.
+.loading-screen-leave .loading-screen-logo {
+  animation: loading-screen-logo-leave var(--dur-slow) var(--ease-out) both;
+}
+
+@keyframes loading-screen-logo-leave {
+  to {
+    transform: scale(1.06);
+  }
+}
+
+.loading-screen-bar {
+  position: relative;
+  overflow: hidden;
+  inline-size: var(--loading-screen-bar-width);
+  block-size: var(--loading-screen-bar-height);
+  border-radius: a.radius(pill);
+  background: var(--surface-sunken);
+}
+
+// One sliver sweeping the track, on transform alone, so the loop stays on the compositor while
+// the main thread parses the chunk the splash is waiting for.
+.loading-screen-bar-fill {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: 40%;
+  border-radius: inherit;
+  background: var(--accent);
+  animation: loading-screen-sweep var(--dur-indeterminate) var(--ease-in-out-quad) infinite;
+}
+
+// -100% clears the left edge by exactly the sliver's own width; 250% clears the right edge.
+@keyframes loading-screen-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+// Referenced as the live region's text, so it must stay in the layout tree — clipped rather
+// than `display: none`.
+.loading-screen-a11y-text {
+  position: absolute;
+  inline-size: var(--border-width-hairline);
+  block-size: var(--border-width-hairline);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+// A forced palette flattens the sliver into its track. Highlight keeps the two apart.
+@media (forced-colors: active) {
+  .loading-screen-bar-fill {
+    background: Highlight;
+    forced-color-adjust: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-screen-bar-fill {
+    animation: none;
+    // Centred and still. The global rule collapses the sweep to 0.01ms, which parks the sliver
+    // off the left edge and leaves an empty track.
+    inset-inline: 0;
+    margin-inline: auto;
+  }
+}

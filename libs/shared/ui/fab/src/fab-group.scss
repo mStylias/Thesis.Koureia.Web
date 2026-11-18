@@ -1,0 +1,21 @@
+@use 'abstracts' as a;
+
+// Below an overlay: a drawer or a dialog opened over the page covers the buttons.
+:host {
+  position: fixed;
+  inset-block-end: calc(#{a.space(4)} + env(safe-area-inset-bottom, 0px));
+  inset-inline-end: calc(#{a.space(4)} + env(safe-area-inset-right, 0px));
+  z-index: var(--z-sticky);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: a.space(3);
+  // The gaps between the buttons let clicks through to the page. Each `libFab` turns pointer
+  // events back on in its own styles. A `> *` rule here cannot do it: the buttons are
+  // projected, so they do not carry this component's scope attribute.
+  pointer-events: none;
+}
+
+:host([data-position='absolute']) {
+  position: absolute;
+}

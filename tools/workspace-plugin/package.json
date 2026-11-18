@@ -1,0 +1,7 @@
+{
+  "name": "@koureia/workspace",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Workspace generators. `nx g @koureia/workspace:library <name> --kind=ui`.",
+  "generators": "./generators.json"
+}

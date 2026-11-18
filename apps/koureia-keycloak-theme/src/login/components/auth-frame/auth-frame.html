@@ -1,0 +1,39 @@
+<main class="auth-shell">
+  <section class="auth-visual" data-surface="dark" aria-labelledby="auth-visual-title">
+    <img class="auth-visual-image" [src]="assetUrl(brand.heroImage)" alt="" />
+    <div class="auth-visual-scrim"></div>
+    <div class="auth-visual-content">
+      <a class="wordmark" [href]="appHome()" [attr.aria-label]="brand.name">
+        <img [src]="assetUrl(brand.logo)" alt="" />
+        <span>{{ brand.wordmark }}</span>
+      </a>
+      <div class="auth-visual-copy">
+        <p class="eyebrow">{{ i18n.msgStr('authHeroEyebrow') }}</p>
+        <h2 id="auth-visual-title">{{ i18n.msgStr('authHeroTitle') }}</h2>
+        <p>{{ i18n.msgStr('authHeroDescription') }}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="auth-panel" [attr.aria-labelledby]="'auth-title'">
+    <div class="auth-panel-inner">
+      <!-- No language picker. The site sends `ui_locales`, so these pages already arrive in the
+           language the visitor came from. A second choice here would disagree with the site and
+           be forgotten on return. The switcher lives in `@features/language`. -->
+      <div class="auth-toolbar">
+        <a class="mobile-wordmark" [href]="appHome()" [attr.aria-label]="brand.name">
+          <img [src]="assetUrl(brand.logo)" alt="" />
+          <span>{{ brand.wordmark }}</span>
+        </a>
+      </div>
+
+      <div class="auth-card">
+        <header class="auth-heading">
+          <h1 id="auth-title">{{ title() }}</h1>
+          <p>{{ description() }}</p>
+        </header>
+        <ng-content />
+      </div>
+    </div>
+  </section>
+</main>

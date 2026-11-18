@@ -1,0 +1,51 @@
+@if (store.companyId() === null) {
+  <p class="calendar-page-message" role="status">
+    {{ 'managementCalendar.noCompany' | transloco }}
+  </p>
+} @else {
+  <lib-calendar
+    class="calendar-page-calendar"
+    [events]="store.events()"
+    [resources]="store.resources()"
+    [hours]="store.hours()"
+    [dayCounts]="store.dayCounts()"
+    [timezone]="store.timezone()"
+    [loading]="store.loading()"
+    [refreshing]="store.refreshing()"
+    [createLabel]="'managementCalendar.create' | transloco"
+    [dayColumnsLabel]="'managementCalendar.dayColumns' | transloco"
+    [resourceLabel]="'managementCalendar.resourceLabel' | transloco"
+    [filtersActive]="store.filtersActive()"
+    [(view)]="store.view"
+    [(anchor)]="store.anchor"
+    [(timeScale)]="store.timeScale"
+    [(dayColumns)]="store.dayColumns"
+    [(showTime)]="store.showTime"
+    [(selectedEventId)]="store.selectedId"
+    [panel]="store.panel()"
+    (panelChange)="onPanel($event)"
+    (rangeChange)="store.setRange($event)"
+    (eventOpen)="openAppointment($event)"
+    (slotCreate)="createAppointment($event)"
+    (refresh)="store.refresh()"
+  >
+    <lib-saved-views libCalendarViews [controller]="views" />
+    <lib-calendar-filters libCalendarFilters />
+    @if (store.filtersActive() > 0) {
+      <button
+        libCalendarFilterActions
+        libButton
+        type="button"
+        variant="text"
+        severity="secondary"
+        size="sm"
+        (click)="store.clearFilters()"
+      >
+        {{ 'managementCalendar.filters.clear' | transloco }}
+      </button>
+    }
+  </lib-calendar>
+}
+
+<!-- The appointment panel, a route of its own that draws its drawer over the calendar. -->
+<router-outlet />

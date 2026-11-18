@@ -1,0 +1,51 @@
+@use 'abstracts' as a;
+
+.time-off-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.time-off-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  align-items: start;
+}
+
+// Lines the label up with a `sm` field's horizontal padding. The wrapper inherits the property.
+.time-off-field {
+  --field-label-inset: var(--space-2);
+
+  min-width: 0;
+}
+
+// A time picker leads with its clock icon, so the label starts where the time does. The label
+// is the wrapper's, not the picker's, so the inset is set here: the `sm` padding, the icon and
+// the input's own padding.
+.time-off-time {
+  --field-label-inset: calc(var(--space-2) + var(--icon-size-sm) + var(--space-2));
+}
+
+.time-off-switch {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+
+  label {
+    font-weight: var(--weight-medium);
+    cursor: pointer;
+  }
+}
+
+.time-off-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+@include a.respond-down(sm) {
+  .time-off-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -1,0 +1,103 @@
+<div class="number-field">
+  @if (showButtons() && buttonLayout() === 'horizontal') {
+    <button
+      type="button"
+      class="number-step number-step-down"
+      tabindex="-1"
+      aria-hidden="true"
+      [disabled]="!editable() || atMin()"
+      (mousedown)="keepFocus($event)"
+      (click)="stepBy(-1)"
+    >
+      <svg lucideMinus aria-hidden="true"></svg>
+    </button>
+  }
+
+  <input
+    #numberInput
+    type="text"
+    inputmode="decimal"
+    role="spinbutton"
+    autocomplete="off"
+    [attr.id]="inputId() || null"
+    [attr.name]="name() || null"
+    [value]="displayValue()"
+    [placeholder]="placeholder()"
+    [disabled]="disabled()"
+    [readOnly]="readonly()"
+    [attr.aria-label]="
+      ariaLabel() || (!ariaLabelledby() ? ('inputNumber.label' | uiCopy | transloco) : null)
+    "
+    [attr.aria-labelledby]="ariaLabelledby() || null"
+    [attr.aria-describedby]="describedBy()"
+    [attr.aria-invalid]="invalid() ? true : null"
+    [attr.aria-required]="required() ? true : null"
+    [attr.aria-valuenow]="value() ?? null"
+    [attr.aria-valuetext]="value() !== null ? formattedValue() : null"
+    [attr.aria-valuemin]="min() ?? null"
+    [attr.aria-valuemax]="max() ?? null"
+    (focus)="onFocus()"
+    (blur)="onBlur()"
+    (input)="onInput()"
+    (beforeinput)="onBeforeInput($event)"
+    (keydown)="onKeydown($event)"
+  />
+
+  @if (showClear() && value() !== null && editable()) {
+    <button
+      type="button"
+      class="number-clear"
+      [attr.aria-label]="clearAriaLabel() || ('inputNumber.clear' | uiCopy | transloco)"
+      (click)="clear()"
+    >
+      <svg lucideX aria-hidden="true"></svg>
+    </button>
+  }
+
+  @if (showButtons() && buttonLayout() === 'stacked') {
+    <span class="number-steps">
+      <button
+        type="button"
+        class="number-step"
+        tabindex="-1"
+        aria-hidden="true"
+        [disabled]="!editable() || atMax()"
+        (mousedown)="keepFocus($event)"
+        (click)="stepBy(1)"
+      >
+        <svg lucideChevronUp aria-hidden="true"></svg>
+      </button>
+      <button
+        type="button"
+        class="number-step"
+        tabindex="-1"
+        aria-hidden="true"
+        [disabled]="!editable() || atMin()"
+        (mousedown)="keepFocus($event)"
+        (click)="stepBy(-1)"
+      >
+        <svg lucideChevronDown aria-hidden="true"></svg>
+      </button>
+    </span>
+  }
+
+  @if (showButtons() && buttonLayout() === 'horizontal') {
+    <button
+      type="button"
+      class="number-step number-step-up"
+      tabindex="-1"
+      aria-hidden="true"
+      [disabled]="!editable() || atMax()"
+      (mousedown)="keepFocus($event)"
+      (click)="stepBy(1)"
+    >
+      <svg lucidePlus aria-hidden="true"></svg>
+    </button>
+  }
+</div>
+
+@if (showError()) {
+  <div [id]="errorId" class="number-error" role="alert">
+    {{ firstError()?.message || errorKey() | uiCopy | transloco: errorParams() }}
+  </div>
+}

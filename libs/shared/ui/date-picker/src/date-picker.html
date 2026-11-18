@@ -1,0 +1,208 @@
+@if (mode() === 'dropdown' || showInput()) {
+  <!-- The calendar lives on the toggle, which is the thing that opens a calendar; a second
+       decorative one beside the value said nothing and cost a field's worth of width. The
+       clear button is opt-in and only while there is something to clear. -->
+  <div #field class="date-field">
+    <input
+      #dateInput
+      class="date-input"
+      type="text"
+      inputmode="numeric"
+      autocomplete="off"
+      spellcheck="false"
+      [attr.id]="inputId() || fieldId"
+      [attr.name]="name() || null"
+      [attr.placeholder]="placeholder() || localeInfo().placeholder"
+      [attr.aria-label]="
+        ariaLabel() || (!ariaLabelledby() ? ('datePicker.label' | uiCopy | transloco) : null)
+      "
+      [attr.aria-labelledby]="ariaLabelledby() || null"
+      [attr.aria-describedby]="describedBy()"
+      [attr.aria-invalid]="isInvalid() ? true : null"
+      [attr.aria-required]="required() ? true : null"
+      [attr.aria-controls]="panelId"
+      [disabled]="disabled()"
+      [readOnly]="readonly()"
+      [value]="draft()"
+      (input)="onInput($event)"
+      (keydown)="onInputKeydown($event)"
+    />
+
+    @if (showClear() && draft() && !disabled() && !readonly()) {
+      <button
+        type="button"
+        class="date-icon-button date-clear"
+        [attr.aria-label]="clearAriaLabel() || ('datePicker.clear' | uiCopy | transloco)"
+        (click)="clear()"
+      >
+        <svg lucideX aria-hidden="true"></svg>
+      </button>
+    }
+
+    <!-- The only thing that opens the calendar, together with ArrowDown. The
+         input is for typing, so neither focusing it nor typing in it opens
+         anything over what the user is reading. -->
+    @if (mode() === 'dropdown') {
+      <button
+        type="button"
+        class="date-icon-button date-toggle"
+        [attr.aria-label]="'datePicker.open' | uiCopy | transloco"
+        aria-haspopup="dialog"
+        [attr.aria-expanded]="isOpen()"
+        [attr.aria-controls]="panelId"
+        [disabled]="disabled()"
+        (click)="toggleDropdown()"
+      >
+        <svg lucideCalendarDays aria-hidden="true"></svg>
+      </button>
+    }
+  </div>
+}
+
+@if (mode() === 'inline') {
+  <div
+    class="date-panel date-panel-inline"
+    role="group"
+    [id]="panelId"
+    [attr.aria-label]="'datePicker.calendar' | uiCopy | transloco"
+    (focusin)="onFocusIn()"
+    (focusout)="onFocusOut()"
+  >
+    <ng-container *ngTemplateOutlet="calendarContent" />
+  </div>
+}
+
+<ng-template #overlayTemplate>
+  <div
+    class="date-panel date-panel-overlay"
+    animate.enter="date-panel-enter"
+    role="dialog"
+    [id]="panelId"
+    [attr.aria-labelledby]="headingId"
+    [attr.data-position]="panelPosition()"
+    (focusin)="onFocusIn()"
+    (focusout)="onFocusOut()"
+  >
+    <ng-container *ngTemplateOutlet="calendarContent" />
+  </div>
+</ng-template>
+
+<ng-template #calendarContent>
+  <div class="date-calendar-header">
+    <button
+      type="button"
+      class="date-nav-button"
+      [attr.aria-label]="'datePicker.previousMonth' | uiCopy | transloco"
+      [disabled]="!canGoPrevious() || disabled()"
+      (click)="previousMonth()"
+    >
+      <svg lucideChevronLeft aria-hidden="true"></svg>
+    </button>
+
+    <div [id]="headingId" class="date-month-heading" aria-live="polite">
+      {{ monthHeading() }}
+    </div>
+
+    <button
+      type="button"
+      class="date-nav-button"
+      [attr.aria-label]="'datePicker.nextMonth' | uiCopy | transloco"
+      [disabled]="!canGoNext() || disabled()"
+      (click)="nextMonth()"
+    >
+      <svg lucideChevronRight aria-hidden="true"></svg>
+    </button>
+  </div>
+
+  <table
+    ngGrid
+    class="date-grid"
+    enableSelection
+    selectionMode="explicit"
+    rowWrap="continuous"
+    colWrap="nowrap"
+    softDisabled
+    [attr.aria-label]="'datePicker.calendar' | uiCopy | transloco"
+    [disabled]="disabled()"
+    (keydown)="onCalendarKeydown($event)"
+  >
+    <thead>
+      <tr role="row">
+        @for (weekday of localeInfo().weekdays; track weekday.label) {
+          <th role="columnheader" scope="col" [attr.aria-label]="weekday.label">
+            {{ weekday.short }}
+          </th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (week of calendarRows(); track $index) {
+        <tr ngGridRow>
+          @for (day of week; track day.date) {
+            <td
+              ngGridCell
+              class="date-day"
+              [attr.data-date]="day.date"
+              [attr.data-outside]="!day.inCurrentMonth ? '' : null"
+              [attr.data-today]="day.today ? '' : null"
+              [attr.data-availability]="day.availability"
+              [attr.aria-label]="
+                day.availability
+                  ? day.label +
+                    ', ' +
+                    ('datePicker.availability.day.' + day.availability | uiCopy | transloco)
+                  : day.label
+              "
+              [attr.aria-current]="day.today ? 'date' : null"
+              [disabled]="day.disabled || disabled() || readonly()"
+              [selected]="day.date === value()"
+              (click)="onDayClick(day)"
+              (selectedChange)="onDaySelection(day, $event)"
+              (focus)="onDayFocus(day.date)"
+            >
+              <span>{{ day.day }}</span>
+            </td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  @if (showLegend()) {
+    <lib-date-picker-legend />
+  }
+
+  @if (showToday() || showNow()) {
+    <lib-date-picker-footer
+      [showToday]="showToday()"
+      [showNow]="showNow()"
+      [todayDisabled]="disabled() || readonly() || !todayAllowed()"
+      [nowDisabled]="disabled() || readonly()"
+      [compact]="compact()"
+      (todaySelected)="selectToday()"
+      (nowSelected)="selectNow()"
+    />
+  }
+</ng-template>
+
+<!-- In flow under the field. A frameless picker floats the same message in an
+     overlay instead — see `errorPanel`. -->
+@if (showError() && !frameless()) {
+  <div [id]="errorId" class="date-error" role="alert">
+    <ng-container *ngTemplateOutlet="errorMessage" />
+  </div>
+}
+
+<ng-template #errorPanel>
+  <div [id]="errorId" class="date-error date-error-floating" role="alert">
+    <ng-container *ngTemplateOutlet="errorMessage" />
+  </div>
+</ng-template>
+
+<ng-template #errorMessage>
+  @if (!entryErrorKind() && firstError()?.message; as message) {
+    {{ message | transloco }}
+  } @else {
+    {{ errorKey() | uiCopy | transloco }}
+  }
+</ng-template>

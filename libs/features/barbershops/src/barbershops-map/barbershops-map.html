@@ -1,0 +1,37 @@
+<div class="map-shell" [attr.aria-busy]="status() === 'loading'">
+  <div
+    #mapContainer
+    class="map-container"
+    [class.map-container--ready]="status() === 'ready'"
+  ></div>
+
+  @if (status() === 'ready' && shops().length > 0 && focus() === null) {
+    <button
+      libButton
+      iconOnly
+      raised
+      severity="secondary"
+      size="sm"
+      type="button"
+      class="map-recenter"
+      [libTooltip]="'barbershops.map.recenter' | transloco"
+      tooltipPosition="right"
+      [attr.aria-label]="'barbershops.map.recenter' | transloco"
+      (click)="recenter()"
+    >
+      <svg lucideMaximize aria-hidden="true"></svg>
+    </button>
+  }
+
+  @if (status() === 'loading') {
+    <lib-barbershops-map-skeleton
+      class="map-overlay"
+      [entrance]="false"
+      animate.leave="map-overlay-leave"
+    />
+  } @else if (status() === 'error') {
+    <lib-banner class="map-error" tone="error" role="alert">
+      {{ 'barbershops.map.unavailable' | transloco }}
+    </lib-banner>
+  }
+</div>

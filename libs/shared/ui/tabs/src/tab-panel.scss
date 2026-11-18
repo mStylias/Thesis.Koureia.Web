@@ -1,0 +1,17 @@
+// Consumes the design-system CSS custom properties. The aria pattern marks
+// inactive panels `inert` and hides them from the a11y tree; we hide them
+// visually here. The `tab-panel` class is on the component HOST, so it is
+// styled via `:host`.
+
+:host {
+  display: block;
+  padding: var(--space-4) 0;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+}
+
+// aria adds `inert` to the hidden panel(s); mirror that visually.
+:host([inert]) {
+  display: none;
+}

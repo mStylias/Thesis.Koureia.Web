@@ -1,0 +1,14 @@
+<!-- The spinner takes the marked icon's place rather than joining it, so a button does not
+     grow by an icon mid-action and nudge its caption and its neighbours.
+
+     The icon slot is inside the `@else`, and content projected into a block that never renders
+     is never created — so a button born `loading` has no icon until `loading` first goes false,
+     which is when the slot is wanted anyway.
+
+     `spinning`, not `loading`: the spinner outlives a fast action by the `minDuration` floor. -->
+@if (spinning()) {
+  <svg lucideLoaderCircle class="btn-spinner" aria-hidden="true"></svg>
+} @else {
+  <ng-content select="[libButtonIcon]" />
+}
+<ng-content />

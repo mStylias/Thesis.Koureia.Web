@@ -1,0 +1,69 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+// Stacked on a phone: the address first, then the map. From `lg` the two sit side by side, the
+// map taking the width.
+.location {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.location__map {
+  height: var(--barbershop-map-height);
+  overflow: hidden;
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(xl);
+  box-shadow: var(--shadow-sm);
+}
+
+// The landing page's card. It holds the address and the one action this section offers.
+.location__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.location__label {
+  @include a.t-label;
+}
+
+.location__address {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  font-style: normal;
+  color: var(--text-secondary);
+
+  svg {
+    flex: none;
+    width: var(--icon-size-md);
+    height: var(--icon-size-md);
+    color: var(--accent-text);
+  }
+}
+
+.location__street {
+  @include a.t-title;
+  color: var(--text-primary);
+}
+
+@include a.respond(lg) {
+  // The card stretches to the map's height, and the action sits on its bottom edge, level with
+  // the bottom of the map.
+  .location {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    align-items: stretch;
+  }
+
+  .location__links {
+    margin-block-start: auto;
+  }
+}

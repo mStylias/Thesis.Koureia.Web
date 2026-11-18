@@ -1,0 +1,40 @@
+<!--
+  Asked before the booking, not after it, and optional either way: nothing here blocks the
+  button, and a number the shop can reach is worth more than one collected on a screen the
+  customer has already finished with.
+-->
+@if (needsPhone()) {
+  <section class="fields__phone">
+    <h3 class="fields__label">
+      {{ 'barbershops.booking.confirm.phoneLabel' | transloco }}
+    </h3>
+    <lib-phone-input
+      [(value)]="phone"
+      [ariaLabel]="'barbershops.booking.confirm.phoneLabel' | transloco"
+      [ariaDescribedby]="phoneWhyId"
+    />
+    <p class="fields__hint" [id]="phoneWhyId">
+      {{ 'barbershops.booking.confirm.phoneWhy' | transloco }}
+    </p>
+  </section>
+}
+
+<label class="fields__note">
+  <span class="fields__label">{{ 'barbershops.booking.confirm.note' | transloco }}</span>
+  <textarea
+    libTextarea
+    rows="3"
+    [attr.maxlength]="noteMaxLength"
+    [attr.aria-describedby]="noteCountId"
+    [value]="state.notes()"
+    [placeholder]="'barbershops.booking.confirm.notePlaceholder' | transloco"
+    (input)="onNotesInput($any($event.target).value)"
+  ></textarea>
+  <!-- Not a live region: it is read with the field, not on every keystroke. -->
+  <span class="fields__count" [id]="noteCountId">
+    {{
+      'barbershops.booking.confirm.noteCount'
+        | transloco: { used: state.notes().length, max: noteMaxLength }
+    }}
+  </span>
+</label>

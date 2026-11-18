@@ -1,0 +1,128 @@
+@let moreTitle = 'calendar.moreTitle' | uiCopy | transloco;
+@let roving = rovingDate();
+@let dots = compact();
+
+<div
+  #grid
+  class="mc"
+  role="grid"
+  [attr.aria-label]="heading()"
+  [attr.aria-describedby]="hintId"
+  [attr.data-compact]="dots ? '' : null"
+>
+  <div class="mc-weekdays" role="row">
+    @for (weekday of weekdays(); track weekday.label) {
+      <div class="mc-weekday" role="columnheader" [attr.aria-label]="weekday.label">
+        {{ weekday.short }}
+      </div>
+    }
+  </div>
+  @for (row of views(); track row.key) {
+    <div class="mc-row" role="row">
+      @for (view of row.cells; track view.cell.date) {
+        @let cell = view.cell;
+        <div
+          class="mc-cell"
+          role="gridcell"
+          [attr.tabindex]="roving === cell.date ? 0 : -1"
+          [attr.data-date]="cell.date"
+          [attr.aria-label]="
+            cell.label +
+            ', ' +
+            ('calendar.entries' | uiCopy | transloco: { count: cell.events.length })
+          "
+          [attr.aria-current]="cell.today ? 'date' : null"
+          [attr.data-outside]="cell.outside ? '' : null"
+          [attr.data-today]="cell.today ? '' : null"
+          [attr.data-closed]="cell.closed ? '' : null"
+          (focus)="onCellFocus(cell)"
+          (keydown)="onCellKeydown(cell, $event)"
+          (dblclick)="onCellDoubleClick(cell, $event)"
+        >
+          <!-- Pointer-only, like a tab's close affordance: the cell itself
+               answers `Enter`, so a second tab stop per day would double the
+               walk through the month. -->
+          <button
+            type="button"
+            class="mc-day"
+            tabindex="-1"
+            aria-hidden="true"
+            (click)="onDayClick(cell, $event)"
+          >
+            {{ cell.day }}
+          </button>
+          <div class="mc-body">
+            @if (dots) {
+              <!-- Too narrow for rows. The count is in the cell's name. -->
+              <span class="mc-dots" aria-hidden="true">
+                @for (item of cell.events.slice(0, maxDots); track item.event.id) {
+                  <span
+                    class="mc-dot"
+                    [attr.data-swatch]="item.resource?.swatch ?? null"
+                    [attr.data-muted]="item.event.muted ? '' : null"
+                  ></span>
+                }
+              </span>
+            } @else {
+              @for (item of view.visible; track item.event.id) {
+                <button
+                  type="button"
+                  class="mc-tile"
+                  animate.enter="mc-tile-enter"
+                  [attr.data-swatch]="item.resource?.swatch ?? null"
+                  [attr.data-muted]="item.event.muted ? '' : null"
+                  [attr.aria-current]="item.event.id === selectedEventId() ? 'true' : null"
+                  [attr.aria-label]="
+                    ('calendar.eventLabel'
+                      | uiCopy
+                      | transloco: { start: item.start, end: item.end, title: item.event.title }) +
+                    extras(item)
+                  "
+                  (click)="onRowClick(item, $event)"
+                  (dblclick)="$event.stopPropagation()"
+                >
+                  <span class="mc-tile-dot" aria-hidden="true"></span>
+                  @if (showTime()) {
+                    <span class="mc-tile-time">{{ item.start }}</span>
+                  }
+                  <span class="mc-tile-title">{{ item.event.title }}</span>
+                  @if (item.event.marks?.length) {
+                    <lib-calendar-marks [marks]="item.event.marks" />
+                  }
+                </button>
+              }
+              @if (view.hidden.length > 0) {
+                <button
+                  #moreTrigger="libPopoverTrigger"
+                  type="button"
+                  class="mc-more"
+                  [libPopoverTriggerFor]="moreList"
+                  [popoverAriaLabel]="moreTitle"
+                  [attr.aria-label]="
+                    'calendar.moreCount' | uiCopy | transloco: { count: view.hidden.length }
+                  "
+                  (dblclick)="$event.stopPropagation()"
+                >
+                  {{ 'calendar.more' | uiCopy | transloco: { count: view.hidden.length } }}
+                </button>
+                <ng-template #moreList>
+                  <lib-calendar-more-popover
+                    [events]="hiddenEvents(view)"
+                    [resources]="resources()"
+                    [locale]="locale()"
+                    [selectedEventId]="selectedEventId()"
+                    [resourceLabel]="resourceLabel()"
+                    (eventOpen)="onMoreOpen($event, moreTrigger)"
+                  />
+                </ng-template>
+              }
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<span #probe class="mc-probe" aria-hidden="true"></span>
+<p class="mc-sr" [id]="hintId">{{ 'calendar.gridHint' | uiCopy | transloco }}</p>

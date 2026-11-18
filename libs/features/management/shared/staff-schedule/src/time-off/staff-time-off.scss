@@ -1,0 +1,69 @@
+@use 'abstracts' as a;
+
+:host {
+  // The space beside the content. A host that pads its own content sets
+  // `--staff-schedule-inset: 0`.
+  --schedule-inset: var(--staff-schedule-inset, #{a.space(6)});
+
+  @include a.detail-panel(var(--schedule-inset));
+}
+
+.time-off-conflicts,
+.time-off-notice {
+  margin: var(--space-5) var(--schedule-inset) 0;
+}
+
+// Current and past time off, as every details panel reads: the dates are the caption.
+.time-off-section {
+  @include a.detail-section;
+}
+
+.time-off-heading {
+  @include a.detail-heading;
+}
+
+.time-off-grid {
+  @include a.detail-grid;
+}
+
+.time-off-row {
+  @include a.detail-row;
+}
+
+.time-off-caption {
+  @include a.detail-caption;
+
+  font-variant-numeric: tabular-nums;
+}
+
+// The hours and the reason, with the row's actions at the end.
+.time-off-value {
+  @include a.detail-value;
+
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.time-off-text {
+  min-width: 0;
+}
+
+.time-off-empty {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.time-off-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-self: center;
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+  }
+}

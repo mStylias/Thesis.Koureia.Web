@@ -1,0 +1,97 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+  min-width: 0;
+  height: 100%;
+}
+
+.shop-card {
+  // The endpoint serves 1200x600 shop photos, so the band matches the source and nothing is
+  // cropped. It also keeps the card short, which is what lets a page of them be scanned. Set on
+  // the card and not the host: `@ui/card` sets its own default there, and that wins over an
+  // inherited value.
+  --card-media-aspect-ratio: 2 / 1;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  // Elevation and edge only, no lift: raising the card moves its bottom edge off the pointer
+  // that is resting on it, and the hover then flickers on and off. Behind a hover query,
+  // because a tap on a phone reports a hover and would leave one card raised for good.
+  @media (hover: hover) and (pointer: fine) {
+    transition:
+      box-shadow var(--dur-fast) ease,
+      border-color var(--dur-fast) ease;
+
+    &:hover {
+      border-color: var(--border);
+      box-shadow: var(--shadow-lg);
+    }
+  }
+
+  // The body carries the rest of the card, so it has to take the height for the footer to sit
+  // on the bottom edge of every card in a row. `space-between` and not a row template: the
+  // card has no fixed number of rows.
+  > [libCardBody] {
+    flex: 1;
+    align-content: space-between;
+  }
+}
+
+.shop-card__media {
+  // Fills the band, so a click anywhere on the photo or placeholder opens the shop.
+  .shop-card__media-link {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    color: inherit;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    // A photograph, not a mark: filling the band reads better than letterboxing it.
+    object-fit: cover;
+  }
+
+  svg {
+    width: var(--icon-size-lg);
+    height: var(--icon-size-lg);
+    stroke-width: var(--icon-stroke);
+  }
+}
+
+// Over the photo rather than beside the title: the band is the one part of the card with room
+// to spare, and the control has to sit in the same place whether or not a shop has a photo.
+.shop-card__locate {
+  position: absolute;
+  inset-block-start: var(--space-3);
+  inset-inline-start: var(--space-3);
+  z-index: a.z(base);
+}
+
+.shop-card__heading {
+  min-width: 0;
+}
+
+// The title is the card's own link, so it takes the card's color and earns its underline on
+// hover rather than carrying one at rest.
+.shop-card__link {
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-underline-offset: var(--space-1);
+  }
+}
+
+.shop-card__distance {
+  @include a.t-mono;
+  color: var(--text-secondary);
+}

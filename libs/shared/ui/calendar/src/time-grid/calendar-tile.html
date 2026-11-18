@@ -1,0 +1,46 @@
+<span class="tile-frame">
+  @if (showTime()) {
+    <span class="tile-row tile-head">
+      <span class="tile-time"
+        >{{ start() }}<span class="tile-time-end">–{{ end() }}</span></span
+      >
+      @if (showResource() && resource(); as owner) {
+        <span class="tile-resource">
+          <span class="tile-dot" aria-hidden="true"></span>
+          <span class="tile-initials">{{ initials() }}</span>
+        </span>
+      }
+    </span>
+  }
+  <span class="tile-body">
+    <!-- Without the time, the title takes its place beside the resource, so
+         no row is spent on the initials alone. -->
+    <span class="tile-row">
+      @if (!showTime() && showResource() && resource(); as owner) {
+        <span class="tile-resource">
+          <span class="tile-dot" aria-hidden="true"></span>
+          <span class="tile-initials">{{ initials() }}</span>
+        </span>
+      }
+      <span class="tile-title">{{ event().title }}</span>
+      @if (event().marks?.length) {
+        <lib-calendar-marks [marks]="event().marks ?? []" />
+      }
+    </span>
+    @if (event().subtitle || event().badge) {
+      <span class="tile-meta">
+        @if (event().subtitle; as subtitle) {
+          <span class="tile-subtitle">{{ subtitle }}</span>
+        }
+        @if (event().badge; as badge) {
+          <span class="tile-badge" [attr.data-tone]="badge.tone">
+            @if (badge.icon; as icon) {
+              <svg [lucideIcon]="icon" aria-hidden="true"></svg>
+            }
+            <span class="tile-badge-text">{{ badge.label }}</span>
+          </span>
+        }
+      </span>
+    }
+  </span>
+</span>

@@ -1,0 +1,184 @@
+@if (visible()) {
+  <nav
+    class="paginator-nav"
+    [attr.aria-label]="ariaLabel() || ('paginator.ariaLabel' | uiCopy | transloco) || null"
+    [animate.enter]="enterClass()"
+    [animate.leave]="leaveClass()"
+  >
+    @if (slotFor('container'); as container) {
+      <ng-container [ngTemplateOutlet]="container" [ngTemplateOutletContext]="slotContext()" />
+    } @else {
+      @for (section of layout(); track $index) {
+        @switch (section) {
+          @case ('first') {
+            @if (slotFor('first'); as tpl) {
+              <ng-container [ngTemplateOutlet]="tpl" [ngTemplateOutletContext]="slotContext()" />
+            } @else {
+              <button
+                libButton
+                type="button"
+                variant="text"
+                size="sm"
+                iconOnly
+                [disabled]="firstDisabled()"
+                [attr.aria-label]="'paginator.firstPageLabel' | uiCopy | transloco"
+                (click)="goTo(1)"
+              >
+                <svg lucideChevronsLeft></svg>
+              </button>
+            }
+          }
+
+          @case ('prev') {
+            @if (slotFor('prev'); as tpl) {
+              <ng-container [ngTemplateOutlet]="tpl" [ngTemplateOutletContext]="slotContext()" />
+            } @else {
+              <button
+                libButton
+                type="button"
+                variant="text"
+                size="sm"
+                iconOnly
+                [disabled]="firstDisabled()"
+                [attr.aria-label]="'paginator.prevPageLabel' | uiCopy | transloco"
+                (click)="goTo(currentPage() - 1)"
+              >
+                <svg lucideChevronLeft></svg>
+              </button>
+            }
+          }
+
+          @case ('pages') {
+            @if (slotFor('pages'); as tpl) {
+              <ng-container [ngTemplateOutlet]="tpl" [ngTemplateOutletContext]="slotContext()" />
+            } @else {
+              <span
+                class="paginator-pages"
+                role="group"
+                [attr.aria-label]="'paginator.pagesLabel' | uiCopy | transloco"
+              >
+                @for (item of pageItems(); track $index) {
+                  @if (item.type === 'ellipsis') {
+                    <span class="paginator-ellipsis" aria-hidden="true">&hellip;</span>
+                  } @else {
+                    <button
+                      libButton
+                      type="button"
+                      size="sm"
+                      [variant]="item.page === currentPage() ? 'filled' : 'text'"
+                      [disabled]="disabled()"
+                      [attr.aria-label]="
+                        'paginator.pageLabel' | uiCopy | transloco: { page: item.page }
+                      "
+                      [attr.aria-current]="item.page === currentPage() ? 'page' : null"
+                      (click)="goTo(item.page)"
+                    >
+                      {{ item.page }}
+                    </button>
+                  }
+                }
+              </span>
+            }
+          }
+
+          @case ('next') {
+            @if (slotFor('next'); as tpl) {
+              <ng-container [ngTemplateOutlet]="tpl" [ngTemplateOutletContext]="slotContext()" />
+            } @else {
+              <button
+                libButton
+                type="button"
+                variant="text"
+                size="sm"
+                iconOnly
+                [disabled]="lastDisabled()"
+                [attr.aria-label]="'paginator.nextPageLabel' | uiCopy | transloco"
+                (click)="goTo(currentPage() + 1)"
+              >
+                <svg lucideChevronRight></svg>
+              </button>
+            }
+          }
+
+          @case ('last') {
+            @if (slotFor('last'); as tpl) {
+              <ng-container [ngTemplateOutlet]="tpl" [ngTemplateOutletContext]="slotContext()" />
+            } @else {
+              <button
+                libButton
+                type="button"
+                variant="text"
+                size="sm"
+                iconOnly
+                [disabled]="lastDisabled()"
+                [attr.aria-label]="'paginator.lastPageLabel' | uiCopy | transloco"
+                (click)="goTo(pageCount())"
+              >
+                <svg lucideChevronsRight></svg>
+              </button>
+            }
+          }
+
+          @case ('rowsPerPage') {
+            @if (slotFor('rowsPerPage'); as tpl) {
+              <ng-container [ngTemplateOutlet]="tpl" [ngTemplateOutletContext]="slotContext()" />
+            } @else if (rowsOptions().length) {
+              <lib-select
+                class="paginator-rows"
+                size="sm"
+                [options]="rowsOptions()"
+                [value]="safeRows()"
+                [disabled]="disabled()"
+                [ariaLabel]="'paginator.rowsPerPageLabel' | uiCopy | transloco"
+                (valueChange)="onRowsChange($event)"
+              />
+            }
+          }
+
+          @case ('currentReport') {
+            @if (slotFor('currentReport'); as tpl) {
+              <ng-container [ngTemplateOutlet]="tpl" [ngTemplateOutletContext]="slotContext()" />
+            } @else {
+              <span class="paginator-report" aria-live="polite">{{
+                report('paginator.currentReportTemplate' | uiCopy | transloco)
+              }}</span>
+            }
+          }
+
+          @case ('jumpToPageInput') {
+            @if (slotFor('jumpToPageInput'); as tpl) {
+              <ng-container [ngTemplateOutlet]="tpl" [ngTemplateOutletContext]="slotContext()" />
+            } @else {
+              <lib-input-number
+                class="paginator-jump-input"
+                size="sm"
+                [value]="currentPage()"
+                [min]="1"
+                [max]="pageCount()"
+                [disabled]="disabled()"
+                [ariaLabel]="'paginator.jumpToPageInputLabel' | uiCopy | transloco"
+                (valueChange)="goTo($event)"
+              />
+            }
+          }
+
+          @case ('jumpToPageDropdown') {
+            @if (slotFor('jumpToPageDropdown'); as tpl) {
+              <ng-container [ngTemplateOutlet]="tpl" [ngTemplateOutletContext]="slotContext()" />
+            } @else {
+              <lib-select
+                class="paginator-jump-select"
+                size="sm"
+                [options]="jumpOptions()"
+                [value]="currentPage()"
+                [disabled]="disabled()"
+                [ariaLabel]="'paginator.jumpToPageDropdownLabel' | uiCopy | transloco"
+                (valueChange)="goTo($event)"
+              />
+            }
+          }
+        }
+      }
+    }
+  </nav>
+}

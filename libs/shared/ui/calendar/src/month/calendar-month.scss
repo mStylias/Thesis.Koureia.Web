@@ -1,0 +1,254 @@
+@use 'abstracts' as a;
+@use '../motion/calendar-motion' as motion;
+
+:host {
+  --mc-gap: #{a.space(1)};
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+// Rows share the height equally above the cell floor; below it the month
+// grows and the host scrolls. The weekday row is `max-content`: as `auto`, with
+// the `min-height: 0` the rows need, it shrank under its labels on a phone.
+.mc {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-rows:
+    max-content
+    repeat(var(--mc-rows, 5), minmax(var(--calendar-cell-min-height), 1fr));
+  min-height: 0;
+  overflow: auto;
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(lg);
+  background: var(--surface);
+}
+
+.mc-weekdays,
+.mc-row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  min-height: 0;
+}
+
+.mc-weekdays {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
+  background: var(--surface);
+}
+
+.mc-weekday {
+  padding: a.space(2);
+  border-block-end: var(--border-width-hairline) solid var(--border);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  text-align: center;
+}
+
+.mc-cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mc-gap);
+  min-width: 0;
+  min-height: 0;
+  padding: a.space(1);
+  border-block-start: var(--border-width-hairline) solid var(--border-subtle);
+  border-inline-start: var(--border-width-hairline) solid var(--border-subtle);
+
+  &:first-child {
+    border-inline-start: 0;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--focus-ring);
+  }
+}
+
+.mc-row:first-of-type .mc-cell {
+  border-block-start: 0;
+}
+
+.mc-cell[data-closed] {
+  background: var(--surface-2);
+}
+
+// Other months' days are there for their events and not for themselves.
+.mc-cell[data-outside] {
+  color: var(--text-muted);
+
+  .mc-body {
+    opacity: 0.7;
+  }
+}
+
+.mc-day {
+  align-self: flex-start;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 a.space(1);
+  border: 0;
+  border-radius: a.radius(pill);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--surface-sunken);
+  }
+}
+
+.mc-cell[data-today] .mc-day {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+
+.mc-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--mc-gap);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mc-tile,
+.mc-more {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: a.space(1);
+  height: var(--calendar-month-tile-height);
+  min-width: 0;
+  padding: 0 a.space(1);
+  border: 0;
+  border-radius: a.radius(sm);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--text-xs);
+  text-align: start;
+  cursor: pointer;
+}
+
+.mc-tile {
+  --mc-swatch: var(--text-muted);
+  background: color-mix(in oklab, var(--mc-swatch) 14%, var(--surface));
+
+  &:hover {
+    background: color-mix(in oklab, var(--mc-swatch) 22%, var(--surface));
+  }
+
+  &[aria-current] {
+    box-shadow: inset 0 0 0 var(--border-width-strong) var(--accent);
+  }
+}
+
+.mc-tile-dot,
+.mc-dot {
+  --mc-swatch: var(--text-muted);
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: a.radius(pill);
+  background: var(--mc-swatch);
+}
+
+@for $step from 1 through 6 {
+  .mc-tile[data-swatch='#{$step}'],
+  .mc-dot[data-swatch='#{$step}'] {
+    --mc-swatch: var(--swatch-#{$step});
+  }
+}
+
+.mc-tile-time {
+  flex: none;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-tile-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-tile[data-muted] {
+  color: var(--text-muted);
+  background: var(--surface-2);
+
+  .mc-tile-time {
+    text-decoration: line-through;
+  }
+}
+
+.mc-dot[data-muted] {
+  --mc-swatch: var(--border-strong);
+}
+
+.mc-more {
+  background: none;
+  color: var(--text-secondary);
+  font-weight: var(--weight-medium);
+
+  &:hover {
+    background: var(--surface-sunken);
+    color: var(--text-primary);
+  }
+}
+
+.mc-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.space(1);
+}
+
+// Sized by the tokens and read in pixels, so the count of rows a cell holds
+// never parses a `rem`.
+.mc-probe {
+  position: absolute;
+  visibility: hidden;
+  width: var(--calendar-cell-min-width);
+  height: calc(var(--calendar-month-tile-height) + var(--mc-gap));
+  pointer-events: none;
+}
+
+.mc-sr {
+  position: absolute;
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+@media (forced-colors: active) {
+  .mc-cell[data-today] .mc-day {
+    outline: 2px solid Highlight;
+  }
+
+  .mc-tile[aria-current] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+
+  .mc-tile,
+  .mc-dot {
+    border: 1px solid CanvasText;
+  }
+}
+
+.mc-tile-enter {
+  @include motion.rise;
+}
+
+@include motion.rise-keyframes;

@@ -1,0 +1,70 @@
+// `prefers-reduced-motion` is not queried here: the base layer collapses
+// every `transition-duration` globally with `!important`.
+
+:host {
+  display: flex;
+  inline-size: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border: 0;
+  color: var(--text-primary);
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard);
+}
+
+:host(:hover:not([aria-disabled='true'])) {
+  background: var(--surface-2);
+}
+
+:host([aria-expanded='true']) {
+  color: var(--accent-text);
+}
+
+:host([aria-disabled='true']) {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+// Let clicks fall through to the button host. `@angular/aria` resolves the
+// clicked trigger by matching `event.target` against the trigger element or
+// walking up via `closest('[ngAccordionTrigger]')` — but that attribute never
+// appears in the DOM because the aria trigger is applied as a host directive.
+// So a click landing on any inner node (label, indicator, or icon) would not
+// resolve and the toggle would be lost.
+.accordion-trigger-label,
+.accordion-indicator {
+  pointer-events: none;
+}
+
+.accordion-trigger-label {
+  min-inline-size: 0;
+}
+
+.accordion-indicator {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+  transition: transform var(--dur-base) var(--ease-standard);
+}
+
+.accordion-indicator svg {
+  inline-size: var(--icon-size-md);
+  block-size: var(--icon-size-md);
+  stroke-width: var(--icon-stroke);
+}
+
+:host([aria-expanded='true']) .accordion-indicator {
+  transform: rotate(180deg);
+}

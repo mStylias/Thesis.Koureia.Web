@@ -1,0 +1,65 @@
+@if (visible()) {
+  @let current = state();
+  <section
+    #card
+    class="reminder-card"
+    tabindex="-1"
+    animate.enter="reminder-card-enter"
+    [attr.aria-labelledby]="current === 'on' ? null : 'reminder-card-title'"
+    [attr.data-highlighted]="highlighted() ? '' : null"
+  >
+    <span class="reminder-card__icon" aria-hidden="true"><svg lucideBellRing></svg></span>
+
+    @if (current === 'on') {
+      <p class="reminder-card__on" role="status">{{ 'reminders.card.on' | transloco }}</p>
+    } @else {
+      <div class="reminder-card__body">
+        <h2 class="reminder-card__title" id="reminder-card-title">
+          {{ 'reminders.card.title' | transloco }}
+        </h2>
+        <p class="reminder-card__line">
+          @switch (current) {
+            @case ('needs-home-screen') {
+              <!-- Names the brand, so the app owns it. See `RemindersBrandCopy`. -->
+              {{ 'brand.reminders.iphoneLine' | transloco }}
+            }
+            @case ('in-app-browser') {
+              {{ 'reminders.card.inApp' | transloco }}
+            }
+            @default {
+              {{ (emailOn() ? 'reminders.card.lineWithEmail' : 'reminders.card.line') | transloco }}
+            }
+          }
+        </p>
+        <div class="reminder-card__actions">
+          @if (current === 'needs-home-screen') {
+            <button libButton type="button" (click)="guideOpen.set(true)">
+              {{ 'reminders.card.howTo' | transloco }}
+            </button>
+          } @else if (current !== 'in-app-browser') {
+            <button libButton type="button" [loading]="enabling()" (click)="enable()">
+              {{ 'reminders.card.enable' | transloco }}
+            </button>
+          }
+          <button libButton type="button" variant="text" severity="secondary" (click)="notNow()">
+            {{ 'reminders.card.notNow' | transloco }}
+          </button>
+        </div>
+      </div>
+    }
+  </section>
+}
+
+@if (cueVisible()) {
+  <div class="reminder-cue" animate.enter="reminder-cue-enter" animate.leave="reminder-cue-leave">
+    <button libButton type="button" rounded raised (click)="reveal()">
+      <svg class="reminder-cue__bell" lucideBellRing aria-hidden="true"></svg>
+      {{ 'reminders.card.cue' | transloco }}
+      <svg lucideChevronDown aria-hidden="true"></svg>
+    </button>
+  </div>
+}
+
+@if (state() === 'needs-home-screen') {
+  <lib-reminder-guide [(visible)]="guideOpen" />
+}

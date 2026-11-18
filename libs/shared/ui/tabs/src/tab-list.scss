@@ -1,0 +1,68 @@
+// Consumes the design-system CSS custom properties emitted by the global
+// shared @ui styles. Keyboard focus comes from the global
+// `:focus-visible` rule.
+//
+// The `tab-list` / `tab` / `tab-panel` classes live on the component HOST
+// elements (set via the `host` metadata), so they must be styled through
+// `:host` — a bare `.tab-list` selector would only match template
+// descendants under emulated encapsulation, never the host itself.
+
+:host {
+  position: relative; // containing block for the absolutely-positioned ink
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: var(--space-1);
+  // The rail the indicator rides on.
+  box-shadow: inset 0 calc(-1 * var(--border-width-hairline)) 0 0 var(--border);
+}
+
+:host([data-orientation='vertical']) {
+  flex-direction: column;
+  box-shadow: inset calc(-1 * var(--border-width-hairline)) 0 0 0 var(--border);
+}
+
+// The sliding accent indicator. Its position/size is written imperatively as
+// a `translate + scale` transform (GPU-only); this rule just supplies the
+// base geometry and the movement transition. The component skips the
+// transition on first placement so it doesn't slide in from the origin.
+.tab-ink {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  width: 1px;
+  height: var(--tab-indicator-size, 2px);
+  // Override `--tab-indicator-color` / `--tab-indicator-size` on the
+  // `lib-tabs` (or any ancestor) to restyle the active indicator.
+  background: var(--tab-indicator-color, var(--accent));
+  border-radius: var(--radius-pill) var(--radius-pill) 0 0;
+  transform-origin: left bottom;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform;
+  // `--ease-out`, not `--ease-standard`. The bar looks like on-screen
+  // movement (which would argue for an in-out curve), but it is a direct
+  // response to a press and its travel is the longest in the system — a
+  // scrollable bar is 1681px end to end. Measured over that distance,
+  // `--ease-standard` had moved 3.6% one frame after the click and 19.3%
+  // after two, so the indicator visibly lagged the tab that had already
+  // changed colour. `--ease-out` is 40.5% / 65.8% over the same frames.
+  // See the sidebar rail for the same trap and the measuring procedure.
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+:host([data-orientation='vertical']) .tab-ink {
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  inset-inline-start: auto;
+  width: var(--tab-indicator-size, 2px);
+  height: 1px;
+  border-radius: var(--radius-pill) 0 0 var(--radius-pill);
+  transform-origin: right top;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab-ink {
+    transition: none;
+  }
+}

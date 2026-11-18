@@ -1,0 +1,171 @@
+// Consumes the design-system CSS custom properties emitted by the
+// shared @ui styles. Keyboard focus comes from
+// the global `:focus-visible` rule; reduced motion is handled by the
+// base layer. The native <dialog> renders in the browser top layer,
+// so no z-index is needed.
+
+.confirmation-dialog {
+  width: min(var(--confirmation-dialog-width), calc(100dvw - var(--space-8)));
+  margin: auto;
+  padding: var(--space-6);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-lg);
+  font-family: var(--font-sans);
+
+  opacity: 0;
+  transform: translateY(var(--space-2)) scale(0.98);
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+
+  &::backdrop {
+    background: var(--scrim);
+    opacity: 0;
+    transition: opacity var(--dur-base) var(--ease-out);
+  }
+
+  &[open] {
+    opacity: 1;
+    transform: none;
+
+    &::backdrop {
+      opacity: 1;
+    }
+
+    @starting-style {
+      opacity: 0;
+      transform: translateY(var(--space-2)) scale(0.98);
+
+      &::backdrop {
+        opacity: 0;
+      }
+    }
+  }
+
+  // The component keeps the dialog open while this runs, then close()s.
+  // Exits run faster than entrances; dialog and backdrop move as a
+  // unit, so they share the timing.
+  &[data-closing] {
+    opacity: 0;
+    transform: translateY(var(--space-2)) scale(0.98);
+    transition-duration: var(--dur-fast);
+
+    &::backdrop {
+      opacity: 0;
+      transition-duration: var(--dur-fast);
+    }
+  }
+}
+
+// ---- Severities → private properties ----
+
+.confirmation-dialog[data-severity='primary'] {
+  --dialog-accent: var(--accent-text);
+  --dialog-accent-bg: var(--accent-subtle);
+}
+
+.confirmation-dialog[data-severity='secondary'] {
+  --dialog-accent: var(--text-secondary);
+  --dialog-accent-bg: var(--surface-2);
+}
+
+.confirmation-dialog[data-severity='success'] {
+  --dialog-accent: var(--success-text);
+  --dialog-accent-bg: var(--success-bg);
+}
+
+.confirmation-dialog[data-severity='info'] {
+  --dialog-accent: var(--info-text);
+  --dialog-accent-bg: var(--info-bg);
+}
+
+.confirmation-dialog[data-severity='warning'] {
+  --dialog-accent: var(--warning-text);
+  --dialog-accent-bg: var(--warning-bg);
+}
+
+.confirmation-dialog[data-severity='error'] {
+  --dialog-accent: var(--error-text);
+  --dialog-accent-bg: var(--error-bg);
+}
+
+// ---- Parts ----
+
+.dialog-dismiss {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+  }
+}
+
+.dialog-body {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+// Keep the title clear of the absolutely-positioned × button.
+.confirmation-dialog:has(.dialog-dismiss) .dialog-body {
+  padding-right: var(--space-8);
+}
+
+.dialog-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--space-10);
+  height: var(--space-10);
+  border-radius: var(--radius-pill);
+  background: var(--dialog-accent-bg);
+  color: var(--dialog-accent);
+
+  svg {
+    width: var(--icon-size-lg);
+    height: var(--icon-size-lg);
+    stroke-width: var(--icon-stroke);
+  }
+}
+
+.dialog-copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  // Optical alignment with the icon badge.
+  padding-top: var(--space-1);
+}
+
+.dialog-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  overflow-wrap: anywhere;
+}
+
+.dialog-message {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}

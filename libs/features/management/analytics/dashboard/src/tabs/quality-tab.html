@@ -1,0 +1,27 @@
+<lib-chart-grid>
+  <lib-chart-card
+    wide
+    [heading]="'managementDashboard.charts.quality.ratingOverTime.title' | transloco"
+    [note]="'managementDashboard.charts.quality.ratingOverTime.note' | transloco"
+    [skeleton]="{ kind: 'line', legend: 2 }"
+    [height]="wideHeight"
+    [set]="data()?.ratingOverTime"
+    [option]="overTime()"
+    [context]="context()"
+    [loading]="entry().loading"
+    [failed]="entry().failed"
+    (retry)="retry.emit()"
+  />
+
+  <lib-chart-card
+    [heading]="'managementDashboard.charts.quality.ratingDistribution.title' | transloco"
+    [skeleton]="{ kind: 'bars', count: 5 }"
+    [set]="distributionSet()"
+    [option]="distribution()"
+    [context]="context()"
+    [labels]="distributionLabels()"
+    [loading]="entry().loading"
+    [failed]="entry().failed"
+    (retry)="retry.emit()"
+  />
+</lib-chart-grid>

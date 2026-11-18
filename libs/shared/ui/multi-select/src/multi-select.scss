@@ -1,0 +1,430 @@
+// Consumes the design-system CSS custom properties emitted by the
+// shared @ui styles. Keyboard focus comes from
+// the global `:focus-visible` rule; reduced motion is handled by the
+// base layer. Mirrors the lib-select styles, plus the chips display.
+
+:host {
+  position: relative;
+  display: inline-block;
+  min-width: var(--select-min-width);
+  font-family: var(--font-sans);
+}
+
+:host([data-disabled]) {
+  opacity: var(--opacity-disabled);
+}
+
+// ---- Trigger ----
+
+.select-trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  // Explicit so trigger and panel measure identically even without a
+  // global box-sizing reset (e.g. inside Storybook).
+  box-sizing: border-box;
+  width: 100%;
+  // The label wrappers override the top inset via --field-pad-top to
+  // make room for in/IFTA labels.
+  padding: var(--field-pad-top, var(--select-pad-y)) var(--select-pad-x) var(--select-pad-y);
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border-strong);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--select-text);
+  line-height: var(--leading-snug);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    border-color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard);
+
+  &:hover:not([aria-disabled='true']) {
+    border-color: var(--accent);
+  }
+
+  &[aria-expanded='true'] {
+    border-color: var(--accent);
+  }
+
+  // Form fields replace the global 3px focus glow with a 2px accent
+  // border so the focus indicator stays clearly visible (WCAG 2.4.7).
+  &:focus-visible {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+
+  &[aria-disabled='true'] {
+    cursor: default;
+  }
+}
+
+:host([data-invalid]) .select-trigger {
+  border-color: var(--error);
+
+  &:focus-visible {
+    border-color: var(--error);
+    box-shadow: 0 0 0 1px var(--error);
+  }
+}
+
+// ---- Sizes → private properties ----
+
+:host([data-size='sm']) {
+  --select-pad-y: var(--space-1);
+  --select-pad-x: var(--space-2);
+  --select-text: var(--text-sm);
+}
+
+:host([data-size='md']) {
+  --select-pad-y: var(--space-2);
+  --select-pad-x: var(--space-3);
+  --select-text: var(--text-base);
+}
+
+:host([data-size='lg']) {
+  --select-pad-y: var(--space-3);
+  --select-pad-x: var(--space-4);
+  --select-text: var(--text-lg);
+}
+
+// ---- Trigger parts ----
+
+.select-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  // Keeps the trigger height when there is no value and no placeholder.
+  min-height: calc(var(--select-text) * var(--leading-snug));
+}
+
+.select-placeholder {
+  color: var(--text-muted);
+}
+
+// ---- Chips ----
+
+.select-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  // `fitChips` folds whatever passes three rows. The cap only holds the first paint, before it runs.
+  max-height: calc(3 * (var(--text-sm) * var(--leading-snug)) + 2 * var(--space-1));
+  overflow: clip;
+}
+
+.select-chip,
+.select-more {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-width: 100%;
+  min-width: 0;
+  padding: 0 var(--space-2);
+  background: var(--surface-2);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+
+  // The display above beats the user agent's `[hidden]`.
+  &[hidden] {
+    display: none;
+  }
+}
+
+// A label wider than the trigger truncates rather than widening the chip row.
+.select-chip-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.select-more {
+  flex-shrink: 0;
+  font-weight: var(--weight-bold);
+
+  &::after {
+    content: '+' attr(data-count);
+  }
+}
+
+// Enter/exit cycle (paired with the FLIP logic in multi-select.ts):
+// - enter: siblings slide over and the trigger height eases while the
+//   new chip holds invisible for one beat (delay + `backwards`), then
+//   it materializes into the reserved slot last;
+// - leave: driven from `(animate.leave)` in TS — the chip fades out in
+//   place, then the survivors slide into the freed slot.
+.select-chip-enter {
+  animation: chip-in var(--dur-fast) var(--ease-out) var(--dur-fast) backwards;
+}
+
+@keyframes chip-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+.select-chip-remove {
+  flex-shrink: 0;
+  width: calc(var(--icon-size-sm) * 0.75);
+  height: calc(var(--icon-size-sm) * 0.75);
+  stroke-width: var(--icon-stroke);
+  color: var(--text-muted);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}
+
+.select-clear,
+.select-chevron,
+.select-spinner {
+  flex-shrink: 0;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  stroke-width: var(--icon-stroke);
+  color: var(--text-muted);
+}
+
+.select-clear {
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}
+
+.select-trigger[aria-expanded='true'] .select-chevron {
+  transform: rotate(180deg);
+}
+
+.select-chevron {
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+
+// Functional loading indicator — the design system's "no infinite
+// animation" rule targets decoration; the base layer still stops this
+// under prefers-reduced-motion.
+.select-spinner {
+  animation: multi-select-spin 1s linear infinite;
+}
+
+@keyframes multi-select-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ---- Panel ----
+
+.select-panel {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  left: 0;
+  box-sizing: border-box;
+  min-width: 100%;
+  z-index: var(--z-overlay);
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  max-height: var(--select-panel-max-height);
+  overflow-y: auto;
+  padding: var(--space-1);
+  // Origin-aware: the panel grows out of the trigger above it.
+  transform-origin: top center;
+}
+
+// Enter animation, applied by `animate.enter` while the panel mounts.
+// A visible starting shape (never scale(0)) with a fast ease-out start.
+// Closing is intentionally instant: selects are high-frequency,
+// keyboard-driven controls, so the exit never gets in the way.
+.select-panel-enter {
+  animation: multi-select-panel-in var(--dur-fast) var(--ease-out);
+}
+
+@keyframes multi-select-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--space-1))) scale(0.97);
+  }
+}
+
+.select-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  outline: none;
+}
+
+.select-option {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--select-text);
+  cursor: pointer;
+
+  &:hover:not([aria-disabled='true']) {
+    background: var(--surface-2);
+  }
+
+  // Keyboard-active option (aria-activedescendant target). Matches the
+  // global focus-ring mixin (--focus-ring is a color token). Rendered
+  // only during keyboard interaction (the host's data-modality mirrors
+  // :focus-visible) — a clicked option already shows its selected
+  // state, so the ring would just shadow the pointer.
+  :host([data-navigated]) &[data-active='true'] {
+    box-shadow: inset 0 0 0 2px var(--focus-ring);
+  }
+
+  :host([data-modality='pointer']) &[data-active='true'] {
+    box-shadow: none;
+  }
+
+  &[aria-selected='true'] {
+    background: var(--accent-subtle);
+    color: var(--accent-text);
+    font-weight: var(--weight-bold);
+  }
+
+  &[aria-disabled='true'] {
+    opacity: var(--opacity-disabled);
+    cursor: default;
+  }
+}
+
+.select-empty {
+  padding: var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+// ---- Source-backed panel ----
+// The search row displays the query; it never takes focus, so the trigger keeps
+// the combobox role and the relayed keys keep arriving.
+
+.select-search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--border-width-hairline) solid var(--border);
+  margin-bottom: var(--space-1);
+  font-size: var(--text-sm);
+  cursor: default;
+}
+
+.select-search-icon,
+.select-search-clear {
+  flex-shrink: 0;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  stroke-width: var(--icon-stroke);
+  color: var(--text-muted);
+}
+
+.select-search-clear {
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}
+
+.select-search-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+
+  // The row is the field; a ring around the bare input would draw a second one
+  // inside it. The panel is only ever open because the user opened it.
+  &:focus,
+  &:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+}
+
+// Next-page indicator under the loaded rows.
+.select-more {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+    animation: multi-select-spin 1s linear infinite;
+  }
+}
+
+// A value the source kept but could not display.
+.select-unavailable {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+// Result counts and load failures, announced once rather than per keystroke. The chip list reads
+// the whole selection the same way.
+.select-live,
+.select-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+// ---- Forced colors ----
+// A forced palette drops our backgrounds and every box-shadow, which is
+// what marks the focused trigger, the keyboard-active option and the
+// chips. Selection also carries a bold weight, so it never rests on
+// colour alone — but re-state the rest with system colors.
+
+@media (forced-colors: active) {
+  .select-trigger {
+    border-color: CanvasText;
+  }
+
+  .select-trigger:focus-visible,
+  .select-trigger[aria-expanded='true'] {
+    outline: 2px solid Highlight;
+    outline-offset: 1px;
+  }
+
+  .select-chip,
+  .select-more {
+    border: var(--border-width-hairline) solid CanvasText;
+  }
+
+  // Keyboard-only, like the box-shadow ring it replaces.
+  :host([data-navigated]:not([data-modality='pointer'])) .select-option[data-active='true'] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+
+  .select-option[aria-selected='true'] {
+    background: Highlight;
+    color: HighlightText;
+    forced-color-adjust: none;
+  }
+}

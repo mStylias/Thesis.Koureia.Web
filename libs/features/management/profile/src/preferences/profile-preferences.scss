@@ -1,0 +1,27 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+.preference {
+  display: grid;
+  justify-items: start;
+  gap: a.space(2);
+
+  & + & {
+    padding-block-start: a.space(4);
+    border-block-start: var(--border-width-hairline) solid var(--border-subtle);
+  }
+}
+
+.preference-label {
+  @include a.t-field-label;
+}
+
+.preference-hint {
+  @include a.t-body-sm;
+
+  margin: 0;
+  color: var(--text-muted);
+}

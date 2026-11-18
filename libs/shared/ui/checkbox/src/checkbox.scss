@@ -1,0 +1,208 @@
+// Consumes the design-system CSS custom properties emitted by the
+// shared @ui styles; reduced motion is handled
+// by the base layer. The native input stays in the DOM (invisible,
+// stretched over the box and the gap for a generous hit area) and
+// drives every state through :checked / :indeterminate / :focus-visible.
+// The label text sits above it — see `.checkbox-label`.
+
+:host {
+  display: inline-flex;
+  font-family: var(--font-sans);
+}
+
+:host([data-disabled]) {
+  opacity: var(--opacity-disabled);
+}
+
+.checkbox {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  user-select: none;
+}
+
+:host([data-disabled]) .checkbox {
+  cursor: default;
+}
+
+// Invisible but real: keyboard focus, form participation, and the
+// checkbox ARIA contract come from the native input. Its own focus
+// ring is invisible at opacity 0; the box below renders it instead.
+.checkbox-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+// ---- Box ----
+
+.checkbox-box {
+  box-sizing: border-box;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: var(--checkbox-size);
+  height: var(--checkbox-size);
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--accent-fg);
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-out);
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+// Press feedback: a subtle scale makes the interface feel like it's
+// listening. A state change, not an animation — under reduced motion
+// it simply applies instantly.
+.checkbox:active .checkbox-input:not(:disabled) + .checkbox-box {
+  transform: scale(0.92);
+}
+
+// Hover only where hover truly exists — touch devices trigger hover
+// on tap, leaving the control stuck in its hover state.
+@media (hover: hover) and (pointer: fine) {
+  .checkbox:hover .checkbox-input:not(:disabled) + .checkbox-box {
+    border-color: var(--accent);
+  }
+}
+
+.checkbox-input:checked + .checkbox-box,
+.checkbox-input:indeterminate + .checkbox-box {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+// The 2px accent focus ring (WCAG 2.4.7), lifted off the box by a
+// surface-colored gap so it stays visible when the box itself is
+// filled with the same accent.
+.checkbox-input:focus-visible + .checkbox-box {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--focus-ring);
+}
+
+// ---- Marks ----
+// The check draws itself in: `pathLength="1"` normalizes the path, so
+// dashoffset 1 → 0 traces it start to end. ease-out for an element
+// entering; the same fast tick on the way out (a state change on a
+// visible element, not an exit). stroke-dashoffset is a paint-only
+// property — cheap at this size.
+
+.checkbox-check,
+.checkbox-dash {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset var(--dur-fast) var(--ease-out);
+}
+
+.checkbox-input:checked:not(:indeterminate) + .checkbox-box .checkbox-check {
+  stroke-dashoffset: 0;
+}
+
+.checkbox-input:indeterminate + .checkbox-box .checkbox-dash {
+  stroke-dashoffset: 0;
+}
+
+// ---- Label ----
+
+// Positioned, so it paints above the stretched input and projected links and
+// buttons get their own clicks. Without this the input covers the label text and
+// swallows every one of them.
+//
+// Plain text keeps toggling the box: the click lands here, and the enclosing
+// `<label>` forwards it to the input. A projected `<a href>` does not toggle it,
+// because a label never forwards a click aimed at interactive content.
+.checkbox-label {
+  position: relative;
+  font-size: var(--checkbox-text);
+  line-height: var(--leading-snug);
+  color: var(--text-primary);
+
+  &:empty {
+    display: none;
+  }
+}
+
+// ---- Sizes → private properties ----
+// The box tracks the icon scale so checkboxes sit naturally next to
+// Lucide icons and text.
+
+:host([data-size='sm']) {
+  --checkbox-size: var(--icon-size-sm);
+  --checkbox-text: var(--text-sm);
+}
+
+:host([data-size='md']) {
+  --checkbox-size: var(--icon-size-md);
+  --checkbox-text: var(--text-base);
+}
+
+:host([data-size='lg']) {
+  --checkbox-size: var(--icon-size-lg);
+  --checkbox-text: var(--text-lg);
+}
+
+// ---- Invalid ----
+// [data-invalid] mirrors the `invalid` input (also set by Signal Forms).
+
+:host([data-invalid]) {
+  .checkbox-box {
+    border-color: var(--error);
+  }
+
+  .checkbox-input:checked + .checkbox-box,
+  .checkbox-input:indeterminate + .checkbox-box {
+    background: var(--error);
+    border-color: var(--error);
+  }
+
+  .checkbox-input:focus-visible + .checkbox-box {
+    box-shadow:
+      0 0 0 2px var(--surface),
+      0 0 0 4px var(--error);
+  }
+}
+
+// ---- Forced colors ----
+// The filled box and its check are the only carriers of the checked
+// state, so both have to survive a forced palette: box-shadow is
+// dropped by the UA, and the accent fill is overridden.
+
+@media (forced-colors: active) {
+  .checkbox-box {
+    border-color: CanvasText;
+  }
+
+  .checkbox-input:checked + .checkbox-box,
+  .checkbox-input:indeterminate + .checkbox-box {
+    background: Highlight;
+    border-color: Highlight;
+    color: HighlightText;
+    forced-color-adjust: none;
+  }
+
+  .checkbox-input:focus-visible + .checkbox-box {
+    outline: 2px solid CanvasText;
+    outline-offset: 2px;
+  }
+
+  :host([data-disabled]) .checkbox-box,
+  :host([data-disabled]) .checkbox-label {
+    color: GrayText;
+    border-color: GrayText;
+  }
+}

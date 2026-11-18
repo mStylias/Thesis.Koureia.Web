@@ -1,0 +1,52 @@
+:host {
+  display: block;
+}
+
+.date-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1) var(--space-3);
+  margin-top: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.date-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+// The same steps as the days in `date-picker.scss`.
+.date-legend-swatch {
+  width: var(--space-3);
+  height: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--accent-tint-1);
+
+  &[data-availability='medium'] {
+    background: var(--accent-tint-2);
+  }
+
+  &[data-availability='high'] {
+    background: var(--accent-tint-3);
+  }
+}
+
+// The tint is dropped, so the level becomes an underline that grows with it.
+@media (forced-colors: active) {
+  .date-legend-swatch {
+    background: none;
+    border-bottom: var(--border-width-hairline) dashed CanvasText;
+
+    &[data-availability='medium'] {
+      border-bottom: 2px solid CanvasText;
+    }
+
+    &[data-availability='high'] {
+      border-bottom: 4px solid CanvasText;
+    }
+  }
+}

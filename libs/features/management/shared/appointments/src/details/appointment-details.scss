@@ -1,0 +1,112 @@
+@use 'abstracts' as a;
+
+// The `lg` width: the form pairs date, start and end on one row, and the customer drawer, whose
+// place this one takes, has the same width. Declared before the breakpoint block, which must win
+// at the same specificity. The view's sections run edge to edge, so everything the content slot
+// holds pads itself.
+lib-drawer {
+  --drawer-md-width: var(--drawer-lg-width);
+  --drawer-content-padding: 0;
+}
+
+lib-appointment-form {
+  display: block;
+  padding: var(--space-6);
+}
+
+// Below the shell's breakpoint the panel takes the whole width and starts under the top bar,
+// whose menu button is the way back to the rest of the app. Same rules as the roles panel.
+@include a.respond-down(lg) {
+  lib-drawer {
+    --drawer-md-width: 100vw;
+    --drawer-max-width: 100vw;
+    --drawer-inset-top: var(--shell-header-height);
+    --drawer-edge-border-width: 0;
+  }
+}
+
+// The drawer's header styles cannot reach projected content, so the heading repeats them.
+.appointment-details-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.appointment-details-titles {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.appointment-details-icon {
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
+  stroke-width: var(--icon-stroke);
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+.appointment-details-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  overflow-wrap: anywhere;
+}
+
+// The end slot's icons. Drawer styles do not reach projected content.
+lib-drawer-actions svg {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  stroke-width: var(--icon-stroke);
+  flex-shrink: 0;
+}
+
+.appointment-details-description {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+// The header's and the toolbar's share of the loading shape. Same pulse as the body's skeleton.
+.appointment-details-skeleton {
+  display: block;
+  border-radius: a.radius(sm);
+  background: var(--surface-2);
+  animation: panel-skeleton-pulse 1.6s var(--ease-standard) infinite;
+}
+
+.appointment-details-skeleton-description {
+  width: 60%;
+  height: var(--space-4);
+}
+
+.appointment-details-skeleton-button {
+  width: var(--space-20);
+  height: var(--space-8);
+  border-radius: a.radius(md);
+}
+
+@keyframes panel-skeleton-pulse {
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.appointment-details-status {
+  margin: 0;
+  padding: var(--space-6);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.appointment-details-notice {
+  margin: var(--space-4) var(--space-6);
+}

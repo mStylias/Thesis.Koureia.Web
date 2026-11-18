@@ -1,0 +1,74 @@
+@if (viewing()) {
+  <!-- Not a `<dl>`: a custom element is not one of the children a description list may hold, so
+       the pair is a caption and a value that read the same and stay valid HTML. Nothing here is a
+       control, so nothing here should look like one the user is being refused. -->
+  @if (labelKey()) {
+    <span class="field-view-label">
+      @if (icon(); as icon) {
+        <svg class="field-label-icon" aria-hidden="true" [lucideIcon]="icon"></svg>
+      }
+      {{ labelKey() | transloco }}
+    </span>
+  }
+  @if (viewTemplate(); as template) {
+    <ng-container [ngTemplateOutlet]="template" [ngTemplateOutletContext]="viewContext()" />
+  } @else if (text()) {
+    <span class="field-view-value">{{ text() }}</span>
+  } @else {
+    <!-- An absent value is stated, not left blank, so the row does not read as still loading. -->
+    <span class="field-view-value field-view-empty">{{ emptyKey() | uiCopy | transloco }}</span>
+  }
+} @else {
+  @switch (labelStyle()) {
+    @case ('plain') {
+      <label class="field-label" [id]="labelId()" [for]="controlId()">
+        @if (icon(); as icon) {
+          <svg class="field-label-icon" aria-hidden="true" [lucideIcon]="icon"></svg>
+        }
+        {{ labelKey() | transloco }}
+        @if (required()) {
+          <!-- The control already reports required through `aria-required` or the native
+               attribute, so the mark is decoration and must not be read a second time. -->
+          <span class="field-required" aria-hidden="true">*</span>
+        }
+      </label>
+      @if (editorTemplate(); as template) {
+        <ng-container [ngTemplateOutlet]="template" [ngTemplateOutletContext]="editorContext()" />
+      }
+    }
+    @case ('float') {
+      <div libFloatLabel class="field-wrapper">
+        <ng-container [ngTemplateOutlet]="control" />
+      </div>
+    }
+    @default {
+      <div libIftaLabel class="field-wrapper">
+        <ng-container [ngTemplateOutlet]="control" />
+      </div>
+    }
+  }
+
+  @if (hintKey()) {
+    <p class="field-hint" [id]="hintId">{{ hintKey() | transloco }}</p>
+  }
+  @if (showError()) {
+    <p class="field-error" role="alert" [id]="errorId">
+      {{ errorKey() | uiCopy | transloco: errorParams() }}
+    </p>
+  }
+}
+
+<!-- The label follows the control, which is what both label wrappers position against. -->
+<ng-template #control>
+  @if (editorTemplate(); as template) {
+    <ng-container [ngTemplateOutlet]="template" [ngTemplateOutletContext]="editorContext()" />
+  }
+  @if (labelKey()) {
+    <label [id]="labelId()" [for]="controlId()">
+      {{ labelKey() | transloco }}
+      @if (required()) {
+        <span class="field-required" aria-hidden="true">*</span>
+      }
+    </label>
+  }
+</ng-template>

@@ -1,0 +1,35 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+// Reset rather than a button: the identifier is a link in everything but
+// navigation, and a filled control in every row would fight the data for
+// attention.
+.dg-primary {
+  display: block;
+  max-width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  white-space: nowrap;
+  text-align: start;
+  text-decoration: none;
+  text-underline-offset: 0.15em;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.dg-primary:hover {
+  color: var(--accent-text);
+  text-decoration: underline;
+}
+
+@media (forced-colors: active) {
+  .dg-primary {
+    color: LinkText;
+  }
+}

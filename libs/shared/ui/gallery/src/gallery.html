@@ -1,0 +1,81 @@
+@if (images().length > 0) {
+  <section
+    class="gallery"
+    [attr.aria-label]="ariaLabel() || ('gallery.label' | uiCopy | transloco)"
+  >
+    <!-- Both layouts are in the markup and CSS shows one, so the server and the browser render
+         the same thing. A hidden lazy image is never fetched. -->
+    <div class="gallery__mosaic">
+      @for (image of tiles(); track $index) {
+        <button
+          type="button"
+          class="gallery__tile"
+          [attr.aria-label]="'gallery.open' | uiCopy | transloco: { alt: image.alt }"
+          (click)="open($index)"
+        >
+          <img
+            [src]="image.src"
+            alt=""
+            [attr.width]="image.width ?? null"
+            [attr.height]="image.height ?? null"
+            [attr.loading]="$first ? null : 'lazy'"
+            [attr.fetchpriority]="$first ? 'high' : null"
+            decoding="async"
+          />
+        </button>
+      }
+
+      @if (truncated()) {
+        <button
+          libButton
+          type="button"
+          size="sm"
+          severity="secondary"
+          raised
+          class="gallery__all"
+          (click)="open(0)"
+        >
+          <svg lucideImages aria-hidden="true"></svg>
+          {{ 'gallery.showAll' | uiCopy | transloco: { count: images().length } }}
+        </button>
+      }
+    </div>
+
+    <div class="gallery__strip-frame">
+      <ul #strip class="gallery__strip" (scroll)="onStripScroll(strip)">
+        @for (image of images(); track $index) {
+          <li class="gallery__slide">
+            <button
+              type="button"
+              class="gallery__tile"
+              [attr.aria-label]="'gallery.open' | uiCopy | transloco: { alt: image.alt }"
+              (click)="open($index)"
+            >
+              <img
+                [src]="image.src"
+                alt=""
+                [attr.width]="image.width ?? null"
+                [attr.height]="image.height ?? null"
+                [attr.loading]="$first ? null : 'lazy'"
+                [attr.fetchpriority]="$first ? 'high' : null"
+                decoding="async"
+              />
+            </button>
+          </li>
+        }
+      </ul>
+
+      @if (images().length > 1) {
+        <p class="gallery__counter" aria-hidden="true">
+          {{
+            'gallery.counter'
+              | uiCopy
+              | transloco: { current: stripIndex() + 1, total: images().length }
+          }}
+        </p>
+      }
+    </div>
+  </section>
+
+  <lib-gallery-viewer [images]="images()" [(visible)]="viewerOpen" [(index)]="viewerIndex" />
+}

@@ -1,0 +1,25 @@
+svg {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  stroke-width: var(--icon-stroke);
+}
+
+.copy-label {
+  display: inline-flex;
+  flex-direction: column;
+
+  &::before,
+  &::after {
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+  }
+
+  &::before {
+    content: attr(data-copy);
+  }
+
+  &::after {
+    content: attr(data-copied);
+  }
+}

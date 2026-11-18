@@ -1,0 +1,76 @@
+:root {
+  color-scheme: light dark;
+}
+
+/*
+ * Everything before the `[data-auth-frame]` block applies to all 46 pages. Thirteen are Koureia
+ * designs. The rest are Keycloak's own and arrive with PatternFly.
+ */
+
+html,
+body {
+  width: 100%;
+  min-width: 20rem;
+  margin: 0;
+}
+
+body {
+  color: var(--text-primary);
+  background: var(--bg);
+  font-family: var(--font-sans);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.kc-fallback-input {
+  width: 100%;
+  min-height: var(--space-10);
+  padding-inline: var(--space-3);
+  color: var(--text-primary);
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.kc-fallback-input:focus-visible {
+  border-color: var(--accent);
+}
+
+/*
+ * The pages built on `kc-auth-frame`, and only those. `AuthFrame` sets `data-auth-frame` on
+ * `<html>`.
+ *
+ * CAUTION: Do not apply these rules globally. Keycloakify puts `<h1 id="kc-page-title">` inside
+ * the `.kcFormHeaderClass` element, so a global hide leaves Keycloak's own pages with a card
+ * and no title. A global `overflow: hidden` with a full-height card also puts the bottom of a
+ * tall page out of reach. The frame needs both, because it draws its own heading and scrolls
+ * inside its two panes.
+ *
+ * Hiding `.kcFormHeaderClass` is also what keeps the locale switcher off these pages.
+ */
+
+[data-auth-frame],
+[data-auth-frame] body {
+  height: 100%;
+  overflow: hidden;
+}
+
+[data-auth-frame] kc-root,
+[data-auth-frame] .kcLoginClass,
+[data-auth-frame] .kcFormCardClass,
+[data-auth-frame] #kc-content,
+[data-auth-frame] #kc-content-wrapper {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+[data-auth-frame] #kc-header,
+[data-auth-frame] .kcFormHeaderClass {
+  display: none;
+}

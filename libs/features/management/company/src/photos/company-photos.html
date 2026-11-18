@@ -1,0 +1,136 @@
+<lib-page-section
+  sectionId="photos"
+  skeletonRows="2"
+  [heading]="'managementCompany.photos.title' | transloco"
+  [hint]="'managementCompany.photos.hint' | transloco"
+  [state]="state()"
+  (retry)="retry()"
+>
+  <!-- Static, so the section's slot matches it. The button inside comes and goes. -->
+  <div libPageSectionActions>
+    @if (canEdit()) {
+      <button
+        #addButton
+        libButton
+        type="button"
+        size="sm"
+        variant="outlined"
+        severity="secondary"
+        [disabled]="room() <= 0 || reordering()"
+        (click)="choose()"
+      >
+        <svg libButtonIcon lucideImagePlus aria-hidden="true"></svg>
+        {{ 'managementCompany.photos.add' | transloco }}
+      </button>
+    }
+  </div>
+
+  @if (canEdit()) {
+    <!-- The native chooser, behind a button. "accept" makes iOS convert a HEIC photo to JPEG. -->
+    <input
+      #chooser
+      class="sr-only"
+      type="file"
+      multiple
+      accept="image/jpeg,image/png,image/webp"
+      tabindex="-1"
+      aria-hidden="true"
+      (change)="onChosen($event)"
+    />
+  }
+
+  <p class="photos-count">
+    @if (room() > 0) {
+      {{ 'managementCompany.photos.count' | transloco: { count: photos().length, max: limit } }}
+    } @else {
+      {{ 'managementCompany.photos.full' | transloco: { max: limit } }}
+    }
+  </p>
+
+  @if (photos().length === 0 && uploads().length === 0) {
+    <p class="photos-empty">{{ 'managementCompany.photos.none' | transloco }}</p>
+  } @else {
+    <ul
+      class="photos-grid"
+      cdkDropList
+      cdkDropListOrientation="mixed"
+      [cdkDropListData]="photos()"
+      [cdkDropListDisabled]="!canEdit() || ordering()"
+      [attr.aria-busy]="uploading() || null"
+      (cdkDropListDropped)="onDrop($event)"
+    >
+      @for (tile of tiles(); track tile.photo.id; let first = $first) {
+        <li class="photo-tile" cdkDrag [cdkDragData]="tile.photo">
+          <img class="photo-image" [src]="tile.photo.url" [alt]="tile.alt" loading="lazy" />
+          @if (first) {
+            <span class="photo-main" data-tone="accent">{{
+              'managementCompany.photos.main' | transloco
+            }}</span>
+          }
+          @if (canEdit()) {
+            <button
+              #menuTrigger
+              libButton
+              type="button"
+              class="photo-menu"
+              size="sm"
+              variant="filled"
+              severity="secondary"
+              iconOnly
+              rounded
+              [attr.aria-label]="tile.menuLabel"
+              [libTooltip]="tile.menuLabel"
+              [libMenuTriggerFor]="photoMenu"
+            >
+              <svg lucideEllipsisVertical aria-hidden="true"></svg>
+            </button>
+            <lib-menu #photoMenu [items]="tile.items" [ariaLabel]="tile.menuLabel" />
+          }
+        </li>
+      }
+      @for (upload of uploads(); track upload.key) {
+        <li class="photo-tile photo-upload" [attr.data-failed]="upload.error === null ? null : ''">
+          @if (upload.error === null) {
+            <lib-progress-spinner [ariaLabel]="'managementCompany.photos.uploading' | transloco" />
+            <span class="photo-upload-name">{{ upload.name }}</span>
+          } @else {
+            <span class="photo-upload-name">{{ upload.name }}</span>
+            <span class="photo-upload-error" role="alert">{{ upload.error }}</span>
+            <div class="photo-upload-actions">
+              <button
+                libButton
+                type="button"
+                size="sm"
+                variant="text"
+                severity="secondary"
+                (click)="retryUpload(upload.key)"
+              >
+                <svg libButtonIcon lucideRotateCcw aria-hidden="true"></svg>
+                {{ 'managementCompany.photos.retryUpload' | transloco }}
+              </button>
+              <button
+                libButton
+                type="button"
+                size="sm"
+                variant="text"
+                severity="secondary"
+                (click)="dismiss(upload.key)"
+              >
+                <svg libButtonIcon lucideX aria-hidden="true"></svg>
+                {{ 'managementCompany.photos.dismiss' | transloco }}
+              </button>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+
+  <p class="sr-only" aria-live="polite">{{ announcement() }}</p>
+
+  <lib-photo-details-dialog
+    [(visible)]="describeOpen"
+    [photo]="describing()"
+    (saved)="onDescribed($event)"
+  />
+</lib-page-section>

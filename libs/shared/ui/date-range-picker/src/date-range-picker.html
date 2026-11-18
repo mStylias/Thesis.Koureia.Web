@@ -1,0 +1,286 @@
+@let fromPlaceholder = localeInfo().placeholder;
+<div
+  #frame
+  class="range-field"
+  role="group"
+  [attr.aria-label]="
+    ariaLabel() || (!ariaLabelledby() ? ('dateRangePicker.group' | uiCopy | transloco) : null)
+  "
+  [attr.aria-labelledby]="ariaLabelledby() || null"
+>
+  <input
+    #fromInput
+    class="range-input"
+    type="text"
+    inputmode="numeric"
+    autocomplete="off"
+    spellcheck="false"
+    [attr.id]="inputId() || fromId"
+    [attr.placeholder]="fromPlaceholder"
+    [attr.aria-label]="fromAriaLabel() || ('dateRangePicker.from' | uiCopy | transloco)"
+    [attr.aria-describedby]="describedBy()"
+    [attr.aria-invalid]="isInvalid() ? true : null"
+    [attr.aria-required]="required() ? true : null"
+    [attr.aria-controls]="panelId"
+    [disabled]="disabled()"
+    [readOnly]="readonly()"
+    [value]="fromDraft()"
+    (input)="onFieldInput('from', $event)"
+    (keydown)="onFieldKeydown($event)"
+  />
+  <span class="range-separator" aria-hidden="true">–</span>
+  <input
+    class="range-input"
+    type="text"
+    inputmode="numeric"
+    autocomplete="off"
+    spellcheck="false"
+    [attr.id]="toId"
+    [attr.placeholder]="fromPlaceholder"
+    [attr.aria-label]="toAriaLabel() || ('dateRangePicker.to' | uiCopy | transloco)"
+    [attr.aria-describedby]="describedBy()"
+    [attr.aria-invalid]="isInvalid() ? true : null"
+    [attr.aria-required]="required() ? true : null"
+    [attr.aria-controls]="panelId"
+    [disabled]="disabled()"
+    [readOnly]="readonly()"
+    [value]="toDraft()"
+    (input)="onFieldInput('to', $event)"
+    (keydown)="onFieldKeydown($event)"
+  />
+  <!-- The only thing that opens the panel, together with ArrowDown in a field. -->
+  <button
+    #toggle
+    type="button"
+    class="range-icon-button range-toggle"
+    [attr.aria-label]="'dateRangePicker.open' | uiCopy | transloco"
+    aria-haspopup="dialog"
+    [attr.aria-expanded]="isOpen()"
+    [attr.aria-controls]="panelId"
+    [disabled]="disabled()"
+    (click)="togglePanel()"
+  >
+    <svg lucideCalendarRange aria-hidden="true"></svg>
+  </button>
+</div>
+
+@if (showError()) {
+  <div [id]="errorId" class="range-error" role="alert">
+    @if (!entryError() && firstError()?.message; as message) {
+      {{ message | transloco }}
+    } @else {
+      {{ errorKey() | uiCopy | transloco: { max: constraints().maxDays } }}
+    }
+  </div>
+}
+
+<ng-template #panel>
+  <section
+    class="range-panel"
+    animate.enter="range-panel-enter"
+    role="dialog"
+    [id]="panelId"
+    [attr.aria-label]="'dateRangePicker.panel' | uiCopy | transloco"
+    tabindex="-1"
+    (focusin)="onFocusIn()"
+    (focusout)="onFocusOut($event)"
+    (keydown)="onPanelKeydown($event)"
+  >
+    @if (presetOptions().length) {
+      <div
+        class="range-presets"
+        role="group"
+        [attr.aria-label]="'dateRangePicker.presetsLabel' | uiCopy | transloco"
+      >
+        @for (option of presetOptions(); track option.preset.id) {
+          <button
+            type="button"
+            class="range-preset"
+            [attr.aria-pressed]="draftPreset() === option.preset.id"
+            [disabled]="option.disabled || !editable()"
+            (click)="selectPreset(option)"
+          >
+            {{
+              option.preset.label ||
+                ('dateRangePicker.presets.' + option.preset.id | uiCopy | transloco)
+            }}
+          </button>
+        }
+      </div>
+    }
+
+    <div class="range-months">
+      <!-- Hidden, not removed, under the month grid: the panel keeps its size and the draft its days. -->
+      <div class="range-days" [attr.inert]="view() === 'months' ? '' : null">
+        @for (month of months(); track $index; let first = $first; let last = $last) {
+          <div class="range-month">
+            <div class="range-month-header">
+              @if (first) {
+                <button
+                  type="button"
+                  class="range-icon-button range-nav"
+                  [attr.aria-label]="'dateRangePicker.previousMonth' | uiCopy | transloco"
+                  [disabled]="!canGoPrevious() || disabled()"
+                  (click)="previousMonth()"
+                >
+                  <svg lucideChevronLeft aria-hidden="true"></svg>
+                </button>
+              }
+              <button
+                type="button"
+                class="range-month-heading"
+                [attr.data-heading-index]="$index"
+                [attr.aria-label]="
+                  'dateRangePicker.chooseMonth' | uiCopy | transloco: { month: month.heading }
+                "
+                [disabled]="disabled()"
+                (click)="openMonthView($index)"
+              >
+                <span [id]="month.headingId" aria-live="polite">{{ month.heading }}</span>
+                <svg lucideChevronDown aria-hidden="true"></svg>
+              </button>
+              @if (last) {
+                <button
+                  type="button"
+                  class="range-icon-button range-nav"
+                  [attr.aria-label]="'dateRangePicker.nextMonth' | uiCopy | transloco"
+                  [disabled]="!canGoNext() || disabled()"
+                  (click)="nextMonth()"
+                >
+                  <svg lucideChevronRight aria-hidden="true"></svg>
+                </button>
+              }
+            </div>
+
+            <table
+              class="range-grid"
+              role="grid"
+              aria-multiselectable="true"
+              [attr.aria-labelledby]="month.headingId"
+            >
+              <thead>
+                <tr role="row">
+                  @for (weekday of localeInfo().weekdays; track weekday.label) {
+                    <th role="columnheader" scope="col" [attr.aria-label]="weekday.label">
+                      {{ weekday.short }}
+                    </th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (week of month.weeks; track $index) {
+                  <tr role="row">
+                    @for (day of week; track day.date) {
+                      @if (day.inCurrentMonth) {
+                        <td
+                          class="range-day"
+                          role="gridcell"
+                          [attr.data-date]="day.date"
+                          [attr.data-today]="day.today ? '' : null"
+                          [attr.data-range-start]="day.rangeStart ? '' : null"
+                          [attr.data-range-end]="day.rangeEnd ? '' : null"
+                          [attr.data-in-range]="day.inRange ? '' : null"
+                          [attr.data-anchored]="anchor() !== '' ? '' : null"
+                          [attr.aria-label]="day.label"
+                          [attr.aria-current]="day.today ? 'date' : null"
+                          [attr.aria-selected]="day.inRange"
+                          [attr.aria-disabled]="day.disabled || !editable() ? true : null"
+                          [attr.tabindex]="day.date === focusedDate() ? 0 : -1"
+                          (click)="onDayClick(day)"
+                          (pointerdown)="onDayPointerDown(day, $event)"
+                          (keydown)="onCalendarKeydown($event)"
+                          (pointerenter)="onDayEnter(day)"
+                          (focus)="onDayFocus(day)"
+                        >
+                          <span>{{ day.day }}</span>
+                        </td>
+                      } @else {
+                        <!-- The neighbouring month owns this day. Blank, so a date never shows twice. -->
+                        <td class="range-day-blank" role="gridcell"></td>
+                      }
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      @if (view() === 'months') {
+        <div class="range-year-view">
+          <div class="range-month-header">
+            <button
+              type="button"
+              class="range-icon-button range-nav"
+              [attr.aria-label]="'dateRangePicker.previousYear' | uiCopy | transloco"
+              [disabled]="!canGoPreviousYear()"
+              (click)="shiftYear(-1)"
+            >
+              <svg lucideChevronLeft aria-hidden="true"></svg>
+            </button>
+            <div [id]="panelId + '-year'" class="range-year-heading" aria-live="polite">
+              {{ viewYear() }}
+            </div>
+            <button
+              type="button"
+              class="range-icon-button range-nav"
+              [attr.aria-label]="'dateRangePicker.nextYear' | uiCopy | transloco"
+              [disabled]="!canGoNextYear()"
+              (click)="shiftYear(1)"
+            >
+              <svg lucideChevronRight aria-hidden="true"></svg>
+            </button>
+          </div>
+          <div class="range-month-grid" role="group" [attr.aria-labelledby]="panelId + '-year'">
+            @for (option of monthOptions(); track option.month) {
+              <button
+                type="button"
+                class="range-month-option"
+                [attr.data-month]="option.month"
+                [attr.aria-label]="option.label"
+                [attr.aria-pressed]="option.selected"
+                [disabled]="option.disabled"
+                (click)="pickMonth(option)"
+                (keydown)="onMonthKeydown($event, option.month)"
+              >
+                {{ option.name }}
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <footer class="range-footer">
+      <p [id]="summaryId" class="range-summary" aria-live="polite">
+        @if (anchor()) {
+          {{ 'dateRangePicker.pickEnd' | uiCopy | transloco }}
+        } @else if (draftComplete()) {
+          {{ draftLabel() }} ·
+          @if (draftDays() === 1) {
+            {{ 'dateRangePicker.oneDay' | uiCopy | transloco }}
+          } @else {
+            {{ 'dateRangePicker.days' | uiCopy | transloco: { count: draftDays() } }}
+          }
+        }
+      </p>
+      <div class="range-actions">
+        <button libButton type="button" severity="secondary" size="sm" (click)="cancel()">
+          {{ 'dateRangePicker.cancel' | uiCopy | transloco }}
+        </button>
+        @if (!readonly()) {
+          <button
+            libButton
+            type="button"
+            size="sm"
+            [disabled]="disabled() || !draftComplete()"
+            (click)="apply()"
+          >
+            {{ 'dateRangePicker.apply' | uiCopy | transloco }}
+          </button>
+        }
+      </div>
+    </footer>
+  </section>
+</ng-template>

@@ -1,0 +1,89 @@
+<kc-auth-frame
+  [title]="i18n.advancedMsgStr(kcContext.messageHeader ?? 'registerTitle')"
+  [description]="i18n.msgStr('registerDescription')"
+>
+  <!-- `@let`, not `@if (…; as message)`: `&&` returns its last operand, so the `as` form bound
+       the boolean and the tone and text came out empty. `innerHTML` as a plain string, for the
+       reason in `login.html`. -->
+  @let message = kcContext.message;
+  @if (message && (message.type !== 'error' || showErrors()) && showGlobalMessage()) {
+    <lib-banner
+      class="message"
+      [tone]="message.type"
+      [attr.role]="message.type === 'error' ? 'alert' : 'status'"
+    >
+      <span [innerHTML]="message.summary"></span>
+    </lib-banner>
+  }
+
+  <form
+    #form
+    id="kc-register-form"
+    class="auth-form"
+    method="post"
+    [action]="kcContext.url.registrationAction"
+    novalidate
+    (submit)="onSubmit($event)"
+  >
+    <kc-user-profile-fields [showErrors]="showErrors()" />
+
+    <div class="terms-field">
+      <lib-checkbox
+        #termsCheckbox
+        inputId="termsAccepted"
+        name="termsAccepted"
+        required
+        [invalid]="termsInvalid()"
+        [ariaDescribedby]="termsInvalid() ? 'terms-error' : ''"
+        [(value)]="termsAccepted"
+      >
+        {{ i18n.msgStr('termsPrefix') }}
+        <a [href]="termsUrl()" target="_blank" rel="noopener"> {{ i18n.msgStr('termsLink') }} </a
+        >{{ i18n.msgStr('termsSuffix') }}
+      </lib-checkbox>
+
+      @if (termsInvalid()) {
+        <p id="terms-error" class="field-error" aria-live="polite">
+          @if (kcContext.messagesPerField.existsError('termsAccepted')) {
+            <span [innerHTML]="kcContext.messagesPerField.get('termsAccepted')"></span>
+          } @else {
+            {{ i18n.msgStr('termsRequired') }}
+          }
+        </p>
+      }
+    </div>
+
+    @if (kcContext.recaptchaRequired && kcContext.recaptchaVisible) {
+      <div
+        class="g-recaptcha"
+        data-size="compact"
+        [attr.data-sitekey]="kcContext.recaptchaSiteKey"
+        [attr.data-action]="kcContext.recaptchaAction"
+      ></div>
+    }
+
+    <button
+      libButton
+      type="submit"
+      size="lg"
+      [class.g-recaptcha]="
+        kcContext.recaptchaRequired &&
+        !kcContext.recaptchaVisible &&
+        kcContext.recaptchaAction !== undefined
+      "
+      [attr.data-sitekey]="kcContext.recaptchaSiteKey ?? null"
+      [attr.data-callback]="
+        kcContext.recaptchaRequired && !kcContext.recaptchaVisible ? 'onSubmitRecaptcha' : null
+      "
+      [attr.data-action]="kcContext.recaptchaAction ?? null"
+      [disabled]="submitting()"
+    >
+      {{ i18n.msgStr('doRegister') }}
+    </button>
+  </form>
+
+  <p class="auth-switch">
+    {{ i18n.msgStr('loginPrompt') }}
+    <a [href]="kcContext.url.loginUrl">{{ i18n.msgStr('backToLoginLabel') }}</a>
+  </p>
+</kc-auth-frame>

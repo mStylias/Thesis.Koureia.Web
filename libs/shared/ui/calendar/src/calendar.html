@@ -1,0 +1,168 @@
+@let locale = resolvedLocale();
+@let anchorDate = current();
+@let enter = settled() ? 'cal-view-enter' : '';
+
+<!-- The slots are captured once and drawn where the layout puts them. A
+     projected node lives in one place at a time, and only one outlet shows it. -->
+<ng-template #viewsTemplate><ng-content select="[libCalendarViews]" /></ng-template>
+<ng-template #filtersTemplate><ng-content select="[libCalendarFilters]" /></ng-template>
+<ng-template #filterActionsTemplate>
+  <ng-content select="[libCalendarFilterActions]" />
+</ng-template>
+
+<lib-calendar-toolbar
+  class="cal-toolbar"
+  [layout]="layout()"
+  [label]="label()"
+  [anchor]="anchorDate"
+  [locale]="locale"
+  [firstDayOfWeek]="firstDayOfWeek()"
+  [showFilters]="filtersSlot() !== undefined"
+  [filtersActive]="filtersActive()"
+  [refreshing]="refreshing()"
+  [createLabel]="createLabel()"
+  [viewsTemplate]="viewsSlot() ? viewsTemplate : null"
+  [(view)]="view"
+  [(panel)]="panel"
+  (navigate)="onNavigate($event)"
+  (dateSelect)="onDateSelect($event)"
+  (refresh)="refresh.emit()"
+  (create)="onSlotCreate(null)"
+/>
+
+<div class="cal-body">
+  <lib-calendar-side-panel
+    [overlay]="panelOverlay()"
+    [view]="view()"
+    [dayColumnsLabel]="dayColumnsLabel()"
+    [filtersTemplate]="filtersSlot() ? filtersTemplate : null"
+    [filterActionsTemplate]="filterActionsSlot() ? filterActionsTemplate : null"
+    [(panel)]="panel"
+    [(timeScale)]="timeScale"
+    [(dayColumns)]="dayColumns"
+    [(showTime)]="showTime"
+  />
+
+  <div class="cal-main">
+    @if (loading()) {
+      <lib-progress-bar
+        class="cal-progress"
+        mode="indeterminate"
+        size="sm"
+        animate.leave="cal-progress-leave"
+      />
+    }
+
+    <!-- One cell for every view, so a switch cross-fades the two in place. -->
+    <div
+      class="cal-stage"
+      [attr.data-slide]="stageSlide()"
+      [attr.data-moving]="slideKey() ? '' : null"
+      [attr.data-zoom]="zoom()"
+      (animationend)="onSlideEnd($event)"
+    >
+      @switch (view()) {
+        @case ('day') {
+          <lib-calendar-time-grid
+            class="cal-view"
+            [animate.enter]="enter"
+            animate.leave="cal-view-leave"
+            [columns]="columns()"
+            [slide]="gridSlide()"
+            [events]="events()"
+            [resources]="resources()"
+            [hours]="hours()"
+            [timeScale]="timeScale()"
+            [showTime]="showTime()"
+            [timezone]="timezone()"
+            [locale]="locale"
+            [resourceLabel]="resourceLabel()"
+            [(selectedEventId)]="selectedEventId"
+            (eventOpen)="onEventOpen($event)"
+            (slotCreate)="onSlotCreate($event)"
+          />
+        }
+        @case ('week') {
+          <lib-calendar-time-grid
+            class="cal-view"
+            [animate.enter]="enter"
+            animate.leave="cal-view-leave"
+            [columns]="columns()"
+            [slide]="gridSlide()"
+            [events]="events()"
+            [resources]="resources()"
+            [hours]="hours()"
+            [timeScale]="timeScale()"
+            [showTime]="showTime()"
+            [timezone]="timezone()"
+            [locale]="locale"
+            [resourceLabel]="resourceLabel()"
+            [(selectedEventId)]="selectedEventId"
+            (eventOpen)="onEventOpen($event)"
+            (slotCreate)="onSlotCreate($event)"
+          />
+        }
+        @case ('month') {
+          <lib-calendar-month
+            class="cal-view"
+            [animate.enter]="enter"
+            animate.leave="cal-view-leave"
+            [anchor]="anchorDate"
+            [events]="events()"
+            [resources]="resources()"
+            [hours]="hours()"
+            [timezone]="timezone()"
+            [locale]="locale"
+            [resourceLabel]="resourceLabel()"
+            [firstDayOfWeek]="firstDayOfWeek()"
+            [showTime]="showTime()"
+            [(selectedEventId)]="selectedEventId"
+            (eventOpen)="onEventOpen($event)"
+            (dayOpen)="onDayOpen($event)"
+            (slotCreate)="onSlotCreate($event)"
+          />
+        }
+        @case ('year') {
+          <lib-calendar-year
+            class="cal-view"
+            [animate.enter]="enter"
+            animate.leave="cal-view-leave"
+            [anchor]="anchorDate"
+            [dayCounts]="dayCounts()"
+            [hours]="hours()"
+            [timezone]="timezone()"
+            [locale]="locale"
+            [firstDayOfWeek]="firstDayOfWeek()"
+            (dayOpen)="onDayOpen($event)"
+            (monthOpen)="onMonthOpen($event)"
+          />
+        }
+        @case ('agenda') {
+          <lib-calendar-agenda
+            class="cal-view"
+            [animate.enter]="enter"
+            animate.leave="cal-view-leave"
+            [anchor]="anchorDate"
+            [events]="events()"
+            [resources]="resources()"
+            [timezone]="timezone()"
+            [locale]="locale"
+            [resourceLabel]="resourceLabel()"
+            [(selectedEventId)]="selectedEventId"
+            (eventOpen)="onEventOpen($event)"
+          />
+        }
+      }
+    </div>
+
+    @if (layout().floating) {
+      <lib-calendar-floating-actions
+        [createLabel]="createLabel()"
+        [(view)]="view"
+        (create)="onSlotCreate(null)"
+      />
+    }
+  </div>
+</div>
+
+<div class="cal-sr" aria-live="polite">{{ liveText() }}</div>

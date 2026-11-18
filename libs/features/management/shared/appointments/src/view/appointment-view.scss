@@ -1,0 +1,241 @@
+@use 'abstracts' as a;
+
+// The drawer's content padding is 0, so the panel insets the sections. `lib-customer-history`
+// is a section of the same panel: its host is `display: contents`.
+:host {
+  display: block;
+  container: appointment-view / inline-size;
+}
+
+.appointment-view {
+  @include a.detail-panel;
+}
+
+.view-customer {
+  display: flex;
+  flex-direction: column;
+}
+
+// Every section but the first has the hairline: the history between two sections breaks `+`.
+.view-section {
+  @include a.detail-section;
+
+  border-top: var(--border-width-hairline) solid var(--border);
+
+  &:first-child {
+    border-top: 0;
+  }
+}
+
+.view-grid {
+  @include a.detail-grid;
+}
+
+.view-row {
+  @include a.detail-row;
+}
+
+.view-caption {
+  @include a.detail-caption;
+}
+
+.view-heading {
+  @include a.detail-heading;
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.view-hint {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+  color: var(--text-muted);
+}
+
+.view-value {
+  @include a.detail-value;
+}
+
+.view-time {
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.view-meta {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+// The status is a tag, the product's one recipe for a state. The text is the state, the tone
+// only repeats it.
+.view-badge {
+  @include a.tag;
+
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+}
+
+.view-barber,
+.view-customer-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.view-swatch {
+  width: var(--space-3);
+  height: var(--space-3);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.view-customer {
+  gap: var(--space-2);
+}
+
+.view-pill {
+  padding: 0 var(--space-2);
+  border-radius: a.radius(sm);
+  background: var(--warning-bg);
+  color: var(--warning-text);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-snug);
+}
+
+@media (forced-colors: active) {
+  .view-badge,
+  .view-pill {
+    outline: var(--border-width-hairline) solid CanvasText;
+  }
+}
+
+// The buttons wrap under the value when both do not fit. The value truncates only when it is
+// wider than the whole line.
+.view-contact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.view-contact-value {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.view-contact-link {
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--accent-text);
+    text-decoration: underline;
+  }
+}
+
+.view-contact-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--space-2);
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+  }
+}
+
+.view-lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.view-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: var(--space-4);
+  align-items: baseline;
+
+  & + & {
+    padding-top: var(--space-2);
+  }
+}
+
+.view-amount {
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+.view-total {
+  margin-top: var(--space-2);
+  border-top: var(--border-width-hairline) solid var(--border);
+  font-weight: var(--weight-bold);
+}
+
+.view-cancellation p {
+  margin: 0;
+
+  & + p {
+    margin-top: var(--space-1);
+  }
+}
+
+// Free text the user typed. Keep its line breaks, and break a long word before it overflows.
+.view-note {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.view-preferred {
+  margin: 0;
+}
+
+// The count carries the meaning. The tone only repeats it.
+.view-no-shows {
+  margin: 0;
+  font-size: var(--text-sm);
+
+  &[data-tone='warning'] {
+    color: var(--warning-text);
+    font-weight: var(--weight-bold);
+  }
+}
+
+.view-audit {
+  gap: var(--space-1);
+
+  p {
+    margin: 0;
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+  }
+}
+
+// A narrow panel puts each caption above its value.
+@container appointment-view (width < 30rem) {
+  .appointment-view {
+    @include a.detail-panel-columns($stacked: true);
+  }
+
+  .view-grid {
+    row-gap: var(--space-4);
+  }
+
+  .view-row {
+    row-gap: var(--space-1);
+  }
+}

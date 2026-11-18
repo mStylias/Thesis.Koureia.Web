@@ -1,0 +1,29 @@
+<lib-page-section
+  sectionId="notifications"
+  describedBy="notifications-soon"
+  [heading]="'managementProfile.notifications.title' | transloco"
+>
+  <lib-banner
+    id="notifications-soon"
+    [heading]="'managementProfile.notifications.soon' | transloco"
+  >
+    {{ 'managementProfile.notifications.description' | transloco }}
+  </lib-banner>
+
+  <ul class="channels">
+    @for (channel of channels; track channel) {
+      <li class="channel">
+        <lib-switch
+          disabled
+          [inputId]="'notifications-' + channel"
+          [ariaDescribedby]="'notifications-' + channel + '-hint'"
+        >
+          {{ 'managementProfile.notifications.' + channel + '.label' | transloco }}
+        </lib-switch>
+        <p class="channel-hint" [id]="'notifications-' + channel + '-hint'">
+          {{ 'managementProfile.notifications.' + channel + '.hint' | transloco }}
+        </p>
+      </li>
+    }
+  </ul>
+</lib-page-section>

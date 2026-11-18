@@ -1,0 +1,62 @@
+@let steps = orderedSteps();
+
+<!--
+  The narrow-screen header. It carries the position and the progress only: the rail
+  below names every step at every width. `aria-hidden` because the list already
+  carries the position to assistive technology, and announcing both makes every
+  step arrive twice.
+-->
+<div class="stepper__compact" aria-hidden="true">
+  <p class="stepper__count">
+    {{ 'stepper.stepOf' | uiCopy | transloco: { current: activeIndex() + 1, total: steps.length } }}
+  </p>
+  <div class="stepper__progress">
+    <span class="stepper__progress-fill" [style.scale]="progressScale() + ' 1'"></span>
+  </div>
+</div>
+
+<ol class="stepper__list" [attr.aria-label]="ariaLabel() || ('stepper.label' | uiCopy | transloco)">
+  @for (step of steps; track step.id) {
+    <li
+      class="stepper__step"
+      [attr.data-state]="step.state"
+      [attr.aria-current]="step.state === 'active' ? 'step' : null"
+    >
+      @if (step.activatable) {
+        <button class="stepper__header" type="button" (click)="select(step.id)">
+          <ng-container [ngTemplateOutlet]="body" [ngTemplateOutletContext]="{ $implicit: step }" />
+        </button>
+      } @else {
+        <div class="stepper__header">
+          <ng-container [ngTemplateOutlet]="body" [ngTemplateOutletContext]="{ $implicit: step }" />
+        </div>
+      }
+    </li>
+  }
+</ol>
+
+<div class="stepper__panel">
+  <ng-content />
+</div>
+
+<ng-template #body let-step>
+  <span class="stepper__marker">
+    @if (step.state === 'completed' || step.state === 'locked') {
+      <svg lucideCheck aria-hidden="true" [animate.enter]="tickEnter(step.id)"></svg>
+    } @else {
+      {{ step.position }}
+    }
+  </span>
+  <span class="stepper__text">
+    <span class="stepper__label">
+      {{ step.label }}
+      <!-- State is carried as text, not by the tick's colour alone. -->
+      @if (step.state === 'completed' || step.state === 'locked') {
+        <span class="sr-only">{{ 'stepper.completed' | uiCopy | transloco }}</span>
+      }
+    </span>
+    @if (step.summary) {
+      <span class="stepper__summary">{{ step.summary }}</span>
+    }
+  </span>
+</ng-template>

@@ -1,0 +1,189 @@
+@use 'abstracts' as a;
+
+// The host stays in the page and draws nothing. The panel renders in an overlay pane.
+:host {
+  display: contents;
+}
+
+.fp-layer {
+  --fp-gutter: var(--space-3);
+  --fp-top: calc(var(--floating-panel-inset-top, 0px) + var(--fp-gutter));
+
+  display: contents;
+}
+
+.fp-bounds {
+  position: fixed;
+  inset: var(--fp-top) var(--fp-gutter) var(--fp-gutter);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+// Docked by default: the bottom-right corner, from under its anchor to the bottom of the
+// bounds. The anchor never pushes it shorter than its floor. A placed panel carries its box
+// inline, so the right and bottom anchors must let go.
+.fp {
+  position: fixed;
+  top: clamp(
+    var(--fp-top),
+    calc(var(--fp-dock-top, 0px) + var(--fp-gutter)),
+    calc(100dvh - var(--fp-gutter) - var(--floating-panel-min-height))
+  );
+  right: var(--fp-gutter);
+  bottom: var(--fp-gutter);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: min(var(--floating-panel-width), calc(100vw - 2 * var(--fp-gutter)));
+  // Plain lengths: the script reads them back as pixels for the resize floor.
+  min-width: var(--floating-panel-min-width);
+  min-height: var(--floating-panel-min-height);
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(lg);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  outline: none;
+  transform-origin: bottom right;
+
+  &[data-placed] {
+    right: auto;
+    bottom: auto;
+  }
+
+  &[data-moving] {
+    user-select: none;
+  }
+}
+
+.fp-header {
+  display: flex;
+  align-items: center;
+  gap: a.space(2);
+  flex-shrink: 0;
+  padding: a.space(2) a.space(3);
+  border-bottom: var(--border-width-hairline) solid var(--border);
+  cursor: grab;
+  touch-action: none;
+
+  .fp[data-moving] & {
+    cursor: grabbing;
+  }
+}
+
+.fp-grip {
+  flex-shrink: 0;
+  cursor: inherit;
+}
+
+.fp-title {
+  @include a.t-title;
+
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// The consumer's content decides how it scrolls. This is the fallback for content that does not.
+.fp-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding: a.space(4);
+  overflow-y: auto;
+}
+
+// Each grip straddles the border, half inside the panel and half outside it.
+.fp-edge {
+  --fp-grip: var(--floating-panel-grip-size);
+  --fp-grip-offset: calc(var(--fp-grip) / -2);
+
+  position: absolute;
+  touch-action: none;
+
+  &[data-edge='n'],
+  &[data-edge='s'] {
+    right: var(--fp-grip);
+    left: var(--fp-grip);
+    height: var(--fp-grip);
+    cursor: ns-resize;
+  }
+
+  &[data-edge='e'],
+  &[data-edge='w'] {
+    top: var(--fp-grip);
+    bottom: var(--fp-grip);
+    width: var(--fp-grip);
+    cursor: ew-resize;
+  }
+
+  &[data-edge='ne'],
+  &[data-edge='nw'],
+  &[data-edge='se'],
+  &[data-edge='sw'] {
+    width: calc(var(--fp-grip) * 2);
+    height: calc(var(--fp-grip) * 2);
+  }
+
+  &[data-edge='n'],
+  &[data-edge='ne'],
+  &[data-edge='nw'] {
+    top: var(--fp-grip-offset);
+  }
+
+  &[data-edge='s'],
+  &[data-edge='se'],
+  &[data-edge='sw'] {
+    bottom: var(--fp-grip-offset);
+  }
+
+  &[data-edge='e'],
+  &[data-edge='ne'],
+  &[data-edge='se'] {
+    right: var(--fp-grip-offset);
+  }
+
+  &[data-edge='w'],
+  &[data-edge='nw'],
+  &[data-edge='sw'] {
+    left: var(--fp-grip-offset);
+  }
+
+  &[data-edge='ne'],
+  &[data-edge='sw'] {
+    cursor: nesw-resize;
+  }
+
+  &[data-edge='nw'],
+  &[data-edge='se'] {
+    cursor: nwse-resize;
+  }
+}
+
+// Grows out of the corner it is docked to. The exit is faster than the entrance.
+.fp-enter {
+  animation: fp-in var(--dur-base) var(--ease-out);
+}
+
+.fp-leave {
+  animation: fp-out var(--dur-fast) var(--ease-out);
+}
+
+@keyframes fp-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-2)) scale(0.98);
+  }
+}
+
+@keyframes fp-out {
+  to {
+    opacity: 0;
+    transform: translateY(var(--space-2)) scale(0.98);
+  }
+}

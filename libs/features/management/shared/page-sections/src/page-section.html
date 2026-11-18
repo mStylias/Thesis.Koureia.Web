@@ -1,0 +1,56 @@
+<section
+  libCard
+  [attr.aria-labelledby]="titleId()"
+  [attr.aria-describedby]="describedBy() || null"
+  [attr.aria-busy]="state() === 'loading' ? true : null"
+>
+  <div libCardBody>
+    <header libCardHeader>
+      <div class="section-heading">
+        <h2 libCardTitle [id]="titleId()">{{ heading() }}</h2>
+        @if (hint()) {
+          <p libCardSubtitle class="section-hint">{{ hint() }}</p>
+        }
+      </div>
+      @if (state() === 'ready') {
+        <div class="section-actions">
+          <ng-content select="[libPageSectionActions]" />
+        </div>
+      }
+    </header>
+
+    @switch (state()) {
+      @case ('loading') {
+        <div class="section-skeleton" aria-hidden="true">
+          @for (row of rows(); track row) {
+            <span class="skeleton-line skeleton-caption"></span>
+            <span class="skeleton-line skeleton-value"></span>
+          }
+        </div>
+        <p class="sr-only" role="status">
+          {{ 'managementPageSections.section.loading' | transloco }}
+        </p>
+      }
+      @case ('error') {
+        <div class="section-failed" role="alert">
+          <p class="section-failed-text">
+            {{ 'managementPageSections.section.failed' | transloco }}
+          </p>
+          <button
+            libButton
+            type="button"
+            size="sm"
+            variant="outlined"
+            severity="secondary"
+            (click)="retry.emit()"
+          >
+            {{ 'managementPageSections.section.retry' | transloco }}
+          </button>
+        </div>
+      }
+      @default {
+        <ng-content />
+      }
+    }
+  </div>
+</section>

@@ -1,0 +1,114 @@
+// @ui/form-field: styles for the `[libFloatLabel]` wrapper.
+//
+// These rules are global, not component-scoped, because they must style the projected label
+// and control, which Angular's emulated encapsulation cannot reach. Every rule sits under the
+// [libFloatLabel] attribute.
+//
+// State detection is pure CSS. Focus comes from `:focus-within`. Filled comes from the
+// `:placeholder-shown` trick on a direct-child input or textarea with `placeholder=" "`, or
+// from the `[data-filled]` contract that a design-system control sets. Invalid comes from
+// `[aria-invalid='true']` or the `[data-invalid]` contract.
+//
+// CAUTION: Keep the placeholder trick scoped to `> input` and `> textarea`. An input with no
+// `placeholder` attribute never matches `:placeholder-shown`, so a descendant match reads the
+// inner `<input>` of input-otp and phone-input as filled and strands the label in its floated
+// position. Those controls report through `[data-filled]`, which is safe at any depth.
+//
+// A control that supports the `--field-pad-top` custom property, which all design-system
+// inputs do, makes room for the label in the `in` variant.
+
+[libFloatLabel] {
+  position: relative;
+  // The label's `top: 50%` centers on the wrapper, so the wrapper height must equal the
+  // control height. `inline-flex` removes the inline baseline gap, and `fit-content` opts out
+  // of stretching by a flex or grid parent, such as a form row with taller siblings.
+  display: inline-flex;
+  flex-direction: column;
+  height: fit-content;
+
+  > label {
+    position: absolute;
+    top: 50%;
+    left: var(--field-label-inset, var(--space-3));
+    max-width: calc(100% - 2 * var(--field-label-inset, var(--space-3)));
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    transform: translateY(-50%);
+    pointer-events: none;
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--leading-tight);
+    color: var(--text-muted);
+    transition:
+      top var(--dur-fast) var(--ease-standard),
+      transform var(--dur-fast) var(--ease-standard),
+      font-size var(--dur-fast) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard),
+      background-color var(--dur-fast) var(--ease-standard);
+  }
+
+  // Floated state.
+
+  &:focus-within > label,
+  &:has([data-filled]) > label,
+  &:has(> input:not(:placeholder-shown)) > label,
+  &:has(> textarea:not(:placeholder-shown)) > label {
+    font-size: var(--text-xs);
+  }
+
+  // over, the default: the label lifts fully above the control.
+  &[data-variant='over']:focus-within > label,
+  &[data-variant='over']:has([data-filled]) > label,
+  &[data-variant='over']:has(> input:not(:placeholder-shown)) > label,
+  &[data-variant='over']:has(> textarea:not(:placeholder-shown)) > label {
+    top: 0;
+    transform: translateY(-100%) translateY(calc(-1 * var(--space-1)));
+  }
+
+  // on: the label sits on the border line and masks it with the surface.
+  &[data-variant='on'] > label {
+    padding-inline: var(--space-1);
+    margin-left: calc(-1 * var(--space-1));
+  }
+
+  // The mask must match whatever the field sits on, so it is a knob. A field on --surface-2
+  // needs a matching --field-label-bg, or the notch shows a --surface-colored patch.
+  &[data-variant='on']:focus-within > label,
+  &[data-variant='on']:has([data-filled]) > label,
+  &[data-variant='on']:has(> input:not(:placeholder-shown)) > label,
+  &[data-variant='on']:has(> textarea:not(:placeholder-shown)) > label {
+    top: 0;
+    background: var(--field-label-bg, var(--surface));
+    border-radius: var(--radius-sm);
+  }
+
+  // in: the label tucks into the top padding of a taller control.
+  &[data-variant='in'] {
+    --field-pad-top: var(--space-6);
+
+    > input,
+    > textarea {
+      padding-top: var(--field-pad-top);
+    }
+  }
+
+  &[data-variant='in']:focus-within > label,
+  &[data-variant='in']:has([data-filled]) > label,
+  &[data-variant='in']:has(> input:not(:placeholder-shown)) > label,
+  &[data-variant='in']:has(> textarea:not(:placeholder-shown)) > label {
+    top: var(--space-2);
+    transform: none;
+  }
+
+  // State colors.
+
+  &:focus-within > label {
+    color: var(--accent-text);
+  }
+
+  &:has([aria-invalid='true']) > label,
+  &:has([data-invalid]) > label {
+    color: var(--error-text);
+  }
+}

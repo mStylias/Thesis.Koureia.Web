@@ -1,0 +1,150 @@
+@use 'abstracts' as a;
+
+:host {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  place-items: center;
+  background: var(--surface-2);
+
+  // Empty-tile canvas: a faint street grid that clears out behind the
+  // centered badge, hinting at the map that is about to render.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(ellipse at center, var(--surface-2) 20%, transparent 70%),
+      linear-gradient(
+        var(--border-subtle) var(--border-width-hairline),
+        transparent var(--border-width-hairline)
+      ),
+      linear-gradient(
+        90deg,
+        var(--border-subtle) var(--border-width-hairline),
+        transparent var(--border-width-hairline)
+      );
+    background-size:
+      100% 100%,
+      var(--space-12) var(--space-12),
+      var(--space-12) var(--space-12);
+  }
+}
+
+.map-skeleton__badge {
+  @include a.t-body-sm;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: var(--border-width-hairline) solid var(--border-subtle);
+  border-radius: a.radius(pill);
+  color: var(--text-secondary);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.map-skeleton__badge--enter {
+  animation: map-skeleton-badge-enter var(--dur-base) var(--ease-out);
+}
+
+@keyframes map-skeleton-badge-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-2)) scale(0.97);
+  }
+}
+
+// Ongoing "locating…" pulse. Deliberate exception to the system's
+// no-infinite-loops rule: for an indeterminate wait the motion itself
+// is the status signal. Transform/opacity only; killed under
+// prefers-reduced-motion.
+.map-skeleton__pin {
+  position: relative;
+  display: grid;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  place-items: center;
+  color: var(--accent-text);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: a.radius(pill);
+    background: var(--accent);
+    opacity: 0;
+    animation: map-skeleton-ripple 2.4s var(--ease-out) infinite;
+  }
+
+  svg {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    stroke-width: var(--icon-stroke);
+    animation: map-skeleton-pin-pulse 2.4s ease-in-out infinite;
+  }
+}
+
+@keyframes map-skeleton-ripple {
+  0% {
+    opacity: 0.3;
+    transform: scale(0.5);
+  }
+
+  65%,
+  100% {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+}
+
+@keyframes map-skeleton-pin-pulse {
+  0%,
+  30%,
+  100% {
+    transform: scale(1);
+  }
+
+  12% {
+    transform: scale(1.12);
+  }
+}
+
+// Ghost of the MapLibre zoom control, so the chrome is already "there"
+// when the real map crossfades in.
+.map-skeleton__controls {
+  @include a.t-body-sm;
+  position: absolute;
+  inset-block-start: var(--space-4);
+  inset-inline-end: var(--space-4);
+  display: grid;
+  overflow: hidden;
+  border: var(--border-width-hairline) solid var(--border-subtle);
+  border-radius: a.radius(md);
+  color: var(--text-muted);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+
+  span {
+    display: grid;
+    width: var(--space-10);
+    height: var(--space-10);
+    place-items: center;
+
+    + span {
+      border-top: var(--border-width-hairline) solid var(--border-subtle);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-skeleton__badge--enter,
+  .map-skeleton__pin::before,
+  .map-skeleton__pin svg {
+    animation: none;
+  }
+}

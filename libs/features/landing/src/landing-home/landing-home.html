@@ -1,0 +1,11 @@
+<main id="main-content">
+  <lib-landing-hero />
+  <lib-landing-steps
+    sectionId="how-it-works"
+    i18nKey="landing.customerJourney"
+    [steps]="journeySteps"
+  />
+  <!-- After the three steps, deliberately: the reason to have an account only makes sense
+       once the visitor knows what the account is for. -->
+  <lib-landing-auth />
+</main>

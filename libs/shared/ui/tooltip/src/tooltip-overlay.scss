@@ -1,0 +1,81 @@
+// Consumes the design-system CSS custom properties emitted by the
+// shared @ui styles; reduced motion is handled
+// by the base layer. The host renders inside a CDK overlay pane
+// (pointer-events: auto), which keeps the surface hoverable —
+// WCAG 1.4.13.
+
+:host {
+  display: block;
+}
+
+// Inverse surface: the semantic text tokens flip per theme, so the
+// tooltip reads as warm ink on paper in light mode and warm paper on
+// espresso in dark mode — high contrast on any surface, no per-theme
+// styles needed.
+.tooltip-surface {
+  box-sizing: border-box;
+  max-width: var(--tooltip-max-width);
+  padding: var(--space-2) var(--space-3);
+  background: var(--text-primary);
+  color: var(--text-inverse);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+}
+
+// Origin-aware: the tooltip starts nearer its target, settles out, and
+// retreats the same way on leave. Translate only — a scale here
+// shimmers, because the CDK centers the pane on fractional pixels and
+// non-integer scaling makes the edges and text wobble.
+.tooltip-surface[data-position='top'] {
+  --tooltip-from: translateY(var(--space-1));
+}
+
+.tooltip-surface[data-position='bottom'] {
+  --tooltip-from: translateY(calc(-1 * var(--space-1)));
+}
+
+.tooltip-surface[data-position='left'] {
+  --tooltip-from: translateX(var(--space-1));
+}
+
+.tooltip-surface[data-position='right'] {
+  --tooltip-from: translateX(calc(-1 * var(--space-1)));
+}
+
+// Enter/leave classes applied by `animate.enter` / `animate.leave`.
+// Both ease-out (elements entering or exiting the screen); the exit is
+// faster than the entrance so it never gets in the way.
+.tooltip-enter {
+  animation: tooltip-in var(--dur-base) var(--ease-out);
+}
+
+.tooltip-leave {
+  animation: tooltip-out var(--dur-fast) var(--ease-out);
+}
+
+@keyframes tooltip-in {
+  from {
+    opacity: 0;
+    transform: var(--tooltip-from, none);
+  }
+}
+
+@keyframes tooltip-out {
+  to {
+    opacity: 0;
+    transform: var(--tooltip-from, none);
+  }
+}
+
+// The inverse surface is the only thing separating the tooltip from the
+// page: a forced palette repaints it in the same Canvas as everything
+// behind it and drops the shadow, leaving text floating over text. The
+// border is what bounds it there.
+@media (forced-colors: active) {
+  .tooltip-surface {
+    border: var(--border-width-hairline) solid CanvasText;
+  }
+}

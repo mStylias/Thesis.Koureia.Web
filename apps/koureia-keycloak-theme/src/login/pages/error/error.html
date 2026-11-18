@@ -1,0 +1,10 @@
+<kc-auth-frame [title]="i18n.msgStr('errorTitle')" [description]="kcContext.message.summary">
+  @if (link; as target) {
+    <!-- An anchor, not a button: it goes somewhere. `innerHTML` because Keycloak writes
+         `backToApplication` with HTML entities, and interpolation prints `&laquo;` as those
+         characters. A plain string binding keeps Angular's sanitizer. -->
+    <a libButton size="lg" [href]="target.href">
+      <span [innerHTML]="i18n.msgStr(target.labelKey)"></span>
+    </a>
+  }
+</kc-auth-frame>

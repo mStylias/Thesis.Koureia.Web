@@ -1,0 +1,108 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+.closures-conflicts {
+  margin-block-end: a.space(5);
+}
+
+.closures-empty {
+  @include a.t-body-sm;
+
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.closures-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// The dates, then the kind and the name, then the actions at the end of the line.
+.closures-row {
+  display: grid;
+  grid-template-columns: minmax(var(--closure-dates-min-width), max-content) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: a.space(2) a.space(4);
+  padding-block: a.space(3);
+
+  & + & {
+    border-block-start: var(--border-width-hairline) solid var(--border-subtle);
+  }
+
+  @include a.respond-down(sm) {
+    grid-template-columns: minmax(0, 1fr) auto;
+
+    .closures-detail {
+      grid-row: 2;
+    }
+  }
+}
+
+.closures-dates {
+  @include a.detail-value;
+
+  font-variant-numeric: tabular-nums;
+}
+
+.closures-row[data-past] .closures-dates {
+  color: var(--text-secondary);
+}
+
+.closures-detail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: a.space(2) a.space(3);
+  min-width: 0;
+}
+
+.closures-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.space(2);
+}
+
+.closures-tag {
+  @include a.tag;
+  @include a.t-caption;
+
+  padding: a.space(1) a.space(2);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.closures-name {
+  min-width: 0;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.closures-actions {
+  display: flex;
+  grid-column: -2;
+  grid-row: 1;
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+  }
+}
+
+.closures-past {
+  display: grid;
+  justify-items: start;
+  gap: a.space(2);
+  margin-block-start: a.space(4);
+  padding-block-start: a.space(3);
+  border-block-start: var(--border-width-hairline) solid var(--border-subtle);
+
+  > div {
+    justify-self: stretch;
+  }
+}

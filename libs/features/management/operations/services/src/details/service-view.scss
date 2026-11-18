@@ -1,0 +1,73 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+.service-view {
+  @include a.detail-panel;
+}
+
+// Why online customers cannot see the service.
+.view-callout {
+  margin: var(--space-5) var(--space-6) 0;
+}
+
+.view-section {
+  @include a.detail-section;
+}
+
+.view-grid {
+  @include a.detail-grid;
+}
+
+.view-row {
+  @include a.detail-row;
+}
+
+.view-heading {
+  @include a.detail-heading;
+}
+
+.view-caption {
+  @include a.detail-caption;
+}
+
+.view-value {
+  @include a.detail-value;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.view-description {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  white-space: pre-line;
+}
+
+.view-number {
+  font-variant-numeric: tabular-nums;
+}
+
+// The status is a tag, the product's one recipe for a state.
+.view-badge {
+  @include a.tag;
+
+  align-self: flex-start;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+}
+
+.view-meta,
+.view-empty {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.view-empty {
+  margin: 0;
+}

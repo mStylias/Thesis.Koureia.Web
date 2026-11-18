@@ -1,0 +1,13 @@
+// Global component styles. Prefer Angular component styles. Put a rule here only when it must
+// be global, which means it styles projected content or DOM that a third-party library
+// injects, and emulated encapsulation cannot reach either.
+
+@use 'accordion';
+@use 'card';
+@use 'float-label';
+@use 'icon-field';
+@use 'ifta-label';
+@use 'loading-screen';
+@use 'phone-input';
+@use 'sidebar';
+@use 'spin';

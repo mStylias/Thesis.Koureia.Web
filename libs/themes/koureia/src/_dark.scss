@@ -1,0 +1,101 @@
+// The dark theme: deep espresso surfaces with copper accents. It applies when `<html>` carries
+// `data-theme="dark"`, or when the operating system prefers dark and no `data-theme` attribute
+// is set. An explicit `data-theme="light"` always wins.
+@use 'tokens' as t;
+
+@mixin dark-tokens {
+  color-scheme: dark;
+
+  --bg: #15120e;
+  --surface: #1f1a14;
+  --surface-2: #2a2319;
+  // A recess reads as a lift in dark mode, not a hole. This value also carries every
+  // hover and track (buttons, tabs, grid rows, switches, progress), so it stays one
+  // subtle step above `--surface` — a near-black step made those states shout.
+  --surface-sunken: #262019;
+  // The ground under floating content. See the light theme. Inside a `data-surface="dark"`
+  // band this mixin supplies the value, so a dropdown there lands on opaque espresso with the
+  // paper text the band already set. It stays legible, and nothing restates the band color.
+  --surface-overlay: #1f1a14;
+
+  --border: #3a3226;
+  --border-subtle: #2e2719;
+  --border-strong: #4a4030;
+
+  // A neutral tag, one clear step above every surface a tag sits on: the rows, their stripe and
+  // hover, the header. At `--surface` it vanished into a hovered row, which is lighter than it.
+  --tag-bg: #3a3226;
+  --tag-border: #5c4f3b;
+
+  // The thumb of a switch. It must not be `--surface`, the color of the card under the switch:
+  // the thumb of an off or disabled switch then disappears.
+  --switch-thumb: var(--text-secondary);
+
+  --text-primary: #f4eee2;
+  --text-secondary: #c2b8a9;
+  // At least 4.5:1 on every dark surface, `--surface-2` included.
+  --text-muted: #968979;
+  --text-inverse: #15120e;
+
+  // A filled control keeps the AA-safe primary. Text uses a lighter copper, which keeps a
+  // link and a selected state legible on an espresso surface.
+  --accent: var(--brand-500);
+  --accent-hover: var(--brand-600);
+  --accent-active: var(--brand-700);
+  --accent-text: var(--brand-300);
+  --accent-fg: #ffffff;
+  --accent-subtle: #2c2014;
+  --accent-subtle-border: #4a3620;
+  // Four accent steps under `--text-primary`, weakest first. See the light theme.
+  --accent-tint-1: #30231a;
+  --accent-tint-2: #3d2c1a;
+  --accent-tint-3: #4f3920;
+  --accent-tint-4: #614627;
+
+  // The foreground on a filled semantic surface. The hues do not change in dark mode, so
+  // these pairings match light mode. They are restated and not inherited, so a brand that
+  // re-values a hue per theme can re-pair its foreground here.
+  --on-success: #ffffff;
+  --on-info: #ffffff;
+  --on-warning: #ffffff;
+  --on-error: #ffffff;
+
+  --success-bg: #1c2a1c;
+  --warning-bg: #2c2310;
+  --error-bg: #2c1816;
+  --info-bg: #142028;
+
+  // A semantic hue as text. Each step is lighter than its fill until it is AA on `--surface-2`
+  // and on its own `-bg` tint.
+  --success-text: #6d996f;
+  --warning-text: #aa873d;
+  --error-text: #e1665d;
+  --info-text: #6691ae;
+
+  // The categorical swatches re-stepped for espresso. See `$swatch-dark`.
+  @each $step, $value in t.$swatch-dark {
+    --swatch-#{$step}: #{$value};
+  }
+
+  // A solid accent. The focus indicator is a crisp 2px ring and not a glow.
+  --focus-ring: var(--accent-text);
+
+  // The modal backdrop: near-black, and denser than in light mode so the espresso surfaces
+  // still separate.
+  --scrim: rgba(0, 0, 0, 0.6);
+
+  // Dark mode separates with borders and near-black instead of warm-tinted shadows.
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 14px 36px rgba(0, 0, 0, 0.55);
+}
+
+[data-theme='dark'] {
+  @include dark-tokens;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    @include dark-tokens;
+  }
+}

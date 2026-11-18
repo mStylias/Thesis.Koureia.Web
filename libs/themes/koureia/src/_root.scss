@@ -1,0 +1,33 @@
+// Emits Koureia's tokens as CSS custom properties on `:root`.
+//
+// `scale-vars` takes no arguments here, because Koureia uses the core structure unchanged. A
+// brand that wants different spacing, radii or component density passes only those maps:
+//
+//   @include emit.scale-vars($radius: t.$radius, $spacing: t.$spacing);
+//
+// `brand-vars` has no defaults and requires every argument, so a theme cannot half-declare its
+// identity and inherit the rest from Koureia.
+//
+// The theme-dependent semantic aliases are in `_light.scss` and `_dark.scss`. The per-subtree
+// contexts are in `_surface-dark.scss`.
+@use 'base/emit' as emit;
+@use 'tokens' as t;
+
+:root {
+  @include emit.scale-vars;
+
+  @include emit.brand-vars(
+    $brand: t.$brand,
+    $neutral: t.$neutral,
+    $paper: t.$paper,
+    $semantic: t.$semantic,
+    $swatch: t.$swatch,
+    $shadow: t.$shadow,
+    $font-display: t.$font-display,
+    $font-sans: t.$font-sans,
+    $font-mono: t.$font-mono,
+    $leading: t.$leading,
+    $weight: t.$weight,
+    $tracking: t.$tracking
+  );
+}

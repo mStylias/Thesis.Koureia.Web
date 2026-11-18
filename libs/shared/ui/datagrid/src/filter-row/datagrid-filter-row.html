@@ -1,0 +1,274 @@
+@let yes = 'datagrid.filterRow.true' | uiCopy | transloco;
+@let no = 'datagrid.filterRow.false' | uiCopy | transloco;
+@let fromLabel = 'datagrid.filterRow.rangeFrom' | uiCopy | transloco;
+@let toLabel = 'datagrid.filterRow.rangeTo' | uiCopy | transloco;
+
+<div class="dg-filter-row" role="row" [attr.aria-rowindex]="ariaRowIndex()">
+  @for (cell of cells(); track cell.columnId) {
+    <!-- Resolved here, in the row's own template, and passed down as a plain
+         string. `libIconField` provides its own Transloco scope, and a pipe
+         written on content projected into it resolves the scope from the
+         projecting component — so a `datagrid.*` key looked up inside one
+         comes back empty. -->
+    @let cellLabel = 'datagrid.filterRow.cell' | uiCopy | transloco: { column: cell.caption };
+
+    <div
+      class="dg-filter-cell"
+      role="gridcell"
+      data-filter-cell
+      [attr.aria-colindex]="cell.colIndex"
+      [attr.data-column]="cell.columnId"
+      [attr.data-pinned]="cell.pinned || null"
+      [attr.data-edge]="cell.edge ? '' : null"
+      [attr.data-pending]="cell.pending ? '' : null"
+      [style.left.px]="cell.insetStart"
+      [style.right.px]="cell.insetEnd"
+    >
+      @if (cell.editor !== 'none') {
+        <!-- The chooser and the editor share one bordered box, so the pair
+             reads as one control. A real button, unlike the header's
+             pointer-only affordances: this cell is not itself focusable, so
+             nothing is nested here. -->
+        <!-- `data-field-frame` marks the box a composed editor anchors its
+             floating validation message to: the message belongs to the whole
+             field, so it starts at this edge, not after the chooser. -->
+        <div
+          class="dg-filter-field"
+          data-field-frame
+          [attr.data-active]="hasValue(cell) ? '' : null"
+        >
+          <button
+            type="button"
+            class="dg-filter-op"
+            aria-haspopup="menu"
+            [attr.aria-label]="
+              ('datagrid.filterRow.operator' | uiCopy | transloco: { column: cell.caption }) +
+              ': ' +
+              (operatorLabelKey(cell) | uiCopy | transloco)
+            "
+            (click)="openOperators(cell, $event)"
+          >
+            <!-- The glyph reports the operation in force. A row of identical
+                 funnels says nothing about what each column does. -->
+            <svg [lucideIcon]="operatorIcon(cell)" aria-hidden="true"></svg>
+          </button>
+
+          @if (cell.unsupported) {
+            <span class="dg-filter-note">{{
+              'datagrid.filterRow.unsupported' | uiCopy | transloco
+            }}</span>
+          } @else if (cell.relative) {
+            <span class="dg-filter-note">
+              {{
+                relativeLabelKey(cell.relative)
+                  | uiCopy
+                  | transloco: { amount: cell.relative.amount }
+              }}
+            </span>
+          } @else if (cell.arity === 'none') {
+            <span class="dg-filter-note">{{ operatorLabelKey(cell) | uiCopy | transloco }}</span>
+          } @else if (cell.arity === 'range') {
+            <!-- One field, not two editors sharing the column's track: a pair
+                 is unusable below about 200px, and most columns are narrower. -->
+            <button
+              type="button"
+              class="dg-filter-range"
+              [libPopoverTriggerFor]="rangePanel"
+              [popoverAriaLabel]="
+                'datagrid.filterRow.range' | uiCopy | transloco: { column: cell.caption }
+              "
+            >
+              @if (rangeLabel(cell)) {
+                {{ rangeLabel(cell) }}
+              } @else {
+                <span class="dg-filter-placeholder">
+                  {{ 'datagrid.filterRow.rangeEmpty' | uiCopy | transloco }}
+                </span>
+              }
+            </button>
+
+            <ng-template #rangePanel>
+              <div class="dg-filter-range-panel">
+                <!-- A `<label>` cannot name these: the control is inside a
+                     component, so `for` has nothing to point at and a wrapping
+                     label never reaches it. The caption and the accessible
+                     name are the same string instead. -->
+                <div class="dg-filter-range-row">
+                  <span aria-hidden="true">{{ fromLabel }}</span>
+                  @if (cell.editor === 'date') {
+                    <lib-date-picker
+                      size="sm"
+                      [value]="asDate(cell.value)"
+                      [ariaLabel]="fromLabel"
+                      (valueChange)="onValueCommit(cell, $event, false)"
+                    />
+                  } @else if (cell.editor === 'datetime') {
+                    <lib-datetime-picker
+                      #fromDatetime
+                      size="sm"
+                      iconPosition="end"
+                      frameless
+                      placeholder=""
+                      [value]="asDatetime(cell.value)"
+                      [timeEnabled]="datetimeHasTime(cell.value)"
+                      [ariaLabel]="fromLabel"
+                      (timeEnabledChange)="
+                        onDatetimeModeChange(cell, $event, fromDatetime.value(), false)
+                      "
+                      (valueChange)="
+                        onDatetimeValueCommit(cell, $event, fromDatetime.timeEnabled(), false)
+                      "
+                    />
+                  } @else {
+                    <lib-input-number
+                      size="sm"
+                      showClear
+                      [value]="asNumber(cell.value)"
+                      [ariaLabel]="fromLabel"
+                      (valueChange)="onValue(cell, $event ?? undefined, false)"
+                      (touch)="onCommit(cell)"
+                    />
+                  }
+                </div>
+                <div class="dg-filter-range-row">
+                  <span aria-hidden="true">{{ toLabel }}</span>
+                  @if (cell.editor === 'date') {
+                    <lib-date-picker
+                      size="sm"
+                      [value]="asDate(cell.valueEnd)"
+                      [ariaLabel]="toLabel"
+                      (valueChange)="onValueCommit(cell, $event, true)"
+                    />
+                  } @else if (cell.editor === 'datetime') {
+                    <lib-datetime-picker
+                      #toDatetime
+                      size="sm"
+                      iconPosition="end"
+                      frameless
+                      placeholder=""
+                      [value]="asDatetime(cell.valueEnd)"
+                      [timeEnabled]="datetimeHasTime(cell.valueEnd)"
+                      [ariaLabel]="toLabel"
+                      (timeEnabledChange)="
+                        onDatetimeModeChange(cell, $event, toDatetime.value(), true)
+                      "
+                      (valueChange)="
+                        onDatetimeValueCommit(cell, $event, toDatetime.timeEnabled(), true)
+                      "
+                    />
+                  } @else {
+                    <lib-input-number
+                      size="sm"
+                      showClear
+                      [value]="asNumber(cell.valueEnd)"
+                      [ariaLabel]="toLabel"
+                      (valueChange)="onValue(cell, $event ?? undefined, true)"
+                      (touch)="onCommit(cell)"
+                    />
+                  }
+                </div>
+                <button
+                  libButton
+                  type="button"
+                  severity="secondary"
+                  size="sm"
+                  [disabled]="!hasValue(cell)"
+                  (click)="onReset(cell)"
+                >
+                  {{ 'datagrid.filterRow.clear' | uiCopy | transloco }}
+                </button>
+              </div>
+            </ng-template>
+          } @else {
+            @switch (cell.editor) {
+              @case ('number') {
+                <!-- Commits as the reader types, so the row's debounce has
+                     something to debounce: the control otherwise commits on
+                     blur, and the filter would wait for the editor to be left. -->
+                <lib-input-number
+                  class="dg-filter-editor"
+                  size="sm"
+                  showClear
+                  frameless
+                  commitOn="input"
+                  [value]="asNumber(cell.value)"
+                  [ariaLabel]="cellLabel"
+                  (valueChange)="onValue(cell, $event ?? undefined, false)"
+                  (touch)="onCommit(cell)"
+                  (keydown.escape)="onEditorEscape(cell, $event)"
+                />
+              }
+              @case ('date') {
+                <lib-date-picker
+                  class="dg-filter-editor"
+                  size="sm"
+                  frameless
+                  [value]="asDate(cell.value)"
+                  [ariaLabel]="cellLabel"
+                  (valueChange)="onValueCommit(cell, $event, false)"
+                />
+              }
+              @case ('datetime') {
+                <lib-datetime-picker
+                  #datetimeEditor
+                  class="dg-filter-editor"
+                  size="sm"
+                  iconPosition="end"
+                  frameless
+                  placeholder=""
+                  [value]="asDatetime(cell.value)"
+                  [timeEnabled]="datetimeHasTime(cell.value)"
+                  [ariaLabel]="cellLabel"
+                  (timeEnabledChange)="
+                    onDatetimeModeChange(cell, $event, datetimeEditor.value(), false)
+                  "
+                  (valueChange)="
+                    onDatetimeValueCommit(cell, $event, datetimeEditor.timeEnabled(), false)
+                  "
+                />
+              }
+              @case ('boolean') {
+                <lib-select
+                  class="dg-filter-editor"
+                  size="sm"
+                  showClear
+                  frameless
+                  [options]="booleanOptionsFor(yes, no)"
+                  [value]="asBoolean(cell.value)"
+                  [placeholder]="'datagrid.filterRow.anyBoolean' | uiCopy | transloco"
+                  [ariaLabel]="cellLabel"
+                  (valueChange)="onValueCommit(cell, $event, false)"
+                />
+              }
+              @default {
+                <!-- `libIconField showClear` draws the library's × button.
+                     `type="search"` would draw the browser's own instead,
+                     which is unstyled, unlabelled and blue in WebKit. Its
+                     clear dispatches a native `input` event, so the handler
+                     below sees an emptied field like any other edit. -->
+                <div libIconField showClear class="dg-filter-editor">
+                  <input
+                    libInputText
+                    type="text"
+                    size="sm"
+                    frameless
+                    [value]="asText(cell.value)"
+                    [attr.aria-label]="cellLabel"
+                    (input)="onTextInput(cell, $event, false)"
+                    (keydown.enter)="onCommit(cell)"
+                    (keydown.escape)="onEditorEscape(cell, $event)"
+                    (blur)="onCommit(cell)"
+                  />
+                </div>
+              }
+            }
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Presentational: an overlay host is not a row, and a rowgroup may hold only
+     rows. One host serves every cell; its items are rebuilt at open time. -->
+<lib-context-menu #operatorMenu role="presentation" density="compact" [items]="menuItems()" />

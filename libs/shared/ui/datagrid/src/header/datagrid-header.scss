@@ -1,0 +1,381 @@
+@use 'abstracts' as a;
+
+// The header is the top sticky layer: body 2 < filter row 3 < header 4. Pinned
+// header cells sit above pinned body cells so the corner stays covered when
+// both axes scroll.
+// The header is one grid, not one grid per row: a banded header places a
+// column with no band above it across every row it would otherwise leave
+// blank, and only a shared grid can span rows. The rows stay in the DOM as
+// `display: contents` so the rowgroup keeps its rows and each cell keeps the
+// reading order it was written in.
+:host {
+  --dg-row-bg: var(--surface-2);
+
+  box-sizing: border-box;
+  display: grid;
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  grid-auto-rows: var(--dg-header-height);
+  grid-template-columns: var(--dg-template);
+  width: var(--dg-total-width, 100%);
+  min-width: 100%;
+  background: var(--dg-row-bg);
+  border-block-end: var(--border-width-hairline) solid var(--border);
+}
+
+.dg-header-row {
+  display: contents;
+}
+
+// The column menu draws nothing here — its panel portals to the body — but as a
+// child of the grid it would still take a row of `grid-auto-rows` and add an
+// empty header row to every grid. `display: contents` leaves it no box to place.
+lib-context-menu {
+  display: contents;
+}
+
+// Captions stay sentence case. They are host content, and `text-transform:
+// uppercase` keeps Greek accents that uppercase Greek must drop, so a caption
+// like "Κωδικός" would render as "ΚΩΔΙΚΌΣ".
+.dg-header-cell {
+  box-sizing: border-box;
+  display: flex;
+  position: relative;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  padding-inline: var(--dg-cell-pad-x);
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: var(--dg-font-size);
+  font-weight: 600;
+  // Colour only, so the drop tint stays off the compositor's critical path
+  // while the indicator bar does the moving.
+  transition: background-color var(--dur-fast) var(--ease-standard);
+  // A caption is a control label, not prose. Selecting it does nothing useful,
+  // and without this a reorder drag paints the letters as a text selection
+  // instead of moving the column.
+  user-select: none;
+  // Claims the horizontal gesture, so a drag on a touch screen reorders the
+  // column rather than scrolling the grid under it.
+  touch-action: pan-y;
+  // A column with fewer bands over it reaches up through the rows they would
+  // occupy, and its caption belongs on the bottom row with every other
+  // caption. Padding out the rows above leaves one row to centre in, which
+  // keeps the captions on one line however deep the bands go.
+  padding-block-start: calc(var(--dg-header-height) * (var(--dg-header-rowspan, 1) - 1));
+}
+
+.dg-header-caption {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// A band names the columns beneath it, so it sits over their middle rather
+// than over the first of them. The rule under it is what ties the caption to
+// its span: without it a wide band reads as a column of its own.
+.dg-band-cell {
+  justify-content: center;
+  border-block-end: var(--border-width-hairline) solid var(--border);
+  color: var(--text-primary);
+  cursor: grab;
+}
+
+.dg-band-cell[data-dragging] {
+  cursor: grabbing;
+}
+
+.dg-header-cell[data-sortable] {
+  cursor: pointer;
+}
+
+.dg-header-cell[data-sorted] {
+  color: var(--text-primary);
+}
+
+.dg-sort {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.125rem;
+  color: var(--accent-text);
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+  }
+}
+
+// Descending is the ascending arrow turned over. The rotation is what carries
+// the direction change: two swapped icons share no element, so the flip could
+// only ever pop.
+//
+// `--ease-out`, not `--ease-standard`, even though this is on-screen movement:
+// the user pressed the header, and a press outranks the movement category.
+// Measured on the in-out curve it was 2.6% rotated two frames in, inside the
+// "did my click register" band.
+.dg-sort-icon {
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+.dg-header-cell[data-sorted='desc'] .dg-sort-icon {
+  transform: rotate(180deg);
+}
+
+.dg-sort-enter {
+  animation: dg-sort-in var(--dur-base) var(--ease-out);
+}
+
+@keyframes dg-sort-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dg-sort-ordinal {
+  @include a.t-caption;
+
+  font-variant-numeric: tabular-nums;
+}
+
+// The only pointer affordance a header cell carries, and therefore always
+// visible rather than revealed on hover: the column menu has no icon and opens
+// on right-click, so a hidden funnel would leave nothing at all to show that a
+// column can be filtered.
+.dg-header-filter {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  margin-inline-start: auto;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-standard);
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+  }
+}
+
+.dg-header-cell:hover .dg-header-filter,
+.dg-header-cell:focus-visible .dg-header-filter {
+  color: var(--text-secondary);
+}
+
+// A filtered column shows its funnel in the accent — the state has to read
+// from across the grid. It never stands on colour alone: the filter panel
+// names the same filter in words.
+.dg-header-cell[data-filtered] .dg-header-filter {
+  color: var(--accent-text);
+}
+
+// Wider than it looks: the grab area has to be comfortable, while the visible
+// line stays a hairline.
+.dg-resize-handle {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: calc(var(--space-2) * -1);
+  z-index: 1;
+  width: calc(var(--space-2) * 2);
+  cursor: col-resize;
+  touch-action: none;
+
+  // Sits on the cell's own end edge, not the handle's middle, so it lands
+  // exactly over the separator rule rather than a hairline beside it.
+  &::after {
+    content: '';
+    position: absolute;
+    top: calc(var(--dg-header-height) * (var(--dg-header-rowspan, 1) - 0.75));
+    bottom: calc(var(--dg-header-height) * 0.25);
+    inset-inline-end: var(--space-2);
+    width: var(--border-width-hairline);
+    background: var(--border-strong);
+    opacity: 0;
+    transition: opacity var(--dur-fast) var(--ease-standard);
+  }
+
+  &:hover::after {
+    opacity: 1;
+  }
+}
+
+.dg-header-cell[data-resizing] .dg-resize-handle::after {
+  opacity: 1;
+  background: var(--accent);
+}
+
+// The slot the dragged column has already moved into.
+//
+// It keeps its caption. Blanking the contents made the cell read as a hole in
+// the header rather than as the column's new home, and the column has in fact
+// already arrived — the swap happens during the drag, not on the drop. A tint
+// is enough to say which column the pointer is carrying. Colour only, so it
+// stays off the compositor's critical path while the cells move.
+.dg-header-cell[data-dragging] {
+  background: var(--surface-sunken);
+}
+
+.dg-header-cell[data-pinned] {
+  position: sticky;
+  z-index: 4;
+  background: var(--dg-row-bg);
+}
+
+.dg-header-cell[data-pinned='start'][data-edge] {
+  border-inline-end: var(--border-width-hairline) solid var(--border);
+}
+
+.dg-header-cell[data-pinned='end'][data-edge] {
+  border-inline-start: var(--border-width-hairline) solid var(--border);
+}
+
+.dg-header-cell[data-kind] {
+  justify-content: center;
+  padding-inline: var(--space-1);
+}
+
+// A short centred rule, never a full-height line. The header is one band of
+// labels: a line that runs its whole height cuts the band into boxes and reads
+// as a heavier structure than the rows below it.
+//
+// It does not answer to `columnSeparators`. That option draws the grid lines of
+// the body; this is the header's own rhythm and the captions need it either
+// way. The geometry matches the resize handle's line, so hovering the handle
+// darkens this rule in place instead of drawing a second one beside it.
+// The start-pinned edge is skipped: it already carries a full border, which
+// marks where the frozen columns end rather than which caption is which.
+// The rule sits in the row the caption is on, not down the whole span: a
+// column reaching up through three band rows would otherwise draw a line tall
+// enough to read as a table border.
+.dg-header-cell:not(:last-child):not([data-pinned='start'][data-edge])::after {
+  content: '';
+  position: absolute;
+  top: calc(var(--dg-header-height) * (var(--dg-header-rowspan, 1) - 0.75));
+  bottom: calc(var(--dg-header-height) * 0.25);
+  inset-inline-end: 0;
+  width: var(--border-width-hairline);
+  // `--border`, not `--border-subtle`: a hairline over half the header height
+  // is a small target for the eye, and the subtle step disappears against
+  // `--surface-2`. The handle's hover line stays a step above at
+  // `--border-strong`, so the affordance still reads.
+  background: var(--border);
+}
+
+// The global reduced-motion rule zeroes durations, which still runs the
+// transition. Removing it is what the preference actually asks for.
+@media (prefers-reduced-motion: reduce) {
+  .dg-sort-icon,
+  .dg-header-cell,
+  .dg-header-menu,
+  .dg-header-filter {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .dg-header-cell[data-pinned] {
+    background: Canvas;
+  }
+
+  // Sort direction is carried by the icon shape, but the drag placeholder is
+  // colour alone without this.
+  .dg-header-cell[data-dragging] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+
+  .dg-header-cell[data-filtered] .dg-header-filter {
+    color: Highlight;
+  }
+
+  // The band's own rule is the only thing that says where its span ends.
+  .dg-band-cell {
+    border-block-end-color: CanvasText;
+  }
+}
+
+// The progress bar for a load that keeps its rows on screen. It sits on the
+// header's bottom edge, which is the boundary the replaced rows appear below —
+// and the header is sticky, so it stays there while the rows scroll under it.
+// Out of flow: a child in flow would take a row of `grid-auto-rows` and add an
+// empty header row to every grid.
+//
+// Above the pinned cells, which are sticky at 4 and opaque. At 1 the bar ran
+// only from the end of the pinned columns, because a pinned cell painted over
+// the part beneath it — and the bar reports a load of the whole grid.
+.dg-header-loading {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 5;
+  height: var(--border-width-strong);
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.dg-header-loading::after {
+  content: '';
+  display: block;
+  width: 40%;
+  height: 100%;
+  background: var(--accent);
+  animation: dg-indeterminate var(--dur-indeterminate) var(--ease-standard) infinite;
+}
+
+@keyframes dg-indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(350%);
+  }
+}
+
+// Opacity only: the bar is pinned to an edge and must not move while it fades.
+.dg-header-loading-enter {
+  animation: dg-header-loading-in var(--dur-base) var(--ease-out);
+}
+
+.dg-header-loading-leave {
+  animation: dg-header-loading-out var(--dur-fast) var(--ease-out);
+}
+
+@keyframes dg-header-loading-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dg-header-loading-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+// A forced-colors palette drops the accent, and the bar is state carried by
+// colour alone.
+@media (forced-colors: active) {
+  .dg-header-loading::after {
+    background: Highlight;
+  }
+}

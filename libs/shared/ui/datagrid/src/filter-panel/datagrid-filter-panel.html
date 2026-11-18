@@ -1,0 +1,53 @@
+@for (chip of chips(); track chip.id) {
+  <span class="dg-fp-chip" [attr.data-unsupported]="chip.representable ? null : ''">
+    @if (!chip.representable) {
+      <!-- Not colour alone: the icon carries a title the chip's own text
+           repeats, so the warning survives forced colours and a screen reader. -->
+      <svg
+        lucideTriangleAlert
+        class="dg-fp-warning"
+        [attr.aria-label]="'datagrid.filterPanel.unsupported' | uiCopy | transloco"
+      ></svg>
+    }
+    @if (chip.caption) {
+      <span class="dg-fp-caption">{{ chip.caption }}</span>
+    }
+    <span class="dg-fp-op">{{ chip.labelKey | uiCopy | transloco: chip.labelParams }}</span>
+    @if (chip.text) {
+      <span class="dg-fp-value">{{ chip.text }}</span>
+    }
+    <button
+      type="button"
+      class="dg-fp-remove"
+      [attr.aria-label]="
+        ('datagrid.filterPanel.remove' | uiCopy | transloco) +
+        (chip.caption ? ': ' + chip.caption : '')
+      "
+      (click)="removed.emit({ id: chip.id })"
+    >
+      <svg lucideX aria-hidden="true"></svg>
+    </button>
+  </span>
+}
+
+<span class="dg-fp-actions">
+  @if (showBuilder()) {
+    <button
+      libButton
+      type="button"
+      severity="secondary"
+      size="sm"
+      (click)="builderRequested.emit($event)"
+    >
+      {{ 'datagrid.filterBuilder.open' | uiCopy | transloco }}
+    </button>
+  }
+  <button libButton type="button" severity="secondary" size="sm" (click)="clearedAll.emit()">
+    {{ 'datagrid.filterPanel.clearAll' | uiCopy | transloco }}
+  </button>
+  @if (showReset()) {
+    <button libButton type="button" severity="secondary" size="sm" (click)="resetRequested.emit()">
+      {{ 'datagrid.filterPanel.reset' | uiCopy | transloco }}
+    </button>
+  }
+</span>

@@ -1,0 +1,32 @@
+:host {
+  display: contents;
+}
+
+.info-outcome {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: stretch;
+}
+
+a[libButton] {
+  width: 100%;
+}
+
+.info-countdown {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  text-align: center;
+}
+
+/* Quieter than the way out, which is the action this page is actually offering. */
+button[libButton] {
+  justify-self: center;
+}
+
+@media (min-width: 64rem) and (min-height: 48rem) {
+  .info-outcome {
+    gap: var(--space-4);
+  }
+}

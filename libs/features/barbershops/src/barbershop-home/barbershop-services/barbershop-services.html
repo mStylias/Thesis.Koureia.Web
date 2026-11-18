@@ -1,0 +1,21 @@
+@for (group of groups(); track group.id) {
+  <section class="services-group">
+    @if (grouped()) {
+      <h3 class="services-group__title">
+        {{ group.name ?? ('barbershops.home.services.other' | transloco) }}
+      </h3>
+    }
+
+    <ul class="services-grid">
+      @for (service of group.services; track service.id) {
+        <li class="service">
+          <span class="service__name">{{ service.name }}</span>
+          <span class="service__meta">
+            <span class="service__duration">{{ service.duration }}</span>
+            <span class="service__price">{{ service.price }}</span>
+          </span>
+        </li>
+      }
+    </ul>
+  </section>
+}

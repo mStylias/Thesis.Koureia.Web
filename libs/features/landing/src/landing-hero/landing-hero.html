@@ -1,0 +1,37 @@
+<section id="top" class="hero" data-surface="dark" aria-labelledby="hero-title">
+  <img class="hero-image" [ngSrc]="brand.heroImage" alt="" fill priority aria-hidden="true" />
+  <div class="hero-overlay" aria-hidden="true"></div>
+
+  <div class="hero-content">
+    @if (!isStaff()) {
+      <p class="eyebrow hero-item-enter">{{ 'landing.hero.eyebrow' | transloco }}</p>
+    }
+    <h1 id="hero-title" class="hero-item-enter hero-title-enter">
+      {{ (isStaff() ? 'landing.hero.staffTitle' : 'landing.hero.title') | transloco }}
+    </h1>
+    <p class="lead hero-item-enter hero-lead-enter">
+      {{ (isStaff() ? 'landing.hero.staffLead' : 'landing.hero.lead') | transloco }}
+    </p>
+    @if (isStaff()) {
+      <!-- `/management` carries no language segment, so `langLink` does not apply. -->
+      <a libButton routerLink="/management" size="lg" class="hero-item-enter hero-cta-enter">
+        {{ 'landing.cta.management' | transloco }}
+        <svg lucideChevronRight aria-hidden="true"></svg>
+      </a>
+    } @else {
+      <a libButton langLink="/barbershops" size="lg" class="hero-item-enter hero-cta-enter">
+        <svg lucideCalendarCheck aria-hidden="true"></svg>
+        {{ 'landing.cta.book' | transloco }}
+      </a>
+    }
+  </div>
+
+  <a
+    class="scroll-cue"
+    href="#how-it-works"
+    [attr.aria-label]="'landing.hero.scrollLabel' | transloco"
+    (click)="scrollToJourney($event)"
+  >
+    <svg lucideChevronDown aria-hidden="true"></svg>
+  </a>
+</section>

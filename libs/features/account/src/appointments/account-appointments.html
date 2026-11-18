@@ -1,0 +1,31 @@
+<section class="appointments-section" aria-labelledby="appointments-upcoming">
+  <h2 class="appointments-heading" id="appointments-upcoming">
+    {{ 'account.appointments.upcoming' | transloco }}
+  </h2>
+  <lib-appointment-list
+    period="Upcoming"
+    [list]="upcoming.list()"
+    (retry)="upcoming.reload()"
+    (more)="upcoming.more()"
+  />
+</section>
+
+<section class="appointments-section" id="past" aria-labelledby="appointments-past">
+  <h2 class="appointments-heading" id="appointments-past">
+    {{ 'account.appointments.past' | transloco }}
+  </h2>
+  <lib-appointment-list
+    period="Past"
+    [list]="past.list()"
+    (retry)="past.reload()"
+    (more)="past.more()"
+    (rate)="rate($event)"
+  />
+</section>
+
+<lib-review-dialog
+  [(visible)]="reviewOpen"
+  [target]="reviewTarget()"
+  (saved)="reviewed($event)"
+  (stale)="reviewStale()"
+/>

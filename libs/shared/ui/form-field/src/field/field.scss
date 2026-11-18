@@ -1,0 +1,66 @@
+@use 'abstracts' as a;
+
+// One cell: the control and whatever belongs to it, so a message stays under its own field
+// rather than becoming the next one's heading. Where the cell sits is the form's business.
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(1);
+  min-width: 0;
+}
+
+// The label wrappers are `inline-flex` and sized to their content, so they need telling to fill
+// the cell. Their `display` is left alone: the global partials declare it at the same
+// specificity, and which one wins is injection order.
+.field-wrapper {
+  width: 100%;
+}
+
+.field-label {
+  @include a.t-field-label;
+}
+
+// Inline, not the `block` of Tailwind's preflight. The `vertical-align` centers the icon on the
+// capitals. Flex centering uses the line box, which sits below the glyphs. The space before the
+// label text spaces the icon.
+.field-label-icon {
+  display: inline-block;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  vertical-align: calc((1cap - var(--icon-size-sm)) / 2);
+  stroke-width: var(--icon-stroke);
+}
+
+.field-required {
+  margin-left: a.space(1);
+  color: var(--error-text);
+}
+
+.field-hint {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+  color: var(--text-muted);
+}
+
+.field-error {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  color: var(--error-text);
+}
+
+// Read-only mode. The value sits directly under its caption with no control chrome.
+// Caption and value as every details panel reads them: the caption at the value's size.
+.field-view-label {
+  @include a.detail-caption;
+}
+
+.field-view-value {
+  @include a.detail-value;
+}
+
+.field-view-empty {
+  color: var(--text-muted);
+  font-style: italic;
+}

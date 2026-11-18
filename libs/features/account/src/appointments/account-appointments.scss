@@ -1,0 +1,18 @@
+@use 'abstracts' as a;
+
+:host {
+  display: grid;
+  gap: a.space(10);
+}
+
+.appointments-section {
+  display: grid;
+  gap: a.space(1);
+  scroll-margin-block-start: a.space(20);
+}
+
+.appointments-heading {
+  @include a.t-title;
+  margin: 0;
+  color: var(--text-primary);
+}

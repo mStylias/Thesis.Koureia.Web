@@ -1,0 +1,10 @@
+// Third-party stylesheets and overrides. Tailwind is imported separately in `tailwind.css`,
+// because PostCSS must process it and Sass must not.
+
+// Structural styles for the Angular CDK overlays: positioning only, no visuals. @ui/tooltip
+// needs them.
+@use '@angular/cdk/overlay-prebuilt.css';
+
+// The country selector and flag base styles. @ui/phone-input needs them.
+@use 'intl-tel-input';
+@use 'maplibre';

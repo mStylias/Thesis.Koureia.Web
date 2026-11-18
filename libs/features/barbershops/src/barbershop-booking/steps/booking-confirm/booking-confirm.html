@@ -1,0 +1,64 @@
+@if (state.rescheduling()) {
+  <h2 class="step__title">{{ 'barbershops.booking.reschedule.title' | transloco }}</h2>
+  <lib-booking-reschedule class="confirm__compare" [newTotal]="newTotal()" />
+} @else {
+  <h2 class="step__title">{{ 'barbershops.booking.confirm.title' | transloco }}</h2>
+}
+
+<lib-booking-confirm-fields class="confirm__fields" [gate]="gate()" [(phone)]="phone" />
+
+<!--
+  The same action as the bar's, at the end of what it commits to. The bar is fixed and always
+  reachable, but a customer who has just read the policy should not have to look away from it
+  to agree. It follows the gate, so it never offers to book for someone who cannot yet.
+-->
+<div class="confirm__commit">
+  <button
+    libButton
+    class="confirm__commit-button"
+    type="button"
+    size="lg"
+    [disabled]="gate() === 'deciding'"
+    [loading]="submitting()"
+    (click)="commit.emit()"
+  >
+    {{ commitLabel() }}
+  </button>
+</div>
+
+<!--
+  Under the button and not above it: this button sends an anonymous customer away from the
+  page, and what it promises about the selection is read as they reach for it.
+-->
+@if (gate() === 'anonymous') {
+  <lib-banner
+    class="confirm__notice"
+    role="status"
+    animate.enter="booking-notice-enter"
+    [icon]="shieldIcon"
+  >
+    {{ 'barbershops.booking.confirm.kept' | transloco }}
+  </lib-banner>
+}
+
+@if (gate() === 'unverified') {
+  <lib-banner
+    class="confirm__notice"
+    role="status"
+    animate.enter="booking-notice-enter"
+    [icon]="shieldIcon"
+  >
+    {{ 'barbershops.booking.confirm.verifyLead' | transloco }}
+  </lib-banner>
+}
+
+@if (failure(); as message) {
+  <lib-banner
+    class="confirm__notice"
+    tone="error"
+    role="alert"
+    animate.enter="booking-notice-enter"
+  >
+    {{ message }}
+  </lib-banner>
+}

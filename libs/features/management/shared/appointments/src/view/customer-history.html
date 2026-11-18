@@ -1,0 +1,64 @@
+<!-- Nothing to show is shown as nothing: no title over an empty list. -->
+@if (failed() || rows().length > 0) {
+  <section class="history" aria-labelledby="customer-history-title">
+    <div class="history-header">
+      <h3 class="history-title" id="customer-history-title">
+        {{ titleKey() | transloco }}
+      </h3>
+      @if (viewAll(); as link) {
+        <a class="history-all" [routerLink]="link">
+          {{ 'managementAppointments.view.viewAll' | transloco }}
+          <svg lucideChevronRight aria-hidden="true"></svg>
+        </a>
+      }
+    </div>
+
+    @if (failed()) {
+      <p class="history-empty">{{ 'managementAppointments.view.historyFailed' | transloco }}</p>
+    } @else {
+      @for (group of groups(); track group.key) {
+        <div class="history-group">
+          <h4 class="history-group-title" [id]="'customer-history-' + group.key">
+            {{ 'managementAppointments.view.' + group.key | transloco }}
+          </h4>
+          <ul class="history-list" [attr.aria-labelledby]="'customer-history-' + group.key">
+            @for (row of group.rows; track row.id) {
+              <li>
+                <ng-template #rowContent>
+                  <span class="history-body">
+                    <span class="history-when">
+                      {{ date(row) }} · {{ row.localStartTime }}
+                      <span class="history-status" [attr.data-tone]="tone(row)">
+                        {{ statusKey(row) | transloco }}
+                      </span>
+                    </span>
+                    <span class="history-meta">
+                      {{ services(row) }} · {{ row.staffDisplayName }}
+                    </span>
+                  </span>
+                  <svg lucideChevronRight class="history-chevron" aria-hidden="true"></svg>
+                </ng-template>
+                @if (appointmentLink(); as link) {
+                  <a
+                    class="history-row"
+                    [routerLink]="link({ id: row.id, localDate: row.localDate })"
+                  >
+                    <ng-container [ngTemplateOutlet]="rowContent" />
+                  </a>
+                } @else {
+                  <button
+                    type="button"
+                    class="history-row"
+                    (click)="openAppointment.emit({ id: row.id, localDate: row.localDate })"
+                  >
+                    <ng-container [ngTemplateOutlet]="rowContent" />
+                  </button>
+                }
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    }
+  </section>
+}

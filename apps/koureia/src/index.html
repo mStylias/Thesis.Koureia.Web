@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="el">
+  <head>
+    <meta charset="utf-8" />
+    <title>Koureia</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Only `og:type` and `og:site_name` are the same in every language, so only these two
+         belong in a one-copy file. `PageMetadata` writes the per-language, per-page tags into the
+         render, and overwrites the `<html lang>` placeholder above. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Koureia" />
+    <link rel="icon" type="image/png" href="brand/koureia_icon.png" />
+    <!-- The installed web app: the Home Screen icon, its name, and the browser chrome color.
+         Push on an iPhone needs the Home Screen app, so these are part of reminders. The colors
+         are the theme's `--bg` in light and dark. A meta tag cannot read a custom property. -->
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="brand/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Koureia" />
+    <meta name="theme-color" content="#fbf8f2" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#15120e" media="(prefers-color-scheme: dark)" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,500;0,700;0,800;1,400;1,500&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+    <script>
+      // Pre-paint gate for scroll-reveal animations. Hides `.landing-reveal` content from the
+      // first frame only when the reveal will run. Without JavaScript the class never arrives and
+      // the server-rendered content stays visible.
+      if (
+        !matchMedia('(prefers-reduced-motion: reduce)').matches &&
+        'IntersectionObserver' in window
+      ) {
+        document.documentElement.classList.add('landing-motion');
+      }
+
+      // Pre-paint theme gate. Routes prerender at build time, so the served HTML cannot know this
+      // visitor's choice, and applying it before the first paint is what prevents a flash of the
+      // wrong theme. An absent or 'system' value sets nothing and hands control to
+      // `prefers-color-scheme`.
+      //
+      // CAUTION: The key must match THEME_STORAGE_KEY in @util/brand. This script runs before the
+      // bundle, so it cannot import it.
+      try {
+        var theme = localStorage.getItem('ui-theme');
+        if (theme === 'light' || theme === 'dark') {
+          document.documentElement.setAttribute('data-theme', theme);
+        }
+      } catch (e) {
+        // localStorage throws in some privacy modes. Fall back to the operating system.
+      }
+    </script>
+  </head>
+  <body>
+    <app-root>
+      <!--
+        The splash, painted before the bundle exists.
+
+        `/management` is client rendered, so the browser is handed an empty document and the whole
+        bundle download and bootstrap happens with nothing on the screen. No component can cover
+        that, because a component is the thing being waited for. This is the same markup and the
+        same classes as `@ui/loading-screen`, drawn by the global partial in
+        `styles/components/_loading-screen.scss`, so when the component appears in Angular's first
+        paint the screen does not change. `App` drops this copy right after that paint.
+
+        CAUTION: Keep it in step with the component's template. The mark carries its entrance
+        class here and the component is told to skip its own, so the animation plays once.
+      -->
+      <div class="loading-screen" id="app-splash" role="status">
+        <img
+          class="loading-screen-logo loading-screen-logo-enter"
+          src="brand/koureia_icon.png"
+          alt=""
+        />
+        <div class="loading-screen-bar" aria-hidden="true">
+          <div class="loading-screen-bar-fill"></div>
+        </div>
+      </div>
+      <script>
+        // Only `/management` is client rendered, so only it arrives without content to show. A
+        // prerendered address replaces this whole element with the rendered page, and the dev
+        // server does not, which is the case this guards. Inline and immediate, so no frame of a
+        // public page is ever covered.
+        var splash = document.getElementById('app-splash');
+        if (splash && !/^\/management(\/|$)/.test(location.pathname)) {
+          splash.remove();
+        }
+      </script>
+    </app-root>
+  </body>
+</html>

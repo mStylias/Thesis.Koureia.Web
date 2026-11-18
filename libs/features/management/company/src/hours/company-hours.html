@@ -1,0 +1,96 @@
+<lib-page-section
+  sectionId="hours"
+  skeletonRows="7"
+  [heading]="'managementCompany.hours.title' | transloco"
+  [state]="state()"
+  (retry)="retry()"
+>
+  <!-- Static, so the section's slot matches it. The button inside comes and goes. -->
+  <div libPageSectionActions>
+    @if (canEdit() && editor.viewing()) {
+      <button
+        #editButton
+        libButton
+        type="button"
+        size="sm"
+        variant="outlined"
+        severity="secondary"
+        (click)="edit()"
+      >
+        <svg libButtonIcon lucidePencil aria-hidden="true"></svg>
+        {{ 'managementCompany.actions.edit' | transloco }}
+      </button>
+    }
+  </div>
+
+  @if (conflicts().length > 0) {
+    <lib-staff-conflicts
+      class="hours-conflicts"
+      [heading]="
+        (conflicts().length === 1
+          ? 'managementCompany.conflicts.hoursOne'
+          : 'managementCompany.conflicts.hours'
+        ) | transloco: { count: conflicts().length }
+      "
+      [conflicts]="conflicts()"
+      [language]="language()"
+      (dismissed)="conflicts.set([])"
+    />
+  }
+
+  @if (editor.editing()) {
+    <form class="hours-form" [libForm]="editor">
+      <lib-form-errors />
+
+      <lib-week-hours-grid
+        idPrefix="company-hours"
+        [form]="editor.form"
+        [language]="language()"
+        [maxRanges]="maxRanges"
+        [fallbackRange]="fallbackRange"
+        [offText]="'managementCompany.hours.closed' | transloco"
+        [copyToAllText]="'managementCompany.hours.copyToAll' | transloco"
+      />
+
+      <div class="hours-actions">
+        <button
+          libButton
+          type="button"
+          variant="outlined"
+          severity="secondary"
+          [disabled]="editor.submitting()"
+          (click)="cancel()"
+        >
+          {{ 'managementCompany.actions.cancel' | transloco }}
+        </button>
+        <!-- Never disabled by validity: the first press is what reveals it. -->
+        <button libButton type="submit" [loading]="editor.submitting()">
+          {{ 'managementCompany.actions.save' | transloco }}
+        </button>
+      </div>
+    </form>
+  } @else {
+    @if (empty()) {
+      <p class="hours-none">{{ 'managementCompany.hours.none' | transloco }}</p>
+    }
+    <dl class="hours-grid">
+      @for (day of days(); track day.dayOfWeek) {
+        <div class="hours-row">
+          <dt class="hours-caption">{{ day.name }}</dt>
+          <dd class="hours-value" [attr.data-closed]="day.open ? null : ''">{{ day.text }}</dd>
+        </div>
+      }
+    </dl>
+
+    @if (saved()) {
+      <p class="hours-note">
+        {{ 'managementCompany.hours.barbers' | transloco }}
+        @if (canOpenStaff()) {
+          <a class="hours-link" [routerLink]="staffPath">{{
+            'managementCompany.hours.staffLink' | transloco
+          }}</a>
+        }
+      </p>
+    }
+  }
+</lib-page-section>

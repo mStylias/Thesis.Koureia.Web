@@ -1,0 +1,247 @@
+// Consumes the design-system CSS custom properties emitted by the global
+// styles. Each option keeps a real <input type="radio"> in the DOM
+// (invisible, stretched over its label for a generous hit area); the
+// browser drives selection, arrow-key roving, focus, and form state,
+// while :checked / :focus-visible paint the visible control.
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-family: var(--font-sans);
+  // Even, whole-pixel dot at every size. Half of the (even) control size
+  // rounded down to a 2px step keeps the dot's edges on the device-pixel
+  // grid, so it sits dead-centre and never blurs or shifts between
+  // options — a `50%` dot lands on a half-pixel at the 20/24px sizes.
+  --radio-dot: round(down, calc(var(--radio-size) / 2), 2px);
+}
+
+:host([data-orientation='horizontal']) {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+// ---- Option row ----
+
+// Grid so the control shares the label's row and centers against that
+// single line — a description flows into a second row and never shifts
+// the dot, keeping it in the same spot across every option.
+.radio {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--space-2);
+  row-gap: calc(var(--space-1) / 2);
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.radio-control {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.radio-label {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.radio-description {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.radio[data-disabled] {
+  cursor: default;
+  opacity: var(--opacity-disabled);
+}
+
+// Invisible but real: keyboard, focus, single-selection, and form
+// participation come from the native input. Its own ring is invisible at
+// opacity 0; the control below renders focus instead.
+.radio-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+// ---- Circle + dot ----
+
+.radio-control {
+  box-sizing: border-box;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: var(--radio-size);
+  height: var(--radio-size);
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  transition:
+    border-color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+// The dot scales in from a visible shape (not scale(0)), ease-out for an
+// element entering. stroke/opacity kept GPU-cheap.
+.radio-dot {
+  width: var(--radio-dot);
+  height: var(--radio-dot);
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  transform: scale(0);
+  opacity: 0;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
+}
+
+.radio-input:checked + .radio-control {
+  border-color: var(--accent);
+}
+
+.radio-input:checked + .radio-control .radio-dot {
+  transform: scale(1);
+  opacity: 1;
+}
+
+// Press feedback: a subtle scale makes the control feel like it's
+// listening — a state change, applied instantly under reduced motion.
+.radio:active .radio-input:not(:disabled) + .radio-control {
+  transform: scale(0.92);
+}
+
+// Hover only where hover truly exists — touch devices trigger hover on
+// tap and would leave the control stuck in its hover state.
+@media (hover: hover) and (pointer: fine) {
+  .radio:hover .radio-input:not(:disabled) + .radio-control {
+    border-color: var(--accent);
+  }
+}
+
+// The 2px accent focus ring (WCAG 2.4.7), lifted off the control by a
+// surface-colored gap so it stays visible against a filled control.
+.radio-input:focus-visible + .radio-control {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--focus-ring);
+}
+
+// ---- Text ----
+
+.radio-label {
+  font-size: var(--radio-text);
+  line-height: var(--leading-snug);
+  color: var(--text-primary);
+}
+
+.radio-description {
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  color: var(--text-secondary);
+}
+
+// ---- Card variant ----
+// The whole bordered tile becomes the option; the dot stays as the
+// selection affordance and lights the border when chosen.
+
+:host([data-variant='card']) {
+  .radio {
+    column-gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--surface);
+    border: var(--border-width-hairline) solid var(--border);
+    border-radius: var(--radius-md);
+    transition:
+      border-color var(--dur-fast) var(--ease-standard),
+      box-shadow var(--dur-fast) var(--ease-standard);
+  }
+
+  .radio-selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 var(--border-width-hairline) var(--accent);
+  }
+}
+
+// ---- Sizes → private properties ----
+// The control tracks the icon scale so it sits naturally next to text.
+
+:host([data-size='sm']) {
+  --radio-size: var(--icon-size-sm);
+  --radio-text: var(--text-sm);
+}
+
+:host([data-size='md']) {
+  --radio-size: var(--icon-size-md);
+  --radio-text: var(--text-base);
+}
+
+:host([data-size='lg']) {
+  --radio-size: var(--icon-size-lg);
+  --radio-text: var(--text-lg);
+}
+
+// ---- Invalid ----
+// [data-invalid] mirrors the `invalid` input (also set by Signal Forms).
+
+:host([data-invalid]) {
+  .radio-control {
+    border-color: var(--error);
+  }
+
+  .radio-input:checked + .radio-control {
+    border-color: var(--error);
+  }
+
+  .radio-input:checked + .radio-control .radio-dot {
+    background: var(--error);
+  }
+
+  .radio-input:focus-visible + .radio-control {
+    box-shadow:
+      0 0 0 2px var(--surface),
+      0 0 0 4px var(--error);
+  }
+}
+
+:host([data-variant='card'][data-invalid]) .radio-selected {
+  border-color: var(--error);
+  box-shadow: 0 0 0 var(--border-width-hairline) var(--error);
+}
+
+// ---- Forced colors ----
+// A forced palette drops our backgrounds, borders and every box-shadow,
+// which is the only thing marking a selected card and the focus ring.
+// Re-state each one with a system color so the state never reads as
+// "nothing selected".
+
+@media (forced-colors: active) {
+  .radio-control {
+    border-color: CanvasText;
+  }
+
+  .radio-input:checked + .radio-control {
+    border-color: Highlight;
+  }
+
+  .radio-input:checked + .radio-control .radio-dot {
+    background: Highlight;
+    forced-color-adjust: none;
+  }
+
+  .radio-input:focus-visible + .radio-control {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  :host([data-variant='card']) .radio-selected {
+    outline: 2px solid Highlight;
+  }
+}

@@ -1,0 +1,60 @@
+// Consumes the design-system CSS custom properties emitted by the
+// shared @ui styles; reduced motion is handled
+// by the base layer, which neutralises the animations below.
+
+:host {
+  display: block;
+}
+
+.popover-surface {
+  box-sizing: border-box;
+  max-width: min(var(--popover-max-width), calc(100vw - var(--space-8)));
+  // CDK pushes a pane back on screen only when it fits the viewport, so a taller one ran off the edge.
+  max-height: calc(100dvh - var(--space-8));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-4);
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  outline: none;
+}
+
+// Origin-aware: the surface grows out of the edge nearest its anchor.
+.popover-surface[data-position='bottom'] {
+  transform-origin: top center;
+}
+
+.popover-surface[data-position='top'] {
+  transform-origin: bottom center;
+}
+
+// Enter/leave classes applied by `animate.enter` / `animate.leave`.
+// Both ease-out; the exit is faster than the entrance so it never gets
+// in the way.
+.popover-enter {
+  animation: popover-in var(--dur-base) var(--ease-out);
+}
+
+.popover-leave {
+  animation: popover-out var(--dur-fast) var(--ease-out);
+}
+
+@keyframes popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--space-1))) scale(0.98);
+  }
+}
+
+@keyframes popover-out {
+  to {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--space-1))) scale(0.98);
+  }
+}

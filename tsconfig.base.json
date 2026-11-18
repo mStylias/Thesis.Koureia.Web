@@ -1,0 +1,147 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    // The workspace root, because a relative path in an extended config
+    // resolves against the file that declares it. A library that emits
+    // declarations otherwise infers its own directory as the root, and every
+    // import reached through a `paths` alias then sits outside it — TS6059 on
+    // each one, in the editor only, because no build uses these configs to emit.
+    "rootDir": ".",
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "preserve",
+    "paths": {
+      "@api/core": ["./libs/shared/data-access/api/src/index.ts"],
+      "@auth/data-access": ["./libs/auth/data-access/src/index.ts"],
+      "@auth/feature-session": ["./libs/auth/feature-session/src/index.ts"],
+      "@auth/feature-verify-email": ["./libs/auth/feature-verify-email/src/index.ts"],
+      "@data/odata-source": ["./libs/shared/data-access/odata-source/src/index.ts"],
+      "@synax/client": ["./libs/shared/data-access/synax/client/src/index.ts"],
+      "@synax/client/core": ["./libs/shared/data-access/synax/core/src/index.ts"],
+      "@synax/forms": ["./libs/shared/data-access/synax/forms/src/index.ts"],
+      "@ui/bottom-sheet": ["./libs/shared/ui/bottom-sheet/src/index.ts"],
+      "@ui/button": ["./libs/shared/ui/button/src/index.ts"],
+      "@ui/card": ["./libs/shared/ui/card/src/index.ts"],
+      "@ui/chart": ["./libs/shared/ui/chart/src/index.ts"],
+      "@ui/checkbox": ["./libs/shared/ui/checkbox/src/index.ts"],
+      "@ui/confirmation-dialog": ["./libs/shared/ui/confirmation-dialog/src/index.ts"],
+      "@ui/dialog": ["./libs/shared/ui/dialog/src/index.ts"],
+      "@ui/drawer": ["./libs/shared/ui/drawer/src/index.ts"],
+      "@ui/fab": ["./libs/shared/ui/fab/src/index.ts"],
+      "@ui/floating-panel": ["./libs/shared/ui/floating-panel/src/index.ts"],
+      "@ui/form-field": ["./libs/shared/ui/form-field/src/index.ts"],
+      "@ui/input-number": ["./libs/shared/ui/input-number/src/index.ts"],
+      "@ui/range-picker": ["./libs/shared/ui/range-picker/src/index.ts"],
+      "@ui/input-otp": ["./libs/shared/ui/input-otp/src/index.ts"],
+      "@ui/input-text": ["./libs/shared/ui/input-text/src/index.ts"],
+      "@ui/multi-select": ["./libs/shared/ui/multi-select/src/index.ts"],
+      "@ui/gallery": ["./libs/shared/ui/gallery/src/index.ts"],
+      "@ui/paginator": ["./libs/shared/ui/paginator/src/index.ts"],
+      "@ui/password-input": ["./libs/shared/ui/password-input/src/index.ts"],
+      "@ui/phone-input": ["./libs/shared/ui/phone-input/src/index.ts"],
+      "@ui/progress": ["./libs/shared/ui/progress/src/index.ts"],
+      "@ui/select": ["./libs/shared/ui/select/src/index.ts"],
+      "@ui/stat": ["./libs/shared/ui/stat/src/index.ts"],
+      "@ui/stepper": ["./libs/shared/ui/stepper/src/index.ts"],
+      "@ui/sidebar": ["./libs/shared/ui/sidebar/src/index.ts"],
+      "@ui/topbar": ["./libs/shared/ui/topbar/src/index.ts"],
+      "@ui/toaster": ["./libs/shared/ui/toaster/src/index.ts"],
+      "@ui/spin": ["./libs/shared/ui/spin/src/index.ts"],
+      "@ui/banner": ["./libs/shared/ui/banner/src/index.ts"],
+      "@ui/tooltip": ["./libs/shared/ui/tooltip/src/index.ts"],
+      "@ui/tree": ["./libs/shared/ui/tree/src/index.ts"],
+      "@ui/popover": ["./libs/shared/ui/popover/src/index.ts"],
+      "@ui/loading-screen": ["./libs/shared/ui/loading-screen/src/index.ts"],
+      "@ui/menu": ["./libs/shared/ui/menu/src/index.ts"],
+      "@ui/context-menu": ["./libs/shared/ui/context-menu/src/index.ts"],
+      "@ui/tabs": ["./libs/shared/ui/tabs/src/index.ts"],
+      "@ui/accordion": ["./libs/shared/ui/accordion/src/index.ts"],
+      "@ui/file-upload": ["./libs/shared/ui/file-upload/src/index.ts"],
+      "@ui/image-cropper": ["./libs/shared/ui/image-cropper/src/index.ts"],
+      "@ui/switch": ["./libs/shared/ui/switch/src/index.ts"],
+      "@ui/textarea": ["./libs/shared/ui/textarea/src/index.ts"],
+      "@ui/time-picker": ["./libs/shared/ui/time-picker/src/index.ts"],
+      "@ui/radio-group": ["./libs/shared/ui/radio-group/src/index.ts"],
+      "@ui/rating": ["./libs/shared/ui/rating/src/index.ts"],
+      "@ui/copy-button": ["./libs/shared/ui/copy-button/src/index.ts"],
+      "@ui/date-picker": ["./libs/shared/ui/date-picker/src/index.ts"],
+      "@ui/date-range-picker": ["./libs/shared/ui/date-range-picker/src/index.ts"],
+      "@ui/datetime-picker": ["./libs/shared/ui/datetime-picker/src/index.ts"],
+      "@ui/data-source": ["./libs/shared/ui/data-source/src/index.ts"],
+      "@ui/autocomplete": ["./libs/shared/ui/autocomplete/src/index.ts"],
+      "@ui/datagrid": ["./libs/shared/ui/datagrid/src/index.ts"],
+      "@ui/calendar": ["./libs/shared/ui/calendar/src/index.ts"],
+      "@ui/saved-views": ["./libs/shared/ui/saved-views/src/index.ts"],
+      "@ui/saved-views/core": ["./libs/shared/ui/saved-views/core/src/index.ts"],
+      "@util/brand": ["./libs/shared/util-brand/src/index.ts"],
+      "@util/forms": ["./libs/shared/util-forms/src/index.ts"],
+      "@util/language": ["./libs/shared/util-language/src/index.ts"],
+      "@util/ui-copy": ["./libs/shared/util-ui-copy/src/index.ts"],
+      "@util/booking-format": ["./libs/shared/util-booking-format/src/index.ts"],
+      "@api/users": ["./libs/shared/data-access/users/src/index.ts"],
+      "@api/user-devices": ["./libs/shared/data-access/user-devices/src/index.ts"],
+      "@api/reminders": ["./libs/shared/data-access/reminders/src/index.ts"],
+      "@api/customer-appointments": [
+        "./libs/shared/data-access/customer-appointments/src/index.ts"
+      ],
+      "@api/customer-reviews": ["./libs/shared/data-access/customer-reviews/src/index.ts"],
+      "@api/user-resources": ["./libs/shared/data-access/user-resources/src/index.ts"],
+      "@api/company": ["./libs/shared/data-access/company/src/index.ts"],
+      "@api/appointments": ["./libs/shared/data-access/appointments/src/index.ts"],
+      "@api/services": ["./libs/shared/data-access/services/src/index.ts"],
+      "@api/staff": ["./libs/shared/data-access/staff/src/index.ts"],
+      "@api/customers": ["./libs/shared/data-access/customers/src/index.ts"],
+      "@api/analytics": ["./libs/shared/data-access/analytics/src/index.ts"],
+      "@ui/theme-toggle": ["./libs/shared/ui/theme-toggle/src/index.ts"],
+      "@features/language": ["./libs/shared/features/language/src/index.ts"],
+      "@features/saved-views": ["./libs/shared/features/saved-views/src/index.ts"],
+      "@features/reminders": ["./libs/shared/features/reminders/src/index.ts"],
+      "@features/landing": ["./libs/features/landing/src/index.ts"],
+      "@features/site-layout": ["./libs/features/site-layout/src/index.ts"],
+      "@features/barbershops": ["./libs/features/barbershops/src/index.ts"],
+      "@features/account": ["./libs/features/account/src/index.ts"],
+      "@features/management-layout": ["./libs/features/management/layout/src/index.ts"],
+      "@features/management-company": ["./libs/features/management/company/src/index.ts"],
+      "@features/management-profile": ["./libs/features/management/profile/src/index.ts"],
+      "@features/management-settings-roles": [
+        "./libs/features/management/settings/roles/src/index.ts"
+      ],
+      "@features/management-shared-appointments": [
+        "./libs/features/management/shared/appointments/src/index.ts"
+      ],
+      "@features/management-shared-page-sections": [
+        "./libs/features/management/shared/page-sections/src/index.ts"
+      ],
+      "@features/management-shared-staff-schedule": [
+        "./libs/features/management/shared/staff-schedule/src/index.ts"
+      ],
+      "@features/management-operations-calendar": [
+        "./libs/features/management/operations/calendar/src/index.ts"
+      ],
+      "@features/management-operations-appointments": [
+        "./libs/features/management/operations/appointments/src/index.ts"
+      ],
+      "@features/management-operations-services": [
+        "./libs/features/management/operations/services/src/index.ts"
+      ],
+      "@features/management-operations-staff": [
+        "./libs/features/management/operations/staff/src/index.ts"
+      ],
+      "@features/management-operations-customers": [
+        "./libs/features/management/operations/customers/src/index.ts"
+      ],
+      "@features/management-analytics-dashboard": [
+        "./libs/features/management/analytics/dashboard/src/index.ts"
+      ]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}

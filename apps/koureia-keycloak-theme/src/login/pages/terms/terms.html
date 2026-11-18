@@ -1,0 +1,35 @@
+<kc-auth-frame [title]="i18n.msgStr('termsTitle')" [description]="i18n.msgStr('termsDescription')">
+  @if (termsText) {
+    <div class="terms-text" [innerHTML]="termsText"></div>
+  }
+
+  <p class="terms-read">
+    <a [href]="termsUrl" target="_blank" rel="noopener">
+      {{ i18n.msgStr('termsReadLink') }}
+    </a>
+  </p>
+
+  <form
+    class="auth-form"
+    method="post"
+    [action]="kcContext.url.loginAction"
+    (submit)="submitting.set(true)"
+  >
+    <button libButton type="submit" name="accept" value="true" size="lg" [disabled]="submitting()">
+      {{ i18n.msgStr('doAccept') }}
+    </button>
+
+    <button
+      libButton
+      type="submit"
+      name="cancel"
+      value="true"
+      variant="text"
+      severity="secondary"
+      size="lg"
+      [disabled]="submitting()"
+    >
+      {{ i18n.msgStr('doDecline') }}
+    </button>
+  </form>
+</kc-auth-frame>

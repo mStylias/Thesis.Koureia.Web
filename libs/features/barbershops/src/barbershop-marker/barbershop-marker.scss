@@ -1,0 +1,58 @@
+@use 'abstracts' as a;
+
+:host {
+  --marker-size: var(--space-8);
+
+  display: block;
+}
+
+.marker {
+  display: grid;
+  width: var(--marker-size);
+  height: var(--marker-size);
+  padding: 0;
+  place-items: center;
+  color: var(--accent-fg);
+  background: var(--accent);
+  border: var(--border-width-hairline) solid var(--surface);
+  border-radius: a.radius(pill);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  // Transform only, and under 300ms: this sits on a canvas the browser is already compositing.
+  //
+  // Two sizes on two properties, because the two changes are not the same kind of thing. A
+  // hover is a gentle answer to the pointer and runs on `ease`; choosing a shop is a press
+  // the whole map responds to, so it settles on a spring, which needs the longer duration to
+  // spend its tail on.
+  transition:
+    transform var(--dur-fast) ease,
+    scale var(--dur-slow) var(--ease-spring),
+    box-shadow var(--dur-slow) var(--ease-out),
+    background var(--dur-fast) ease;
+
+  &:hover {
+    background: var(--accent-hover);
+    transform: scale(1.1);
+  }
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+  }
+}
+
+// The open shop reads as chosen without a second color: it is the larger pin, and the ring
+// separates it from the pins beneath it.
+.marker--selected {
+  scale: 1.2;
+  box-shadow:
+    0 0 0 var(--space-1) var(--accent-subtle),
+    var(--shadow-lg);
+
+  // The chosen pin is already the larger one, on its own property. Growing it again under
+  // the pointer says nothing the ring has not said, and the two would multiply.
+  &:hover {
+    transform: none;
+  }
+}

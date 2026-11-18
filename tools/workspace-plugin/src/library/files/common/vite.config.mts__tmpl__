@@ -1,0 +1,28 @@
+/// <reference types='vitest' />
+import { defineConfig } from 'vite';
+import angular from '@analogjs/vite-plugin-angular';
+import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
+import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
+
+export default defineConfig(() => ({
+  root: __dirname,
+  cacheDir: '<%= offset %>node_modules/.vite/<%= projectRoot %>',
+  plugins: [angular(), nxViteTsPaths(), nxCopyAssetsPlugin(['*.md'])],
+  test: {
+    name: '<%= projectName %>',
+    watch: false,
+    // Nx runs six projects at once (nx.json), so each one takes a fifth of the cores.
+    maxWorkers: '20%',
+    globals: true,
+    environment: 'jsdom',
+    include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    setupFiles: ['src/test-setup.ts'],
+    reporters: ['default'],<% if (!component) { %>
+    // A new library has no spec yet. Remove this line with the first spec.
+    passWithNoTests: true,<% } %>
+    coverage: {
+      reportsDirectory: '<%= offset %>coverage/<%= projectRoot %>',
+      provider: 'v8' as const,
+    },
+  },
+}));

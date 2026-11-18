@@ -1,0 +1,183 @@
+// Consumes the design-system CSS custom properties emitted by the shared
+// @ui styles. The real input is invisible but present, stretched
+// over the whole control (the Checkbox does the same with its box); the
+// cells below carry every visual state, including focus.
+
+:host {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 100%;
+  height: fit-content;
+  font-family: var(--font-sans);
+}
+
+// The overlaid input is positioned against this, not the host, so it never
+// covers the error message below.
+.otp-field {
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+  cursor: text;
+}
+
+:host([data-disabled]) {
+  opacity: var(--opacity-disabled);
+}
+
+:host([data-disabled]) .otp-field,
+:host([data-readonly]) .otp-field {
+  cursor: default;
+}
+
+// Invisible but real: keyboard, selection, paste, and one-time-code
+// autofill all belong to it. Its own focus ring would be invisible at
+// opacity 0, so the active cell renders focus instead.
+.otp-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  opacity: 0;
+  cursor: inherit;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+}
+
+.otp-cells {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: var(--otp-gap);
+}
+
+.otp-cell {
+  position: relative;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  // Shrinks instead of wrapping, which fits 320px and 400% zoom (WCAG 1.4.10). A wrapped code
+  // reads as two codes, and the pointer maps a tap by column, so a second row hit the first.
+  width: var(--otp-cell-size);
+  min-width: 0;
+  aspect-ratio: 1;
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border-strong);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--otp-cell-text);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--leading-tight);
+  transition:
+    border-color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard);
+}
+
+// Hover promises an edit, so a control that cannot be edited withholds it.
+:host(:hover:not([data-disabled]):not([data-readonly])) .otp-cell {
+  border-color: var(--accent);
+}
+
+// Form-field focus: the cell holding the caret lights its own border to
+// a 2px accent ring. Raised so the ring is not clipped by its neighbour.
+.otp-cell[data-active] {
+  z-index: 1;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+// Every cell covered by a text selection, e.g. after select-all.
+.otp-cell[data-selected] {
+  background: var(--accent-subtle);
+}
+
+:host([data-invalid]) .otp-cell {
+  border-color: var(--error);
+}
+
+:host([data-invalid]) .otp-cell[data-active] {
+  border-color: var(--error);
+  box-shadow: 0 0 0 1px var(--error);
+}
+
+.otp-char {
+  // Reserves the line box so an empty cell is exactly as tall as a full one.
+  min-height: 1em;
+}
+
+// Stand-in for the native caret, which is invisible along with the input.
+// Deliberately static: the design system rules out infinite loops, and
+// the accent ring on the same cell already carries focus.
+.otp-caret {
+  position: absolute;
+  width: var(--input-otp-caret-width);
+  height: 50%;
+  background: var(--accent);
+  border-radius: var(--radius-sm);
+}
+
+.otp-separator {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  padding-inline: var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--otp-cell-text);
+  user-select: none;
+}
+
+// ---- Sizes → private properties ----
+
+:host([data-size='sm']) {
+  --otp-cell-size: var(--input-otp-cell-sm);
+  --otp-cell-text: var(--text-sm);
+  --otp-gap: var(--space-2);
+}
+
+:host([data-size='md']) {
+  --otp-cell-size: var(--input-otp-cell-md);
+  --otp-cell-text: var(--text-base);
+  --otp-gap: var(--space-2);
+}
+
+:host([data-size='lg']) {
+  --otp-cell-size: var(--input-otp-cell-lg);
+  --otp-cell-text: var(--text-lg);
+  --otp-gap: var(--space-3);
+}
+
+// ---- Error ----
+// The invalid state must not be carried by the cell border colour alone, so
+// the translated message is part of the contract, not an optional extra.
+
+.otp-error {
+  margin-top: var(--space-1);
+  color: var(--error-text);
+  font-size: var(--text-sm);
+}
+
+// Every state here is carried by a border colour, which forced-colours
+// mode overrides away; box-shadow is dropped there too, so the ring is
+// re-drawn as a 2px outline to keep the same weight.
+@media (forced-colors: active) {
+  .otp-cell {
+    border-color: CanvasText;
+  }
+
+  .otp-cell[data-active] {
+    outline: 2px solid Highlight;
+  }
+
+  .otp-caret {
+    background: Highlight;
+  }
+}

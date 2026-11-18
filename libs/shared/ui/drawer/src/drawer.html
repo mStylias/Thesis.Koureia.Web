@@ -1,0 +1,64 @@
+<!-- The mask click is a pointer-only affordance; keyboard users close
+     with Escape (the native `cancel` event) or the focusable × button. -->
+<!-- eslint-disable-next-line @angular-eslint/template/interactive-supports-focus -->
+<dialog
+  #dialog
+  class="drawer"
+  [attr.data-position]="position()"
+  [attr.data-size]="size()"
+  [attr.data-mode]="mode()"
+  [attr.data-modal]="effectiveModal() ? '' : null"
+  [attr.data-no-backdrop]="showBackdrop() ? null : ''"
+  [attr.data-closing]="closing() ? '' : null"
+  [attr.aria-labelledby]="labelledBy()"
+  [attr.aria-label]="label()"
+  (cancel)="onEscape($event)"
+  (keydown.escape)="onEscapeKey()"
+  (click)="onMaskClick($event)"
+>
+  @if (hasHeader()) {
+    <header class="drawer-header">
+      <div class="drawer-heading" [id]="titleId">
+        @if (header()) {
+          <h2 class="drawer-title">{{ header() }}</h2>
+        }
+        <ng-content select="[libDrawerHeader]" />
+      </div>
+      @if (closable()) {
+        <button
+          libButton
+          type="button"
+          class="drawer-close"
+          variant="text"
+          severity="secondary"
+          size="sm"
+          iconOnly
+          rounded
+          [attr.autofocus]="autofocusClose()"
+          [attr.aria-label]="closeAriaLabel() || ('drawer.closeDrawer' | uiCopy | transloco)"
+          (click)="hide()"
+        >
+          <svg lucideX aria-hidden="true"></svg>
+        </button>
+      }
+    </header>
+  }
+
+  <!-- Outside `.drawer-content`, which is the scroller, so panel-wide actions
+       stay put while the content moves under them. -->
+  @if (toolbarContent()) {
+    <div class="drawer-toolbar">
+      <ng-content select="[libDrawerToolbar]" />
+    </div>
+  }
+
+  <div #content class="drawer-content">
+    <ng-content />
+  </div>
+
+  @if (footerContent()) {
+    <footer class="drawer-footer">
+      <ng-content select="[libDrawerFooter]" />
+    </footer>
+  }
+</dialog>

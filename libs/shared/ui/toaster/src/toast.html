@@ -1,0 +1,56 @@
+<div class="toast-icon" aria-hidden="true">
+  @if (toast().loading) {
+    <svg lucideLoaderCircle></svg>
+  } @else {
+    @switch (toast().severity) {
+      @case ('primary') {
+        <svg lucideSparkles></svg>
+      }
+      @case ('success') {
+        <svg lucideCircleCheck></svg>
+      }
+      @case ('info') {
+        <svg lucideInfo></svg>
+      }
+      @case ('warning') {
+        <svg lucideTriangleAlert></svg>
+      }
+      @case ('error') {
+        <svg lucideCircleX></svg>
+      }
+      @default {
+        <svg lucideBell></svg>
+      }
+    }
+  }
+</div>
+
+<div class="toast-content">
+  <p class="toast-title">{{ toast().title ?? toast().message }}</p>
+  @if (toast().title) {
+    <p class="toast-description">{{ toast().message }}</p>
+  }
+</div>
+
+@if (toast().action; as action) {
+  <button
+    type="button"
+    class="toast-action"
+    [attr.tabindex]="visible() ? null : -1"
+    (click)="onAction($event)"
+  >
+    {{ action.label }}
+  </button>
+}
+
+@if (showCloseButton()) {
+  <button
+    type="button"
+    class="toast-close"
+    [attr.aria-label]="closeAriaLabel() || ('toaster.closeLabel' | uiCopy | transloco)"
+    [attr.tabindex]="visible() ? null : -1"
+    (click)="onClose($event)"
+  >
+    <svg lucideX></svg>
+  </button>
+}

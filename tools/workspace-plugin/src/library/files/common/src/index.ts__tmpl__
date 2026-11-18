@@ -1,0 +1,3 @@
+<% if (component) { %>export { <%= className %> } from './<%= fileName %>';
+<% } else { %>export {};
+<% } %>

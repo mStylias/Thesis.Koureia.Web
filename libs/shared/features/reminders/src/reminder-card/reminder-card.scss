@@ -1,0 +1,190 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+.reminder-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: a.space(4);
+  padding: a.space(5);
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(lg);
+}
+
+.reminder-card__icon {
+  display: grid;
+  place-items: center;
+  inline-size: a.space(10);
+  block-size: a.space(10);
+  border-radius: a.radius(pill);
+  background: var(--accent-subtle);
+  color: var(--accent-text);
+
+  svg {
+    inline-size: var(--icon-size-md);
+    block-size: var(--icon-size-md);
+    stroke-width: var(--icon-stroke);
+  }
+}
+
+.reminder-card__body {
+  display: grid;
+  gap: a.space(2);
+}
+
+.reminder-card__title {
+  @include a.t-title;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.reminder-card__line {
+  @include a.t-body-sm;
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.reminder-card__on {
+  @include a.t-body;
+  align-self: center;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.reminder-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.space(2);
+  margin-block-start: a.space(2);
+}
+
+// Seen once per booking. The host sets the delay so the card arrives last in its sequence.
+.reminder-card-enter {
+  animation: reminder-card-enter var(--dur-base) var(--ease-out) var(--reminder-card-delay, 0s)
+    backwards;
+}
+
+@keyframes reminder-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(a.space(2));
+  }
+}
+
+// The pill's tap lands the card mid-screen, then a ring holds while the scroll settles and fades.
+// Opacity only, on a ring of its own, so the card's own border never animates.
+.reminder-card::after {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--border-width-hairline));
+  border: 2px solid var(--accent);
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.reminder-card[data-highlighted]::after {
+  animation: reminder-card-highlight 1.6s var(--ease-out);
+}
+
+@keyframes reminder-card-highlight {
+  0%,
+  50% {
+    opacity: 1;
+  }
+}
+
+// Programmatic focus from the pill. The ring above is the visible answer to a tap.
+.reminder-card:focus:not(:focus-visible) {
+  outline: none;
+}
+
+// Centered at the bottom, above the safe area. Under the overlays, like a FAB.
+.reminder-cue {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: calc(#{a.space(4)} + env(safe-area-inset-bottom, 0px));
+  z-index: var(--z-sticky);
+  display: flex;
+  justify-content: center;
+  padding-inline: a.space(4);
+  pointer-events: none;
+
+  button {
+    pointer-events: auto;
+  }
+
+  svg {
+    inline-size: var(--icon-size-sm);
+    block-size: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+  }
+
+  // A wide screen shows the card without a scroll.
+  @include a.respond(lg) {
+    display: none;
+  }
+}
+
+// After the card's own arrival, so the pill is the last thing to move.
+.reminder-cue-enter {
+  animation: reminder-cue-enter var(--dur-base) var(--ease-out)
+    calc(var(--reminder-card-delay, 0s) + var(--dur-base)) backwards;
+}
+
+.reminder-cue-leave {
+  animation: reminder-cue-enter var(--dur-fast) var(--ease-out) reverse;
+}
+
+// The one endless loop in the product, by request: the pill exists to be noticed. Each cycle rings
+// and then rests, so the bell reads as a signal and not as a jitter. Reduced motion stops it in the
+// base layer. It starts once the pill has arrived.
+.reminder-cue__bell {
+  transform-origin: 50% 15%;
+  animation: reminder-cue-ring 2.4s var(--ease-standard)
+    calc(var(--reminder-card-delay, 0s) + 2 * var(--dur-base)) infinite;
+}
+
+@keyframes reminder-cue-ring {
+  0%,
+  40%,
+  100% {
+    transform: rotate(0);
+  }
+
+  5% {
+    transform: rotate(16deg);
+  }
+
+  10% {
+    transform: rotate(-14deg);
+  }
+
+  15% {
+    transform: rotate(10deg);
+  }
+
+  20% {
+    transform: rotate(-8deg);
+  }
+
+  25% {
+    transform: rotate(4deg);
+  }
+
+  30% {
+    transform: rotate(-2deg);
+  }
+}
+
+@keyframes reminder-cue-enter {
+  from {
+    opacity: 0;
+    transform: translateY(a.space(4));
+  }
+}

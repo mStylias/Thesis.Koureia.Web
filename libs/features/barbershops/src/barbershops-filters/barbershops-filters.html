@@ -1,0 +1,101 @@
+<search class="filters">
+  <div class="filters__fields">
+    <div class="filters__field">
+      <label for="barbershop-name">{{ 'barbershops.filters.name' | transloco }}</label>
+      <div libIconField showClear (cleared)="setName('')">
+        <span libInputIcon><svg lucideSearch aria-hidden="true"></svg></span>
+        <input
+          libInputText
+          id="barbershop-name"
+          type="search"
+          autocomplete="off"
+          [value]="filters().name"
+          [placeholder]="'barbershops.filters.namePlaceholder' | transloco"
+          (input)="onNameInput($event)"
+        />
+      </div>
+    </div>
+
+    <div class="filters__field">
+      <label for="barbershop-date">{{ 'barbershops.filters.date' | transloco }}</label>
+      <lib-date-picker
+        showClear
+        inputId="barbershop-date"
+        [locale]="locale"
+        [min]="today"
+        [value]="date()"
+        (valueChange)="setDate($event)"
+      />
+    </div>
+
+    <div class="filters__field">
+      <label for="barbershop-location">{{ 'barbershops.filters.location' | transloco }}</label>
+      <!-- The locate action lives inside the field rather than beside it, so every way of
+           setting the origin is in one control. It is withheld, not disabled, where the
+           browser cannot answer at all. -->
+      <lib-autocomplete
+        showClear
+        inputId="barbershop-location"
+        key="id"
+        [source]="placeSource"
+        [displayWith]="placeLabel"
+        [(value)]="locationKey"
+        [debounceMs]="debounceMs"
+        [leadingIcon]="mapPinIcon"
+        [actionIcon]="deviceAvailable() ? locateIcon : null"
+        [actionAriaLabel]="'barbershops.filters.locate' | transloco"
+        [actionPending]="locating()"
+        [actionDisabled]="locateBlocked()"
+        [placeholder]="'barbershops.filters.locationPlaceholder' | transloco"
+        [clearAriaLabel]="'barbershops.filters.locationClear' | transloco"
+        [noDataMessage]="queryTooShort() ? ('barbershops.filters.locationHint' | transloco) : ''"
+        [loadErrorMessage]="
+          (placeFailure() === 'unavailable'
+            ? 'barbershops.filters.locationUnavailable'
+            : 'barbershops.filters.locationFailed'
+          ) | transloco
+        "
+        (queryChange)="onQueryChange($event)"
+        (action)="useMyLocation()"
+        (selectionChange)="onPlaceSelected($event)"
+      >
+        <ng-template libAutocompleteOption let-place>
+          <span class="filters__place">
+            <strong>{{ place.label }}</strong>
+            @if (place.context) {
+              <small>{{ place.context }}</small>
+            }
+          </span>
+        </ng-template>
+      </lib-autocomplete>
+    </div>
+  </div>
+
+  <!-- Polite, because this is the only confirmation that an origin took effect — the list
+       reordering below is silent. It changes when the origin does and never per keystroke. -->
+  <p class="filters__note" aria-live="polite">
+    <!-- The list reordering below is silent, so this line is the only place an origin change
+         is visible. -->
+    <span [libReplayOnChange]="captionId()" animationClass="filters-note-enter">
+      {{ captionKey() | transloco: captionParams() }}
+    </span>
+    <!-- The one way back to the default origin. The field's × cannot do it: a device fix
+         leaves no text behind for a clear button to appear over. -->
+    @if (origin()) {
+      <button
+        type="button"
+        class="filters__clear-origin"
+        animate.enter="filters-note-enter"
+        (click)="clearOrigin()"
+      >
+        {{ 'barbershops.filters.originClear' | transloco }}
+      </button>
+    }
+  </p>
+
+  @if (deviceFailureKey(); as failureKey) {
+    <p class="filters__locate-error" role="alert" animate.enter="filters-note-enter">
+      {{ failureKey | transloco }}
+    </p>
+  }
+</search>

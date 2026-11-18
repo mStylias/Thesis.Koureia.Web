@@ -1,0 +1,282 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+  min-inline-size: 0;
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(5);
+  min-inline-size: 0;
+}
+
+.summary__shop {
+  display: flex;
+  align-items: center;
+  gap: a.space(3);
+  min-inline-size: 0;
+}
+
+.summary__logo {
+  flex: 0 0 auto;
+  inline-size: var(--bottom-sheet-avatar-size);
+  block-size: var(--bottom-sheet-avatar-size);
+  border-radius: a.radius(pill);
+  object-fit: cover;
+  background: var(--surface-2);
+}
+
+.summary__logo--empty {
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+}
+
+.summary__name {
+  @include a.t-title;
+  margin: 0;
+  min-inline-size: 0;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.summary__rows {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(5);
+  margin: 0;
+}
+
+.summary__row {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(2);
+  min-inline-size: 0;
+}
+
+// An eyebrow heading its group, not a label beside a value. It is what turns a column of
+// lines into the three groups the flow is made of.
+.summary__label {
+  @include a.t-label;
+  margin: 0;
+}
+
+.summary__value {
+  @include a.t-body-sm;
+  display: flex;
+  flex-direction: column;
+  gap: a.space(2);
+  margin: 0;
+  min-inline-size: 0;
+  color: var(--text-primary);
+}
+
+// A waiting row keeps its place. Collapsing it would make the panel jump every time the
+// customer advances, and would hide what is still to come.
+.summary__row[data-waiting] .summary__value {
+  color: var(--text-muted);
+}
+
+// The choice at the start of the line and what is true of it at the end, on one baseline.
+// A long name wraps rather than truncates — a half-named service is not a service.
+.summary__line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: a.space(4);
+  min-inline-size: 0;
+}
+
+.summary__text {
+  min-inline-size: 0;
+}
+
+.summary__total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: a.space(4);
+  margin: 0;
+  padding-block-start: a.space(4);
+  border-block-start: var(--border-width-hairline) solid var(--border);
+}
+
+.summary__total-label {
+  @include a.t-caption;
+  color: var(--text-muted);
+}
+
+.summary__total-value {
+  @include a.t-title;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+// `από 25€`: the total is a floor while the barbers disagree and none has been chosen.
+.summary__from {
+  @include a.t-caption;
+  font-family: var(--font-sans);
+  color: var(--text-muted);
+}
+
+// The meta of a value: a service's duration and price, a day's time. Set at the end of the
+// line rather than run on after the name, so the two read as columns.
+.summary__meta {
+  @include a.t-body-sm;
+  flex: 0 0 auto;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+// A choice arrives rather than appearing. One rule for both layouts: stacked it is a line in a
+// column, inline it is a chip in a row, and settling from just below and just under size reads
+// the same either way.
+.summary-value-enter {
+  animation: summary-value-enter var(--dur-base) var(--ease-out);
+}
+
+@keyframes summary-value-enter {
+  from {
+    opacity: 0;
+    transform: translateY(a.space(1)) scale(0.96);
+  }
+}
+
+// The amount settles onto its line. It is the number the customer is deciding on, and it
+// answers a toggle made somewhere else on the screen. The box is declared here rather than on
+// the animation, which is added later and would otherwise relayout the line the first time it
+// replays.
+.summary__amount {
+  display: inline-block;
+}
+
+.summary-total-enter {
+  animation: summary-total-enter var(--dur-base) var(--ease-out);
+}
+
+@keyframes summary-total-enter {
+  from {
+    opacity: 0.4;
+    transform: scale(1.08);
+  }
+}
+
+// ---- Inline ----
+// The wide-screen footer bar. Every choice becomes a chip on one line: down there height is
+// the scarce dimension, and labelled rows spend it on words the chips already imply.
+:host([data-layout='inline']) {
+  .summary {
+    flex-direction: row;
+    align-items: center;
+    gap: a.space(4);
+  }
+
+  // Everything in the bar must be able to give width back, or the parts that cannot shrink
+  // push past the summary's own box and paint over the buttons beside it.
+  .summary__shop {
+    flex: 0 1 auto;
+    max-inline-size: 16rem;
+  }
+
+  .summary__name {
+    @include a.t-title;
+    color: var(--text-primary);
+  }
+
+  // Kept, and beside its chips rather than above them. Without it a row of chips says what
+  // was chosen but not what each one answers, and a barber's name and a shop's name look
+  // alike at a glance. A caption, not an eyebrow: a bold label between chips shouts louder
+  // than the chips.
+  .summary__label {
+    @include a.t-caption;
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .summary__rows {
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    gap: a.space(2);
+  }
+
+  // Label and chips on one line, as a labelled group.
+  .summary__row {
+    flex: 0 1 auto;
+    flex-direction: row;
+    align-items: center;
+    gap: a.space(2);
+  }
+
+  // A waiting row holds no chip, so it holds no space either.
+  .summary__row[data-waiting] {
+    display: none;
+  }
+
+  .summary__value {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: a.space(2);
+    min-inline-size: 0;
+  }
+
+  .summary__line {
+    @include a.t-body-sm;
+    display: inline-flex;
+    justify-content: flex-start;
+    gap: a.space(2);
+    max-inline-size: 100%;
+    padding: a.space(1) a.space(3);
+    color: var(--text-primary);
+    background: var(--surface-2);
+    border: var(--border-width-hairline) solid var(--border);
+    border-radius: a.radius(pill);
+  }
+
+  .summary__text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .summary__meta {
+    @include a.t-caption;
+    color: var(--text-muted);
+  }
+
+  // The price is the number the customer is deciding on, so it is the largest thing in the
+  // bar. What it is made of goes above it, small.
+  .summary__total {
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0;
+    margin-inline-start: auto;
+    padding-block-start: 0;
+    padding-inline-start: a.space(4);
+    border-block-start: 0;
+  }
+
+  .summary__total-label {
+    @include a.t-caption;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .summary__total-value {
+    @include a.t-h3;
+    font-family: var(--font-mono);
+  }
+
+  .summary__from {
+    @include a.t-body-sm;
+  }
+}

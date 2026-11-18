@@ -1,0 +1,231 @@
+@use 'abstracts' as a;
+
+// The insets follow the chart theme's grid: a top y-axis label above, the label column at the
+// left, the x-axis labels below.
+:host {
+  --chart-skeleton-fill: var(--surface-sunken);
+  --chart-skeleton-rule: var(--border-subtle);
+  --chart-skeleton-axis: #{a.space(10)};
+  --chart-skeleton-category: #{a.space(20)};
+  --chart-skeleton-band: #{a.space(6)};
+  --chart-skeleton-stub: #{a.space(2)};
+
+  display: block;
+  flex-shrink: 0;
+  min-width: 0;
+  // Opacity only, so the base layer's reduced-motion rule stops it.
+  animation: chart-skeleton-pulse var(--dur-indeterminate) var(--ease-standard) infinite;
+}
+
+.fill,
+.stub {
+  display: block;
+  background: var(--chart-skeleton-fill);
+  border-radius: a.radius(sm);
+}
+
+.stub {
+  height: var(--chart-skeleton-stub);
+}
+
+.is-hidden {
+  visibility: hidden;
+}
+
+.donut,
+.spark {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.ring,
+.wave {
+  fill: none;
+  stroke: var(--chart-skeleton-fill);
+}
+
+.wave {
+  stroke-width: calc(var(--border-width-strong) * 2);
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.frame {
+  display: grid;
+  grid-template-columns: var(--chart-skeleton-axis) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) var(--chart-skeleton-band);
+  box-sizing: border-box;
+  height: 100%;
+  padding: a.space(3) a.space(3) 0 0;
+}
+
+.frame-h {
+  grid-template-columns: var(--chart-skeleton-category) minmax(0, 1fr);
+}
+
+// Each rule has no height, so the stub centers on the gridline.
+.rules {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  grid-area: 1 / 1 / 2 / 3;
+}
+
+.rule {
+  display: grid;
+  grid-template-columns: var(--chart-skeleton-axis) minmax(0, 1fr);
+  align-items: start;
+  height: 0;
+}
+
+.label {
+  justify-self: end;
+  width: 55%;
+  margin-right: a.space(2);
+}
+
+.rule .label {
+  transform: translateY(-50%);
+}
+
+.line {
+  border-top: var(--border-width-hairline) solid var(--chart-skeleton-rule);
+}
+
+.plot,
+.ticks {
+  display: flex;
+  grid-area: 1 / 2 / 2 / 3;
+  min-height: 0;
+}
+
+.ticks {
+  grid-area: 2 / 2 / 3 / 3;
+}
+
+.slot {
+  display: flex;
+  flex: 1 1 0;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 0;
+}
+
+.ticks .slot {
+  align-items: center;
+}
+
+.bar {
+  width: min(#{a.space(6)}, 64%);
+  border-radius: a.radius(sm) a.radius(sm) 0 0;
+}
+
+.tick {
+  width: min(#{a.space(8)}, 70%);
+}
+
+.vrules {
+  display: flex;
+  justify-content: space-between;
+  grid-area: 1 / 2 / 2 / 3;
+}
+
+.vline {
+  border-left: var(--border-width-hairline) solid var(--chart-skeleton-rule);
+}
+
+.hrows {
+  display: grid;
+  grid-template-columns: var(--chart-skeleton-category) minmax(0, 1fr);
+  grid-auto-rows: minmax(0, 1fr);
+  grid-area: 1 / 1 / 2 / 3;
+  align-items: center;
+}
+
+.hbar {
+  height: min(#{a.space(6)}, 60%);
+  border-radius: 0 a.radius(sm) a.radius(sm) 0;
+}
+
+.hticks {
+  display: flex;
+  grid-area: 2 / 2 / 3 / 3;
+  align-items: center;
+  justify-content: space-between;
+
+  .tick {
+    width: a.space(6);
+  }
+}
+
+.heat {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  height: 100%;
+  padding: a.space(3) a.space(3) 0 0;
+}
+
+.cells {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: var(--chart-skeleton-axis) repeat(var(--columns), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--rows), minmax(0, 1fr)) var(--chart-skeleton-band);
+  gap: calc(var(--space-1) / 2);
+  min-height: 0;
+
+  .label,
+  .tick {
+    align-self: center;
+  }
+
+  .tick {
+    justify-self: center;
+  }
+}
+
+.ramp {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  height: a.space(8);
+}
+
+.ramp-bar {
+  width: calc(#{a.space(20)} * 2);
+  max-width: 100%;
+  height: a.space(3);
+}
+
+.treemap {
+  display: grid;
+  grid-template: 'a b c' 3fr 'a d e' 2fr / 5fr 3fr 2fr;
+  gap: a.space(1);
+  height: 100%;
+}
+
+// The forced palette drops the fills. A system color edge keeps the shape.
+@media (forced-colors: active) {
+  .fill,
+  .stub {
+    outline: var(--border-width-hairline) solid GrayText;
+  }
+
+  .ring,
+  .wave {
+    stroke: GrayText;
+  }
+
+  .line,
+  .vline {
+    border-color: GrayText;
+  }
+}
+
+@keyframes chart-skeleton-pulse {
+  50% {
+    opacity: 0.6;
+  }
+}

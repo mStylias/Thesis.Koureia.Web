@@ -1,0 +1,46 @@
+@use 'abstracts' as a;
+
+.closure-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.closure-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  align-items: start;
+}
+
+// Lines the label up with a `sm` field's horizontal padding. The wrapper inherits the property.
+.closure-field {
+  --field-label-inset: var(--space-2);
+
+  min-width: 0;
+}
+
+// A time picker leads with its clock icon, so the label starts where the time does: the `sm`
+// padding, the icon and the input's own padding.
+.closure-time {
+  --field-label-inset: calc(var(--space-2) + var(--icon-size-sm) + var(--space-2));
+}
+
+.closure-hint {
+  @include a.t-body-sm;
+
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.closure-names {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+@include a.respond-down(sm) {
+  .closure-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

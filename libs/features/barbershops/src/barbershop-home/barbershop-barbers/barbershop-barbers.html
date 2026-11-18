@@ -1,0 +1,15 @@
+<ul class="barbers">
+  @for (barber of barbers(); track barber.id) {
+    <li class="barber">
+      <!-- The name is printed under it, so the avatar is decorative. -->
+      @if (barber.avatarUrl; as avatar) {
+        <img class="barber__avatar" [src]="avatar" alt="" loading="lazy" decoding="async" />
+      } @else {
+        <span class="barber__avatar barber__avatar--initials" aria-hidden="true">
+          {{ barber.initials }}
+        </span>
+      }
+      <span class="barber__name">{{ barber.displayName }}</span>
+    </li>
+  }
+</ul>

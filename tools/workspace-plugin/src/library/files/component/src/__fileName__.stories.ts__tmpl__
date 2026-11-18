@@ -1,0 +1,15 @@
+import type { Meta, StoryObj } from '@storybook/angular';
+
+import { <%= className %> } from './<%= fileName %>';
+
+const meta: Meta<<%= className %>> = {
+  title: '<%= storyTitle %>',
+  component: <%= className %>,
+  tags: ['autodocs'],
+};
+
+export default meta;
+
+export const Default: StoryObj<<%= className %>> = {
+  render: () => ({ template: `<<%= selector %>>Content</<%= selector %>>` }),
+};

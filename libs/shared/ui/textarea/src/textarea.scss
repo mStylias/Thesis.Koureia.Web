@@ -1,0 +1,129 @@
+// Consumes the design-system CSS custom properties emitted by the
+// shared @ui styles. Keyboard focus comes from
+// the global `:focus-visible` rule; the host IS the native textarea.
+
+:host {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  // A comfortable multi-line default; consumers can override via `rows`
+  // or CSS. `autoResize` drives the height from content instead.
+  min-height: var(--space-16);
+  // The label wrappers override the top inset via --field-pad-top to
+  // make room for in/IFTA labels.
+  padding: var(--field-pad-top, var(--input-pad-y)) var(--input-pad-x) var(--input-pad-y);
+  font-family: var(--font-sans);
+  font-size: var(--input-text);
+  line-height: var(--leading-normal);
+  color: var(--text-primary);
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border-strong);
+  border-radius: var(--radius-md);
+  resize: vertical;
+  transition:
+    border-color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard);
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+
+  // Hover promises an edit, so a field that cannot be edited withholds it.
+  &:hover:not(:disabled):not(:read-only) {
+    border-color: var(--accent);
+  }
+
+  // Form fields replace the global 3px focus glow with the accent
+  // border, thickened to 2px so the focus indicator stays clearly
+  // visible (WCAG 2.4.7).
+  &:focus-visible {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+
+  &:disabled {
+    opacity: var(--opacity-disabled);
+    cursor: default;
+  }
+}
+
+// ---- Resize affordance ----
+// The native grip is pinned to the bottom-right corner and can't be
+// moved, so give it a little extra right/bottom padding for clearance —
+// otherwise it crowds the focus outline. Only where a grip is shown.
+
+:host([data-resize='vertical']),
+:host([data-resize='both']) {
+  padding-inline-end: calc(var(--input-pad-x) + var(--space-1));
+  padding-block-end: calc(var(--input-pad-y) + var(--space-1));
+}
+
+:host([data-resize='none']) {
+  resize: none;
+}
+
+:host([data-resize='both']) {
+  resize: both;
+}
+
+// Auto-sizing owns the height, so hide the manual handle and the
+// scrollbar the JS collapses away on each edit.
+:host([data-auto-resize]) {
+  resize: none;
+  overflow: hidden;
+}
+
+// ---- Sizes → private properties ----
+
+:host([data-size='sm']) {
+  --input-pad-y: var(--space-1);
+  --input-pad-x: var(--space-2);
+  --input-text: var(--text-sm);
+}
+
+:host([data-size='md']) {
+  --input-pad-y: var(--space-2);
+  --input-pad-x: var(--space-3);
+  --input-text: var(--text-base);
+}
+
+:host([data-size='lg']) {
+  --input-pad-y: var(--space-3);
+  --input-pad-x: var(--space-4);
+  --input-text: var(--text-lg);
+}
+
+// ---- States ----
+// [aria-invalid] also covers Signal Forms / consumers setting the
+// attribute directly instead of the `invalid` input.
+
+:host([data-invalid]),
+:host([aria-invalid='true']) {
+  border-color: var(--error);
+
+  &:focus-visible {
+    border-color: var(--error);
+    box-shadow: 0 0 0 1px var(--error);
+  }
+}
+
+// ---- Forced colors ----
+// Both the resting border and the focus ring ride on border-color plus a
+// box-shadow, and a forced palette drops both; restate them in system
+// colours. The invalid state is a colour difference either way, which is
+// why a consumer must always pair `invalid` with a visible message.
+
+@media (forced-colors: active) {
+  :host {
+    border-color: CanvasText;
+  }
+
+  :host(:focus-visible) {
+    outline: 2px solid Highlight;
+  }
+
+  :host(:disabled) {
+    border-color: GrayText;
+    color: GrayText;
+  }
+}

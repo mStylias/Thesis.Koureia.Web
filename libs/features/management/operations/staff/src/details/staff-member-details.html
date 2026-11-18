@@ -1,0 +1,187 @@
+@let editor = activeEditor();
+
+<lib-drawer
+  position="right"
+  [modal]="false"
+  [closeGuard]="closeGuard"
+  [visible]="open()"
+  ariaLabelledby="staff-member-details-title"
+  (visibleChange)="onVisibleChange($event)"
+>
+  <div libDrawerHeader class="details-heading">
+    @if (member(); as shown) {
+      @if (photo.canEdit()) {
+        <!-- The whole photo opens the photo dialog. The camera only says it can. -->
+        <button
+          type="button"
+          class="details-photo"
+          [attr.aria-label]="'managementStaff.profile.photoTitle' | transloco"
+          [libTooltip]="'managementStaff.profile.photoTitle' | transloco"
+          [disabled]="switching()"
+          (click)="photo.open()"
+        >
+          <lib-staff-avatar size="lg" [avatarUrl]="shown.avatarUrl" [initials]="shown.initials" />
+          <span class="details-photo-badge" aria-hidden="true">
+            <svg lucideCamera></svg>
+          </span>
+        </button>
+      } @else {
+        <lib-staff-avatar size="lg" [avatarUrl]="shown.avatarUrl" [initials]="shown.initials" />
+      }
+    }
+    <div class="details-heading-text">
+      <h2 class="details-title" id="staff-member-details-title">
+        {{ title() || ('managementStaff.panel.member' | transloco) }}
+      </h2>
+      @if (member(); as shown) {
+        <p class="details-subtitle">
+          @if (jobTitle()) {
+            <span>{{ jobTitle() }}</span>
+          }
+          <span class="details-state" [attr.data-tone]="shown.isActive ? 'success' : null">
+            {{ 'managementStaff.status.' + (shown.isActive ? 'active' : 'inactive') | transloco }}
+          </span>
+        </p>
+      }
+    </div>
+  </div>
+
+  <!-- Pinned, so Save stays reachable however long the tab below it is. -->
+  <lib-drawer-actions
+    libDrawerToolbar
+    [actions]="toolbarActions()"
+    [paused]="switching()"
+    [attr.aria-label]="'managementStaff.actions.label' | transloco"
+  >
+    @if (editor?.editing()) {
+      <button
+        libButton
+        type="button"
+        severity="secondary"
+        variant="outlined"
+        size="sm"
+        [disabled]="editor?.submitting()"
+        (click)="cancelEdit()"
+      >
+        {{ 'managementStaff.actions.cancelEdit' | transloco }}
+      </button>
+      <!-- Never disabled by validity: the first press is what reveals it. -->
+      <button
+        libButton
+        type="button"
+        severity="primary"
+        size="sm"
+        [loading]="!!editor?.submitting()"
+        (click)="save()"
+      >
+        <svg lucideSave libButtonIcon aria-hidden="true"></svg>
+        {{ 'managementStaff.actions.save' | transloco }}
+      </button>
+    } @else if (member() !== null && editor?.canEdit()) {
+      <button
+        libButton
+        type="button"
+        severity="secondary"
+        variant="outlined"
+        size="sm"
+        [disabled]="acting()"
+        (click)="edit()"
+      >
+        <svg lucidePencil libButtonIcon aria-hidden="true"></svg>
+        {{ 'managementStaff.actions.edit' | transloco }}
+      </button>
+    }
+  </lib-drawer-actions>
+
+  @if (reading()) {
+    <div class="details-skeleton" aria-hidden="true">
+      @for (placeholder of [1, 2, 3]; track placeholder) {
+        <span class="skeleton-line"></span>
+      }
+    </div>
+    <p class="sr-only" role="status">{{ 'managementStaff.panel.loading' | transloco }}</p>
+  } @else if (notFound()) {
+    <p class="details-status" role="alert">{{ 'managementStaff.panel.notFound' | transloco }}</p>
+  } @else if (readErrorText()) {
+    <lib-banner class="details-notice" tone="error" role="alert">
+      {{ readErrorText() }}
+      <button
+        libButton
+        libBannerAction
+        type="button"
+        variant="outlined"
+        size="sm"
+        (click)="reload()"
+      >
+        {{ 'managementStaff.panel.retry' | transloco }}
+      </button>
+    </lib-banner>
+  } @else if (member(); as shown) {
+    <lib-tabs class="details-tabs">
+      <lib-tab-list
+        class="details-tab-list"
+        [value]="tab()"
+        [attr.aria-label]="'managementStaff.tabs.label' | transloco"
+        (valueChange)="setTab($event)"
+      >
+        <lib-tab value="profile">{{ 'managementStaff.tabs.profile' | transloco }}</lib-tab>
+        <lib-tab value="services">{{ 'managementStaff.tabs.services' | transloco }}</lib-tab>
+        <lib-tab value="hours">{{ 'managementStaff.tabs.hours' | transloco }}</lib-tab>
+        <lib-tab value="timeOff">{{ 'managementStaff.tabs.timeOff' | transloco }}</lib-tab>
+      </lib-tab-list>
+
+      @if (options() === null && optionsFailed()) {
+        <lib-banner class="details-notice" tone="error" role="alert">
+          {{ 'managementStaff.panel.optionsFailed' | transloco }}
+          <button
+            libButton
+            libBannerAction
+            type="button"
+            variant="outlined"
+            size="sm"
+            (click)="reloadOptions()"
+          >
+            {{ 'managementStaff.panel.retry' | transloco }}
+          </button>
+        </lib-banner>
+      }
+
+      <!-- Eager panels: a tab keeps its unsaved changes while another one shows. -->
+      <lib-tab-panel value="profile">
+        <lib-staff-profile
+          [member]="shown"
+          [language]="language()"
+          (changed)="onMemberChanged($event)"
+        />
+      </lib-tab-panel>
+      <lib-tab-panel value="services">
+        <lib-staff-services
+          [member]="shown"
+          [editable]="canServices()"
+          [language]="language()"
+          (changed)="onMemberChanged($event)"
+        />
+      </lib-tab-panel>
+      <lib-tab-panel value="hours">
+        <lib-staff-hours
+          [staffMemberId]="shown.id"
+          [workHours]="shown.workHours"
+          [editable]="canHours()"
+          [language]="language()"
+          (changed)="onScheduleChanged()"
+        />
+      </lib-tab-panel>
+      <lib-tab-panel value="timeOff">
+        <lib-staff-time-off
+          [staffMemberId]="shown.id"
+          [editable]="canTimeOff()"
+          [language]="language()"
+          (changed)="onScheduleChanged()"
+        />
+      </lib-tab-panel>
+    </lib-tabs>
+  }
+</lib-drawer>
+
+<!-- Outside the tabs: the header's camera opens it from any tab. -->
+<lib-staff-photo #photo [member]="member()" (changed)="onMemberChanged($event)" />

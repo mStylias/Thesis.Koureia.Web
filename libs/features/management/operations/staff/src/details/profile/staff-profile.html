@@ -1,0 +1,236 @@
+@let viewed = member();
+
+@if (viewed.isActive && viewed.bookingBlockers.length > 0) {
+  <lib-banner
+    class="profile-callout"
+    tone="warning"
+    role="status"
+    [heading]="'managementStaff.notBookable.title' | transloco"
+  >
+    <ul class="profile-callout-list">
+      @for (blocker of viewed.bookingBlockers; track blocker) {
+        <li>{{ 'managementStaff.blockers.' + blocker | transloco }}</li>
+      }
+    </ul>
+  </lib-banner>
+}
+
+@if (editor.editing()) {
+  @let fields = editor.form;
+  <form class="profile-form" [libForm]="editor">
+    <lib-form-errors class="profile-errors" />
+
+    <lib-field class="profile-field" [field]="fields.jobTitleCode">
+      <ng-template libFieldEditor let-id let-describedBy="describedBy">
+        <lib-select
+          size="sm"
+          [inputId]="id"
+          [ariaDescribedby]="describedBy"
+          [options]="jobTitleOptions()"
+          [ariaLabel]="'managementStaff.profile.jobTitle' | transloco"
+          [formField]="fields.jobTitleCode"
+        />
+      </ng-template>
+    </lib-field>
+
+    <div class="profile-switch">
+      <lib-switch
+        inputId="staff-profile-bookable"
+        ariaDescribedby="staff-profile-bookable-hint"
+        [formField]="fields.isBookable"
+      />
+      <div class="profile-switch-text">
+        <label class="profile-switch-label" for="staff-profile-bookable">
+          {{ 'managementStaff.profile.isBookable' | transloco }}
+        </label>
+        <p class="profile-hint" id="staff-profile-bookable-hint">
+          {{ 'managementStaff.profile.isBookableHint' | transloco }}
+        </p>
+        @if (upcomingStay()) {
+          <p class="profile-hint" role="status">
+            {{
+              'managementStaff.profile.upcomingStay'
+                | transloco: { count: viewed.stats.upcomingCount }
+            }}
+          </p>
+        }
+      </div>
+    </div>
+
+    <lib-field class="profile-field" [field]="fields.joinedAt">
+      <ng-template libFieldEditor let-id let-describedBy="describedBy">
+        <lib-date-picker
+          size="sm"
+          [inputId]="id"
+          [ariaDescribedby]="describedBy"
+          [locale]="language()"
+          [ariaLabel]="'managementStaff.profile.joinedAt' | transloco"
+          [formField]="fields.joinedAt"
+        />
+      </ng-template>
+    </lib-field>
+
+    <lib-field class="profile-field" [field]="fields.roleIds">
+      <ng-template libFieldEditor let-id let-describedBy="describedBy">
+        <lib-multi-select
+          size="sm"
+          display="chip"
+          [inputId]="id"
+          [ariaDescribedby]="describedBy"
+          [options]="roleOptions()"
+          [ariaLabel]="'managementStaff.profile.roles' | transloco"
+          [placeholder]="'managementStaff.profile.noRoles' | transloco"
+          [formField]="fields.roleIds"
+        />
+      </ng-template>
+    </lib-field>
+    @if (!canEditRoles()) {
+      <p class="profile-hint">
+        {{
+          (viewed.isSelf
+            ? 'managementStaff.profile.rolesSelf'
+            : 'managementStaff.profile.rolesNoAssign'
+          ) | transloco
+        }}
+      </p>
+    } @else if (fields.roleIds().value().length === 0) {
+      <p class="profile-hint">{{ 'managementStaff.profile.rolesNone' | transloco }}</p>
+    }
+  </form>
+} @else {
+  <section class="profile-section">
+    <h3 class="profile-heading">{{ 'managementStaff.profile.employment' | transloco }}</h3>
+    <dl class="profile-grid">
+      <div class="profile-row">
+        <dt class="profile-caption">{{ 'managementStaff.profile.status' | transloco }}</dt>
+        <dd class="profile-value">
+          {{ 'managementStaff.status.' + (viewed.isActive ? 'active' : 'inactive') | transloco }}
+        </dd>
+      </div>
+      @if (viewed.jobTitleCode) {
+        <div class="profile-row">
+          <dt class="profile-caption">{{ 'managementStaff.profile.jobTitle' | transloco }}</dt>
+          <dd class="profile-value">{{ jobTitle() }}</dd>
+        </div>
+      }
+      <div class="profile-row">
+        <dt class="profile-caption">{{ 'managementStaff.profile.isBookable' | transloco }}</dt>
+        <dd class="profile-value">
+          {{ 'managementStaff.' + (viewed.isBookable ? 'yes' : 'no') | transloco }}
+        </dd>
+      </div>
+      <div class="profile-row">
+        <dt class="profile-caption">
+          {{
+            (roleNames().length > 1
+              ? 'managementStaff.profile.roles'
+              : 'managementStaff.profile.role'
+            ) | transloco
+          }}
+        </dt>
+        <dd class="profile-value">
+          {{
+            roleNames().length > 0
+              ? roleNames().join(', ')
+              : ('managementStaff.profile.noRoles' | transloco)
+          }}
+        </dd>
+      </div>
+      <div class="profile-row">
+        <dt class="profile-caption">{{ 'managementStaff.profile.joinedAt' | transloco }}</dt>
+        <dd class="profile-value">{{ joinedAt() }}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="profile-section">
+    <div class="profile-heading-row">
+      <h3 class="profile-heading">{{ 'managementStaff.profile.account' | transloco }}</h3>
+      <p class="profile-managed">
+        <svg lucideLock aria-hidden="true"></svg>
+        {{ 'managementStaff.profile.managedByMember' | transloco }}
+      </p>
+    </div>
+    <dl class="profile-grid">
+      <div class="profile-row">
+        <dt class="profile-caption">{{ 'managementStaff.profile.name' | transloco }}</dt>
+        <dd class="profile-value">{{ viewed.firstName }} {{ viewed.lastName }}</dd>
+      </div>
+      @if (viewed.email; as email) {
+        <div class="profile-row">
+          <dt class="profile-caption">{{ 'managementStaff.profile.email' | transloco }}</dt>
+          <dd class="profile-value profile-contact">
+            <a class="profile-contact-value profile-contact-link" [href]="'mailto:' + email">{{
+              email
+            }}</a>
+            <span class="profile-contact-actions">
+              <lib-copy-button
+                [value]="email"
+                [label]="'managementStaff.profile.copyEmail' | transloco"
+              />
+            </span>
+          </dd>
+        </div>
+      }
+      @if (phone(); as phone) {
+        <div class="profile-row">
+          <dt class="profile-caption">{{ 'managementStaff.profile.phone' | transloco }}</dt>
+          <dd class="profile-value profile-contact">
+            <span class="profile-contact-value profile-number">{{ phone.shown }}</span>
+            <span class="profile-contact-actions">
+              <a
+                libButton
+                severity="secondary"
+                variant="outlined"
+                size="sm"
+                [href]="phone.href"
+                [attr.aria-label]="
+                  'managementStaff.profile.call'
+                    | transloco: { name: viewed.firstName + ' ' + viewed.lastName }
+                "
+              >
+                <svg lucidePhone libButtonIcon aria-hidden="true"></svg>
+                {{ 'managementStaff.profile.callShort' | transloco }}
+              </a>
+              <lib-copy-button
+                [value]="phone.stored"
+                [label]="'managementStaff.profile.copyPhone' | transloco"
+              />
+            </span>
+          </dd>
+        </div>
+      }
+    </dl>
+  </section>
+
+  <section class="profile-section">
+    <h3 class="profile-heading" id="staff-profile-figures">
+      {{ 'managementStaff.profile.stats' | transloco }}
+    </h3>
+    <lib-stat-group aria-labelledby="staff-profile-figures">
+      <lib-stat
+        [value]="viewed.stats.completedCount"
+        [label]="'managementStaff.profile.completed' | transloco"
+      />
+      <lib-stat
+        [value]="viewed.stats.upcomingCount"
+        [label]="'managementStaff.profile.upcoming' | transloco"
+      />
+      @if (rating(); as value) {
+        <lib-stat
+          [value]="value"
+          [label]="
+            (viewed.stats.reviewCount === 1
+              ? 'managementStaff.profile.reviewsOne'
+              : 'managementStaff.profile.reviewsMany'
+            ) | transloco: { count: viewed.stats.reviewCount }
+          "
+        >
+          <svg lucideStar class="profile-star" aria-hidden="true"></svg>
+        </lib-stat>
+      } @else {
+        <lib-stat value="–" [label]="'managementStaff.profile.noReviews' | transloco" />
+      }
+    </lib-stat-group>
+  </section>
+}

@@ -1,0 +1,170 @@
+// Consumes the design-system CSS custom properties emitted by the global
+// shared @ui styles; reduced motion is handled by the base
+// layer. `tone` colours the arc through a private `--_stroke` var; `size` sets
+// the diameter via `--_size`. Stroke width is a constant in the SVG `viewBox`,
+// so it scales proportionally with the diameter.
+
+:host {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  // Copper accent by default; semantic tones override below.
+  --_stroke: var(--accent);
+  --_size: var(--space-8);
+}
+
+:host([data-tone='success']) {
+  --_stroke: var(--success);
+}
+:host([data-tone='warning']) {
+  --_stroke: var(--warning);
+}
+:host([data-tone='error']) {
+  --_stroke: var(--error);
+}
+:host([data-tone='info']) {
+  --_stroke: var(--info);
+}
+
+:host([data-size='sm']) {
+  --_size: var(--space-6);
+}
+:host([data-size='lg']) {
+  --_size: var(--space-12);
+}
+
+.progress-spinner-svg {
+  inline-size: var(--_size);
+  block-size: var(--_size);
+}
+
+circle {
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.progress-spinner-track {
+  stroke: var(--surface-sunken);
+}
+
+// No track behind a free-spinning arc — the ring only frames a known value.
+:host([data-mode='indeterminate']) .progress-spinner-track {
+  display: none;
+}
+
+.progress-spinner-indicator {
+  stroke: var(--_stroke);
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+// Start the fill at 12 o'clock and ease the offset on value changes (discrete,
+// low-frequency updates — same rationale as the bar's width transition).
+:host([data-mode='determinate']) .progress-spinner-indicator {
+  transform: rotate(-90deg);
+  transition: stroke-dashoffset var(--dur-slow) var(--ease-standard);
+}
+
+// A status spinner is the accepted exception to "no infinite loops": it
+// signals ongoing work.
+//
+// `spin="linear"` (default): steady constant-speed rotation — pure GPU
+// `transform`, the golden-rule-clean option.
+:host([data-mode='indeterminate']) .progress-spinner-indicator {
+  animation: progress-spinner-rotate 0.9s linear infinite;
+}
+
+// `spin="ease"`: the organic Material-style spin. A steady base rotation
+// (transform) combined with an eased dash grow/shrink makes the arc appear to
+// accelerate and decelerate. Animating `stroke-dasharray`/`-dashoffset` is a
+// deliberate exception to the transform/opacity rule — there is no
+// transform-based way to morph an arc's length — kept cheap by running on a
+// single tiny SVG stroke.
+:host([data-mode='indeterminate'][data-spin='ease']) .progress-spinner-indicator {
+  animation:
+    progress-spinner-rotate 2s linear infinite,
+    progress-spinner-dash 1.5s var(--ease-standard) infinite;
+}
+
+@keyframes progress-spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Values are percentages of the ring (the circle's `pathLength` is 100), so
+// they are plain literals that interpolate smoothly. The arc grows and shrinks
+// (dasharray) while its offset travels exactly one full turn (-100). Both
+// endpoints match their start — dasharray returns to `8 92`, and `-100` is
+// periodically identical to `0` — so the loop is seamless with no snap. The two
+// dasharray values always sum to 100, so exactly one clean arc wraps the ring.
+//
+// The leading edge sits at `-offset + dash`. To keep it moving forward (no
+// "step back" as the tail catches up), each segment's `Δoffset + Δdash` must
+// stay ≥ 0 — i.e. the arc must not grow/shrink by more than the offset travels
+// (max − min ≤ 50 here). The constant container rotation adds further forward
+// motion, so the head advances continuously throughout.
+@keyframes progress-spinner-dash {
+  0% {
+    stroke-dasharray: 8 92;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 50 50;
+    stroke-dashoffset: -50;
+  }
+  100% {
+    stroke-dasharray: 8 92;
+    stroke-dashoffset: -100;
+  }
+}
+
+.progress-spinner-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  // Scale the label off the diameter so it always clears the ring — a fixed
+  // size left "100%" overlapping the stroke on a small spinner.
+  font-family: var(--font-mono);
+  font-size: calc(var(--_size) * 0.26);
+  line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+// The fallback accessible name: referenced by `aria-labelledby`, so it must
+// stay in the layout tree — clipped rather than `display: none`.
+.progress-spinner-a11y-text {
+  position: absolute;
+  inline-size: var(--border-width-hairline);
+  block-size: var(--border-width-hairline);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+// A forced palette repaints every stroke in one system colour, which would
+// merge the arc into the ring it is measured against. `Highlight` keeps the
+// filled part readable as a proportion of the track.
+@media (forced-colors: active) {
+  .progress-spinner-track {
+    stroke: CanvasText;
+  }
+
+  .progress-spinner-indicator {
+    stroke: Highlight;
+    forced-color-adjust: none;
+  }
+}
+
+// Reduced motion: stop the rotation and dash morph. The indicator falls back
+// to its attribute-bound quarter arc — a clear static "busy" cue.
+@media (prefers-reduced-motion: reduce) {
+  .progress-spinner-indicator {
+    animation: none;
+  }
+}

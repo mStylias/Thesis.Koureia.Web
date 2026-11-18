@@ -1,0 +1,70 @@
+@if (shop(); as options) {
+  <div class="summary">
+    @if (showShop()) {
+      <div class="summary__shop">
+        @if (options.logoUrl) {
+          <!--
+            Constrained in CSS, not by the source: `logoUrl` is one full-size photo, so the avatar
+            here downloads the whole thing. Recorded in the API's TODO; hiding the logo is not the
+            fix.
+          -->
+          <img
+            class="summary__logo"
+            [src]="options.logoUrl"
+            alt=""
+            width="40"
+            height="40"
+            loading="lazy"
+            decoding="async"
+          />
+        } @else {
+          <span class="summary__logo summary__logo--empty" aria-hidden="true">{{
+            initials()
+          }}</span>
+        }
+        <p class="summary__name">{{ options.name }}</p>
+      </div>
+    }
+
+    <dl class="summary__rows">
+      @for (row of rows(); track row.id) {
+        <div class="summary__row" [attr.data-waiting]="row.values.length === 0 ? '' : null">
+          <dt class="summary__label">{{ row.label }}</dt>
+          <dd class="summary__value">
+            @if (row.values.length === 0) {
+              <span class="summary__pending">—</span>
+            } @else {
+              @for (value of row.values; track value.text) {
+                <span class="summary__line" [animate.enter]="valueEnter()">
+                  <span class="summary__text">{{ value.text }}</span>
+                  @if (value.meta) {
+                    <span class="summary__meta">{{ value.meta }}</span>
+                  }
+                </span>
+              }
+            }
+          </dd>
+        </div>
+      }
+    </dl>
+
+    @if (showTotal() && chosen().length > 0) {
+      <p class="summary__total">
+        <span class="summary__total-label">{{ totalHeading() }}</span>
+        <span class="summary__total-value">
+          @if (!totals().exact) {
+            <span class="summary__from">{{ 'barbershops.booking.summary.from' | transloco }}</span>
+          }
+          <!-- Without this the number the customer is deciding on is the one thing on the
+               surface that changes silently. -->
+          <span
+            class="summary__amount"
+            [libReplayOnChange]="totalAmount()"
+            animationClass="summary-total-enter"
+            >{{ totalAmount() }}</span
+          >
+        </span>
+      </p>
+    }
+  </div>
+}

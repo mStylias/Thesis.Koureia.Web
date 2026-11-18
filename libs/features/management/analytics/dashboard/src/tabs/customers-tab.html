@@ -1,0 +1,69 @@
+<lib-chart-grid>
+  <lib-chart-card
+    [heading]="'managementDashboard.charts.customers.newVsReturning.title' | transloco"
+    [skeleton]="{ kind: 'bars', count: 12, legend: 2 }"
+    [height]="chartHeight"
+    [set]="data()?.newVsReturning"
+    [option]="newVsReturning()"
+    [context]="context()"
+    [loading]="entry().loading"
+    [failed]="entry().failed"
+    (retry)="retry.emit()"
+  />
+
+  <lib-chart-card
+    [heading]="'managementDashboard.charts.customers.daysBetweenVisits.title' | transloco"
+    [note]="'managementDashboard.charts.customers.daysBetweenVisits.note' | transloco"
+    [skeleton]="{ kind: 'bars', count: 6 }"
+    [height]="chartHeight"
+    [set]="data()?.daysBetweenVisits"
+    [option]="daysBetweenVisits()"
+    [context]="context()"
+    [loading]="entry().loading"
+    [failed]="entry().failed"
+    (retry)="retry.emit()"
+  />
+
+  <!-- Wide: a table beside a chart cannot match its height. -->
+  <lib-chart-card
+    #topCard
+    wide
+    [heading]="'managementDashboard.charts.customers.topCustomers.title' | transloco"
+    [skeleton]="{ kind: 'table', count: 10 }"
+    [set]="data()?.topCustomers"
+    [option]="null"
+    [table]="false"
+    [loading]="entry().loading"
+    [failed]="entry().failed"
+    (retry)="retry.emit()"
+  >
+    <table class="top-customers" [attr.aria-label]="topCard.heading()">
+      <thead>
+        <tr>
+          <th scope="col" class="is-number is-rank">
+            {{ 'managementDashboard.charts.customers.topCustomers.rank' | transloco }}
+          </th>
+          <th scope="col">
+            {{ 'managementDashboard.charts.customers.topCustomers.name' | transloco }}
+          </th>
+          <th scope="col" class="is-number">
+            {{ 'managementDashboard.charts.customers.topCustomers.visits' | transloco }}
+          </th>
+          <th scope="col" class="is-number">
+            {{ 'managementDashboard.charts.customers.topCustomers.spend' | transloco }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of topCustomers(); track row.key) {
+          <tr>
+            <td class="is-number is-rank">{{ row.rank }}</td>
+            <th scope="row">{{ row.name }}</th>
+            <td class="is-number">{{ row.visits }}</td>
+            <td class="is-number">{{ row.spend }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </lib-chart-card>
+</lib-chart-grid>

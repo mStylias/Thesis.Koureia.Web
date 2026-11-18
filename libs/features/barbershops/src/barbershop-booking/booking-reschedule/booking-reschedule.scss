@@ -1,0 +1,53 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+.compare {
+  width: 100%;
+  border-collapse: collapse;
+  @include a.t-body-sm;
+
+  th,
+  td {
+    padding: a.space(2) a.space(2) a.space(2) 0;
+    text-align: start;
+    vertical-align: top;
+    border-block-end: var(--border-width-hairline) solid var(--border-subtle);
+  }
+
+  thead th {
+    @include a.t-field-label;
+  }
+
+  tbody th {
+    @include a.t-field-label;
+    white-space: nowrap;
+  }
+}
+
+.compare__caption {
+  @include a.t-title;
+  padding-block-end: a.space(2);
+  text-align: start;
+  color: var(--text-primary);
+}
+
+.compare__before {
+  color: var(--text-secondary);
+}
+
+// The changed value carries weight as well as position, so it never relies on colour alone.
+.compare__after {
+  color: var(--text-primary);
+
+  tr[data-changed] & {
+    font-weight: var(--weight-bold);
+  }
+}
+
+.compare__empty {
+  color: var(--text-muted);
+  font-weight: normal;
+}

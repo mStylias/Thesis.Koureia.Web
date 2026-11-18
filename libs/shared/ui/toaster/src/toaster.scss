@@ -1,0 +1,69 @@
+@use 'abstracts' as a;
+
+// The component re-parents itself to <body>, so the host is just a
+// pass-through; the fixed-position <ol> carries the stack.
+
+:host {
+  display: contents;
+}
+
+.toaster {
+  position: fixed;
+  z-index: var(--z-toast);
+  width: var(--width);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  outline: none;
+  // The list itself must not intercept clicks on the page beneath the
+  // (mostly invisible) stack region — only the toasts do.
+  min-height: var(--front-toast-height);
+  pointer-events: none;
+  transition: transform var(--dur-slow) var(--ease-standard);
+}
+
+.toaster > * {
+  pointer-events: auto;
+}
+
+.toaster[data-x-position='right'] {
+  right: var(--viewport-offset);
+}
+
+.toaster[data-x-position='left'] {
+  left: var(--viewport-offset);
+}
+
+.toaster[data-x-position='center'] {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.toaster[data-y-position='top'] {
+  top: var(--viewport-offset);
+}
+
+.toaster[data-y-position='bottom'] {
+  bottom: var(--viewport-offset);
+}
+
+// Mirrors the design system's `sm` breakpoint (640px).
+@include a.respond-down(sm) {
+  .toaster,
+  .toaster[data-x-position='left'],
+  .toaster[data-x-position='right'],
+  .toaster[data-x-position='center'] {
+    left: var(--mobile-offset);
+    right: var(--mobile-offset);
+    width: auto;
+    transform: none;
+  }
+
+  .toaster[data-y-position='top'] {
+    top: var(--mobile-offset);
+  }
+
+  .toaster[data-y-position='bottom'] {
+    bottom: var(--mobile-offset);
+  }
+}

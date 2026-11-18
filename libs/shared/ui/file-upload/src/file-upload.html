@@ -1,0 +1,246 @@
+<input
+  #fileInput
+  class="file-upload-input"
+  type="file"
+  [id]="inputId"
+  [accept]="accept()"
+  [multiple]="multiple()"
+  [disabled]="disabled()"
+  tabindex="-1"
+  aria-hidden="true"
+  (change)="onInputChange($event)"
+  (cancel)="onFocusin()"
+/>
+
+@if (mode() === 'simple') {
+  <div class="file-upload-simple">
+    <button
+      libButton
+      type="button"
+      [disabled]="disabled()"
+      [attr.aria-invalid]="showInvalid() ? true : null"
+      [attr.aria-describedby]="describedBy()"
+      (click)="choose()"
+    >
+      <svg lucideUpload aria-hidden="true"></svg>
+      {{ chooseLabel() || ('fileUpload.actions.choose' | uiCopy | transloco) }}
+    </button>
+    @if (required()) {
+      <p class="file-upload-required">{{ 'fileUpload.required' | uiCopy | transloco }}</p>
+    }
+  </div>
+} @else {
+  <div
+    class="file-upload-dropzone"
+    [attr.data-dragging]="dragging() ? '' : null"
+    (dragenter)="onDragOver($event)"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+  >
+    <svg class="file-upload-hero-icon" lucideUpload aria-hidden="true"></svg>
+    @if (heading()) {
+      <h3>{{ heading() }}</h3>
+    }
+    @if (description()) {
+      <p class="file-upload-description">{{ description() }}</p>
+    }
+    <button
+      libButton
+      type="button"
+      [disabled]="disabled()"
+      [attr.aria-invalid]="showInvalid() ? true : null"
+      [attr.aria-describedby]="describedBy()"
+      (click)="choose()"
+    >
+      {{ chooseLabel() || ('fileUpload.actions.choose' | uiCopy | transloco) }}
+    </button>
+    <p class="file-upload-hint">
+      {{ 'fileUpload.dropHint' | uiCopy | transloco }}
+      @if (required()) {
+        <span>{{ 'fileUpload.required' | uiCopy | transloco }}</span>
+      }
+      @if (accept()) {
+        <span>{{ 'fileUpload.accepted' | uiCopy | transloco: { accept: accept() } }}</span>
+      }
+      @if (safeMaxFileSize()) {
+        <span>{{
+          'fileUpload.maxSize' | uiCopy | transloco: { size: formatBytes(safeMaxFileSize()) }
+        }}</span>
+      }
+      @if (safeMaxFiles()) {
+        <span>{{ 'fileUpload.maxFiles' | uiCopy | transloco: { count: safeMaxFiles() } }}</span>
+      }
+    </p>
+  </div>
+
+  @if (items().length) {
+    <section class="file-upload-queue" [attr.aria-label]="'fileUpload.queue' | uiCopy | transloco">
+      <ul>
+        @for (item of items(); track item.id) {
+          <!--
+            The enter class is gated on `mounted`: animate.enter also runs
+            on the very first render, so a pre-filled queue would animate
+            itself into view on load.
+          -->
+          <li
+            class="file-upload-item"
+            [attr.data-status]="item.status"
+            [animate.enter]="mounted() ? 'file-upload-item-enter' : ''"
+          >
+            <div class="file-upload-preview" aria-hidden="true">
+              @if (item.previewUrl) {
+                <img [src]="item.previewUrl" alt="" />
+              } @else if (item.file.type.startsWith('image/')) {
+                <svg lucideImage></svg>
+              } @else {
+                <svg lucideFile></svg>
+              }
+            </div>
+
+            <div class="file-upload-item-content">
+              <div class="file-upload-item-heading">
+                <span class="file-upload-file-name" showOnEllipsis [libTooltip]="item.file.name">{{
+                  item.file.name
+                }}</span>
+                <span class="file-upload-file-size">{{ formatBytes(item.file.size) }}</span>
+              </div>
+
+              @if (item.status === 'uploading') {
+                <lib-progress-bar
+                  size="sm"
+                  [value]="item.progress"
+                  [showValue]="false"
+                  [ariaLabel]="'fileUpload.progress' | uiCopy | transloco: { name: item.file.name }"
+                />
+              }
+
+              <!--
+                Plain text, not a live region: one per row meant a batch of
+                files talked over itself. The queue is summarised once in
+                the single status region at the end of the template.
+              -->
+              <p class="file-upload-status">
+                @if (item.error) {
+                  {{ item.error }}
+                } @else if (item.errorKey) {
+                  {{ item.errorKey | uiCopy | transloco: item.errorParams }}
+                } @else {
+                  {{ 'fileUpload.status.' + item.status | uiCopy | transloco }}
+                }
+              </p>
+            </div>
+
+            <div class="file-upload-item-actions">
+              @if (item.status === 'error' || item.status === 'canceled') {
+                <button
+                  libButton
+                  type="button"
+                  variant="text"
+                  iconOnly
+                  [disabled]="disabled()"
+                  [attr.aria-label]="
+                    'fileUpload.actions.retryFile' | uiCopy | transloco: { name: item.file.name }
+                  "
+                  (click)="retry(item)"
+                >
+                  <svg lucideRotateCcw aria-hidden="true"></svg>
+                </button>
+              }
+              @if (item.status === 'uploading') {
+                <button
+                  libButton
+                  type="button"
+                  variant="text"
+                  iconOnly
+                  [attr.aria-label]="
+                    'fileUpload.actions.cancelFile' | uiCopy | transloco: { name: item.file.name }
+                  "
+                  (click)="cancel(item)"
+                >
+                  <svg lucideX aria-hidden="true"></svg>
+                </button>
+              } @else {
+                <button
+                  libButton
+                  type="button"
+                  variant="text"
+                  iconOnly
+                  [disabled]="disabled()"
+                  [attr.aria-label]="
+                    'fileUpload.actions.removeFile' | uiCopy | transloco: { name: item.file.name }
+                  "
+                  (click)="remove(item)"
+                >
+                  <svg lucideTrash2 aria-hidden="true"></svg>
+                </button>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+
+      <div class="file-upload-queue-actions">
+        <button
+          libButton
+          type="button"
+          [disabled]="disabled() || !queuedItems().length"
+          (click)="upload()"
+        >
+          <svg lucideUpload aria-hidden="true"></svg>
+          {{ uploadLabel() || ('fileUpload.actions.upload' | uiCopy | transloco) }}
+        </button>
+        <button
+          libButton
+          type="button"
+          variant="text"
+          [disabled]="disabled() || uploading()"
+          (click)="clear()"
+        >
+          {{ 'fileUpload.actions.clear' | uiCopy | transloco }}
+        </button>
+      </div>
+    </section>
+  }
+}
+
+@if (showMessages()) {
+  <lib-banner
+    class="file-upload-errors"
+    tone="error"
+    role="alert"
+    [id]="inputId + '-errors'"
+    [animate.enter]="mounted() ? 'file-upload-errors-enter' : ''"
+    animate.leave="file-upload-errors-leave"
+  >
+    @if (showError()) {
+      <p>{{ firstError()?.message || errorKey() | uiCopy | transloco }}</p>
+    }
+    @for (rejection of rejections(); track rejection.file.name + rejection.file.lastModified) {
+      <p>
+        {{
+          'fileUpload.errors.' + rejection.code
+            | uiCopy
+            | transloco
+              : {
+                  name: rejection.file.name,
+                  size: formatBytes(safeMaxFileSize()),
+                  count: safeMaxFiles(),
+                  accept: accept(),
+                }
+        }}
+      </p>
+    }
+  </lib-banner>
+}
+
+<!--
+  One summarised region for the whole queue, deliberately count-free while
+  files are in flight so a batch starting up announces once rather than
+  once per file. Per-row status stays visible text.
+-->
+<p class="file-upload-a11y-text" role="status">
+  @if (liveMessage(); as live) {
+    {{ live.key | uiCopy | transloco: live.params }}
+  }
+</p>

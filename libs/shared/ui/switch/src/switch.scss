@@ -1,0 +1,197 @@
+// Consumes the design-system CSS custom properties emitted by the
+// shared @ui styles; reduced motion is handled by the base layer
+// (a global rule with `!important`, so no per-component query). The
+// native checkbox stays in the DOM (invisible, stretched over the track
+// and the gap for a generous hit area) and drives every state through
+// :checked / :focus-visible. The label text sits above it — see
+// `.switch-label`.
+
+:host {
+  display: inline-flex;
+  font-family: var(--font-sans);
+}
+
+:host([data-disabled]) {
+  opacity: var(--opacity-disabled);
+}
+
+.switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  user-select: none;
+}
+
+:host([data-disabled]) .switch {
+  cursor: default;
+}
+
+.switch-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.switch-track {
+  box-sizing: border-box;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  width: var(--switch-width);
+  height: var(--switch-height);
+  padding: var(--switch-inset);
+  background: var(--surface-sunken);
+  border: var(--border-width-hairline) solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard);
+}
+
+.switch-thumb {
+  width: var(--switch-thumb-size);
+  height: var(--switch-thumb-size);
+  // Not `--surface`: in dark mode that is the card under the switch, and the thumb disappears.
+  background: var(--switch-thumb);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-sm);
+  transform: translateX(0);
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+
+.switch-input:checked + .switch-track {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.switch-input:checked + .switch-track .switch-thumb {
+  transform: translateX(var(--switch-travel));
+}
+
+.switch:active .switch-input:not(:disabled) + .switch-track .switch-thumb {
+  transform: scale(0.92);
+}
+
+.switch:active .switch-input:checked:not(:disabled) + .switch-track .switch-thumb {
+  transform: translateX(var(--switch-travel)) scale(0.92);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .switch:hover .switch-input:not(:disabled) + .switch-track {
+    border-color: var(--accent);
+  }
+}
+
+.switch-input:focus-visible + .switch-track {
+  box-shadow:
+    0 0 0 calc(var(--border-width-hairline) * 2) var(--surface),
+    0 0 0 calc(var(--border-width-hairline) * 4) var(--focus-ring);
+}
+
+// Positioned, so it paints above the stretched input and projected links and
+// buttons get their own clicks. Without this the input covers the label text and
+// swallows every one of them.
+//
+// Plain text keeps toggling the switch: the click lands here, and the enclosing
+// `<label>` forwards it to the input. A projected `<a href>` does not toggle it,
+// because a label never forwards a click aimed at interactive content.
+.switch-label {
+  position: relative;
+  font-size: var(--switch-text);
+  line-height: var(--leading-snug);
+  color: var(--text-primary);
+
+  &:empty {
+    display: none;
+  }
+}
+
+:host([data-size='sm']) {
+  --switch-height: var(--icon-size-sm);
+  --switch-width: calc(var(--icon-size-sm) * 2);
+  --switch-text: var(--text-sm);
+}
+
+:host([data-size='md']) {
+  --switch-height: var(--icon-size-md);
+  --switch-width: calc(var(--icon-size-md) * 2);
+  --switch-text: var(--text-base);
+}
+
+:host([data-size='lg']) {
+  --switch-height: var(--icon-size-lg);
+  --switch-width: calc(var(--icon-size-lg) * 2);
+  --switch-text: var(--text-lg);
+}
+
+:host {
+  --switch-inset: calc(var(--space-1) / 2);
+  --switch-thumb-size: calc(var(--switch-height) - var(--space-1));
+  --switch-travel: calc(var(--switch-width) - var(--switch-thumb-size) - (var(--switch-inset) * 2));
+}
+
+:host([data-invalid]) {
+  .switch-track {
+    border-color: var(--error);
+  }
+
+  .switch-input:checked + .switch-track {
+    background: var(--error);
+    border-color: var(--error);
+  }
+
+  .switch-input:focus-visible + .switch-track {
+    box-shadow:
+      0 0 0 calc(var(--border-width-hairline) * 2) var(--surface),
+      0 0 0 calc(var(--border-width-hairline) * 4) var(--error);
+  }
+}
+
+// ---- Forced colors ----
+// The on state is carried by the track fill *and* the thumb's position;
+// a forced palette overrides the fill and drops every box-shadow, so the
+// track border, the focus ring and the thumb all have to be re-stated in
+// system colors — otherwise on and off differ by thumb position alone.
+
+@media (forced-colors: active) {
+  .switch-track {
+    border-color: CanvasText;
+  }
+
+  .switch-thumb {
+    background: CanvasText;
+    forced-color-adjust: none;
+  }
+
+  .switch-input:checked + .switch-track {
+    background: Highlight;
+    border-color: Highlight;
+    forced-color-adjust: none;
+  }
+
+  .switch-input:checked + .switch-track .switch-thumb {
+    background: HighlightText;
+  }
+
+  .switch-input:focus-visible + .switch-track {
+    outline: 2px solid CanvasText;
+    outline-offset: 2px;
+  }
+
+  :host([data-disabled]) .switch-track,
+  :host([data-disabled]) .switch-label {
+    color: GrayText;
+    border-color: GrayText;
+  }
+
+  :host([data-disabled]) .switch-thumb {
+    background: GrayText;
+  }
+}

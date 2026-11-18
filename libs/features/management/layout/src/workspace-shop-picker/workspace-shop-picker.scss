@@ -1,0 +1,48 @@
+@use 'abstracts' as a;
+
+:host {
+  display: flex;
+  align-items: center;
+  gap: a.space(3);
+  min-width: 0;
+}
+
+.shop-picker-prompt {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.shop-picker-select {
+  width: 16rem;
+  max-width: 45vw;
+}
+
+.shop-option {
+  display: inline-flex;
+  align-items: center;
+  gap: a.space(2);
+  min-width: 0;
+}
+
+.shop-option-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.shop-option-tag {
+  flex-shrink: 0;
+  padding-inline: a.space(2);
+  border: var(--border-width-hairline) solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+// A phone keeps the select. The placeholder already says what to do.
+@include a.respond-down(md) {
+  .shop-picker-prompt {
+    display: none;
+  }
+}

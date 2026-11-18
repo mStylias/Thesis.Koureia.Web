@@ -1,0 +1,33 @@
+// Base element defaults. Tailwind's preflight does the reset. This file applies only the
+// design system's surface and type defaults.
+@use '../abstracts' as a;
+
+html {
+  font-size: 106.25%;
+  background-color: var(--bg);
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+}
+
+// Visible keyboard focus everywhere. WCAG 2.4.7.
+:focus-visible {
+  @include a.focus-ring;
+}
+
+// Motion is quick, calm and optional.
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

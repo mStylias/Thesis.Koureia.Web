@@ -1,0 +1,75 @@
+<!-- Wrapper (not the button itself) carries the responsive visibility:
+     hiding my own element with `display: none` reliably removes the
+     hamburger from layout, the tab order, and the a11y tree, and avoids
+     an equal-specificity clash with libButton's own `:host` display. -->
+<div class="topbar-menu">
+  <button
+    libButton
+    type="button"
+    variant="text"
+    severity="secondary"
+    iconOnly
+    rounded
+    aria-haspopup="dialog"
+    [attr.aria-expanded]="menuOpen()"
+    [attr.aria-label]="menuAriaLabel() || ('topbar.menuLabel' | uiCopy | transloco)"
+    (click)="openMenu()"
+  >
+    <svg lucideMenu class="topbar-menu-icon" aria-hidden="true"></svg>
+  </button>
+</div>
+
+<!-- The desktop counterpart of the hamburger above — the same wrapper
+     trick carries its (inverse) responsive visibility, so exactly one of
+     the two is ever in the layout, the tab order and the a11y tree. It
+     sits OUTSIDE the sidebar on purpose: anchored to the bar, it holds
+     still while the rail resizes past it. -->
+@if (showSidebarToggle()) {
+  <div class="topbar-sidebar-toggle">
+    <button
+      libButton
+      type="button"
+      variant="text"
+      severity="secondary"
+      iconOnly
+      rounded
+      [attr.aria-expanded]="!sidebarCollapsed()"
+      [attr.aria-controls]="sidebarControls() || null"
+      [attr.aria-label]="sidebarToggleAriaLabel() || ('topbar.sidebarLabel' | uiCopy | transloco)"
+      (click)="toggleSidebar()"
+    >
+      <!-- Both icons occupy one grid cell, so the outgoing one can stay
+           mounted through its exit and cross-fade with the incoming one
+           without nudging the button's size. -->
+      <span class="topbar-sidebar-toggle-swap">
+        @if (sidebarCollapsed()) {
+          <svg
+            lucidePanelLeftOpen
+            class="topbar-sidebar-toggle-icon"
+            aria-hidden="true"
+            [animate.enter]="sidebarToggled() ? 'toggle-icon-enter' : ''"
+            [animate.leave]="sidebarToggled() ? 'toggle-icon-leave' : ''"
+          ></svg>
+        } @else {
+          <svg
+            lucidePanelLeftClose
+            class="topbar-sidebar-toggle-icon"
+            aria-hidden="true"
+            [animate.enter]="sidebarToggled() ? 'toggle-icon-enter' : ''"
+            [animate.leave]="sidebarToggled() ? 'toggle-icon-leave' : ''"
+          ></svg>
+        }
+      </span>
+    </button>
+  </div>
+}
+
+<div class="topbar-start">
+  <ng-content select="[libTopbarStart]" />
+  <!-- Unslotted content falls through to the leading area. -->
+  <ng-content />
+</div>
+
+<div class="topbar-end">
+  <ng-content select="[libTopbarEnd]" />
+</div>

@@ -1,0 +1,18 @@
+// The calendar owns the height and scrolls its own views. `min-height: 0` lets a flex child
+// shrink below its content, or the shell's content area would take the scrolling.
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.calendar-page-calendar {
+  flex: 1;
+  min-height: 0;
+}
+
+.calendar-page-message {
+  margin: 0;
+  color: var(--text-muted);
+}

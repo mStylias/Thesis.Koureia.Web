@@ -1,0 +1,383 @@
+@let fields = editor.form;
+
+<lib-drawer
+  position="right"
+  [modal]="false"
+  [closeGuard]="closeGuard"
+  [visible]="open()"
+  ariaLabelledby="service-details-title"
+  (visibleChange)="onVisibleChange($event)"
+>
+  <div libDrawerHeader class="service-details-heading">
+    <svg lucideScissors class="service-details-icon" aria-hidden="true"></svg>
+    <h2 class="service-details-title" id="service-details-title">{{ heading() }}</h2>
+  </div>
+
+  <!-- Pinned, so Save stays reachable however long the form below it is. -->
+  <lib-drawer-actions
+    libDrawerToolbar
+    [actions]="toolbarActions()"
+    [paused]="switching()"
+    [attr.aria-label]="'managementServices.actions.label' | transloco"
+  >
+    @if (editor.editing()) {
+      <button
+        libButton
+        type="button"
+        severity="secondary"
+        variant="outlined"
+        size="sm"
+        [disabled]="editor.submitting()"
+        (click)="cancelEdit()"
+      >
+        {{ 'managementServices.actions.cancelEdit' | transloco }}
+      </button>
+      <!-- Never disabled by validity: the first press is what reveals it. -->
+      <button
+        libButton
+        type="button"
+        severity="primary"
+        size="sm"
+        [loading]="editor.submitting()"
+        (click)="save()"
+      >
+        <svg lucideSave libButtonIcon aria-hidden="true"></svg>
+        {{ 'managementServices.actions.save' | transloco }}
+      </button>
+    } @else if (service() !== null) {
+      @if (canUpdate()) {
+        <button
+          libButton
+          type="button"
+          severity="secondary"
+          variant="outlined"
+          size="sm"
+          [disabled]="acting()"
+          (click)="edit()"
+        >
+          <svg lucidePencil libButtonIcon aria-hidden="true"></svg>
+          {{ 'managementServices.actions.edit' | transloco }}
+        </button>
+      }
+    } @else if (reading()) {
+      <span class="service-details-skeleton-button" aria-hidden="true"></span>
+    }
+  </lib-drawer-actions>
+
+  @if (reading()) {
+    <div class="service-details-skeleton" aria-hidden="true">
+      @for (placeholder of [1, 2, 3]; track placeholder) {
+        <section class="skeleton-section">
+          <span class="skeleton-line skeleton-caption"></span>
+          <span class="skeleton-line skeleton-long"></span>
+          <span class="skeleton-line skeleton-medium"></span>
+        </section>
+      }
+    </div>
+    <p class="sr-only" role="status">{{ 'managementServices.panel.loading' | transloco }}</p>
+  } @else if (notFound()) {
+    <p class="service-details-status" role="alert">
+      {{ 'managementServices.panel.notFound' | transloco }}
+    </p>
+  } @else if (readErrorText()) {
+    <lib-banner class="service-details-notice" tone="error" role="alert">
+      {{ readErrorText() }}
+      <button
+        libButton
+        libBannerAction
+        type="button"
+        variant="outlined"
+        size="sm"
+        (click)="reload()"
+      >
+        {{ 'managementServices.panel.retry' | transloco }}
+      </button>
+    </lib-banner>
+  } @else if (editor.editing()) {
+    @if (options() === null) {
+      @if (optionsFailed()) {
+        <lib-banner class="service-details-notice" tone="error" role="alert">
+          {{ 'managementServices.errors.SERVICE_CATEGORY_FETCH_FAILED' | transloco }}
+          <button
+            libButton
+            libBannerAction
+            type="button"
+            variant="outlined"
+            size="sm"
+            (click)="reloadOptions()"
+          >
+            {{ 'managementServices.panel.retry' | transloco }}
+          </button>
+        </lib-banner>
+      } @else {
+        <p class="service-details-status" role="status">
+          {{ 'managementServices.panel.optionsLoading' | transloco }}
+        </p>
+      }
+    } @else {
+      <!-- `libForm` carries the editor to the fields and sets `novalidate`. The toolbar's Save commits. -->
+      <form class="service-form" [libForm]="editor">
+        <lib-form-errors class="service-form-errors" />
+
+        <section class="form-section">
+          <h3 class="form-heading">{{ 'managementServices.sections.names' | transloco }}</h3>
+
+          @for (translation of fields.translations; track $index) {
+            <fieldset class="form-language">
+              <legend class="form-language-name">
+                {{
+                  'managementServices.languages.' + translation.languageCode().value() | transloco
+                }}
+              </legend>
+
+              <lib-field class="form-field" [field]="translation.name">
+                <ng-template libFieldEditor>
+                  <input
+                    libInputText
+                    libFieldControl
+                    type="text"
+                    size="sm"
+                    autocomplete="off"
+                    placeholder=" "
+                    [formField]="translation.name"
+                  />
+                </ng-template>
+              </lib-field>
+
+              <lib-field class="form-field" [field]="translation.description">
+                <ng-template libFieldEditor>
+                  <textarea
+                    libTextarea
+                    libFieldControl
+                    rows="2"
+                    size="sm"
+                    autoResize
+                    placeholder=" "
+                    [formField]="translation.description"
+                  ></textarea>
+                </ng-template>
+              </lib-field>
+            </fieldset>
+          }
+
+          <div class="form-category">
+            <lib-field class="form-field" [field]="fields.categoryId">
+              <ng-template libFieldEditor let-id let-describedBy="describedBy">
+                <lib-select
+                  size="sm"
+                  [inputId]="id"
+                  [ariaDescribedby]="describedBy"
+                  [options]="categoryOptions()"
+                  [formField]="fields.categoryId"
+                />
+              </ng-template>
+            </lib-field>
+            <!-- Every category write needs `services:update`, create included. -->
+            @if (canUpdate()) {
+              <button
+                libButton
+                type="button"
+                severity="secondary"
+                variant="outlined"
+                size="sm"
+                iconOnly
+                [attr.aria-label]="'managementServices.form.newCategory' | transloco"
+                [libTooltip]="'managementServices.form.newCategory' | transloco"
+                (click)="newCategory()"
+              >
+                <svg lucidePlus aria-hidden="true"></svg>
+              </button>
+              @if (ownedCategory()) {
+                <button
+                  libButton
+                  type="button"
+                  severity="secondary"
+                  variant="outlined"
+                  size="sm"
+                  iconOnly
+                  [attr.aria-label]="'managementServices.form.editCategory' | transloco"
+                  [libTooltip]="'managementServices.form.editCategory' | transloco"
+                  (click)="editCategory()"
+                >
+                  <svg lucidePencil aria-hidden="true"></svg>
+                </button>
+              }
+            }
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h3 class="form-heading">{{ 'managementServices.sections.pricing' | transloco }}</h3>
+
+          <div class="form-pair">
+            <lib-field class="form-field" [field]="fields.price">
+              <ng-template libFieldEditor let-id let-describedBy="describedBy">
+                <lib-input-number
+                  size="sm"
+                  mode="currency"
+                  [currency]="currency()"
+                  [locale]="language()"
+                  [minFractionDigits]="2"
+                  [maxFractionDigits]="2"
+                  [inputId]="id"
+                  [ariaDescribedby]="describedBy"
+                  [ariaLabel]="'managementServices.form.price' | transloco"
+                  [formField]="fields.price"
+                />
+              </ng-template>
+            </lib-field>
+
+            <lib-field class="form-field" [field]="fields.durationMinutes">
+              <ng-template libFieldEditor let-id let-describedBy="describedBy">
+                <lib-input-number
+                  size="sm"
+                  [step]="limits.step"
+                  [suffix]="'managementServices.form.minutesSuffix' | transloco"
+                  [locale]="language()"
+                  [inputId]="id"
+                  [ariaDescribedby]="describedBy"
+                  [ariaLabel]="'managementServices.form.duration' | transloco"
+                  [formField]="fields.durationMinutes"
+                />
+              </ng-template>
+            </lib-field>
+
+            <lib-field class="form-field" [field]="fields.bufferBeforeMinutes">
+              <ng-template libFieldEditor let-id let-describedBy="describedBy">
+                <lib-input-number
+                  size="sm"
+                  [step]="limits.step"
+                  [suffix]="'managementServices.form.minutesSuffix' | transloco"
+                  [locale]="language()"
+                  [inputId]="id"
+                  [ariaDescribedby]="describedBy"
+                  [ariaLabel]="'managementServices.form.bufferBefore' | transloco"
+                  [formField]="fields.bufferBeforeMinutes"
+                />
+              </ng-template>
+            </lib-field>
+
+            <lib-field class="form-field" [field]="fields.bufferAfterMinutes">
+              <ng-template libFieldEditor let-id let-describedBy="describedBy">
+                <lib-input-number
+                  size="sm"
+                  [step]="limits.step"
+                  [suffix]="'managementServices.form.minutesSuffix' | transloco"
+                  [locale]="language()"
+                  [inputId]="id"
+                  [ariaDescribedby]="describedBy"
+                  [ariaLabel]="'managementServices.form.bufferAfter' | transloco"
+                  [formField]="fields.bufferAfterMinutes"
+                />
+              </ng-template>
+            </lib-field>
+          </div>
+
+          <p class="form-hint">{{ 'managementServices.form.bufferHint' | transloco }}</p>
+          <p class="form-summary" role="status">
+            {{ 'managementServices.form.calendarTime' | transloco: { count: calendarMinutes() } }}
+          </p>
+        </section>
+
+        <section class="form-section" aria-labelledby="service-barbers-heading">
+          <h3 class="form-heading" id="service-barbers-heading">
+            {{ 'managementServices.sections.barbers' | transloco }}
+          </h3>
+          <p class="form-hint">{{ 'managementServices.form.barbersHint' | transloco }}</p>
+
+          @if (staffRows().length === 0) {
+            <p class="form-hint">{{ 'managementServices.form.barbersEmpty' | transloco }}</p>
+          } @else {
+            <div class="barbers" role="group" aria-labelledby="service-barbers-heading">
+              <div class="barbers-head" aria-hidden="true">
+                <span>{{ 'managementServices.form.barber' | transloco }}</span>
+                <span>{{ 'managementServices.form.ownPrice' | transloco }}</span>
+                <span>{{ 'managementServices.form.ownDuration' | transloco }}</span>
+              </div>
+
+              @for (row of staffRows(); track row.staffMemberId) {
+                @let member = fields.staff[row.index];
+                <div
+                  class="barbers-row"
+                  [attr.data-selected]="member.selected().value() ? '' : null"
+                >
+                  <lib-checkbox size="sm" class="barbers-name" [formField]="member.selected">
+                    <span class="barbers-label">
+                      {{ row.displayName }}
+                      @if (!row.isActive) {
+                        <span class="barbers-meta">{{
+                          'managementServices.form.inactive' | transloco
+                        }}</span>
+                      } @else if (!row.isBookable) {
+                        <span class="barbers-meta">{{
+                          'managementServices.form.notBookable' | transloco
+                        }}</span>
+                      }
+                    </span>
+                  </lib-checkbox>
+                  <lib-input-number
+                    size="sm"
+                    mode="currency"
+                    [currency]="currency()"
+                    [locale]="language()"
+                    [minFractionDigits]="2"
+                    [maxFractionDigits]="2"
+                    [placeholder]="basePrice()"
+                    [ariaLabel]="
+                      'managementServices.form.ownPriceOf' | transloco: { name: row.displayName }
+                    "
+                    [formField]="member.customPrice"
+                  />
+                  <lib-input-number
+                    size="sm"
+                    [step]="limits.step"
+                    [suffix]="'managementServices.form.minutesSuffix' | transloco"
+                    [locale]="language()"
+                    [placeholder]="baseDuration()"
+                    [ariaLabel]="
+                      'managementServices.form.ownDurationOf' | transloco: { name: row.displayName }
+                    "
+                    [formField]="member.customDurationMinutes"
+                  />
+                </div>
+              }
+            </div>
+          }
+        </section>
+
+        <section class="form-section">
+          <div class="form-switch">
+            <lib-switch
+              inputId="service-active"
+              ariaDescribedby="service-active-hint"
+              [formField]="fields.isActive"
+            />
+            <div class="form-switch-text">
+              <label class="form-switch-label" for="service-active">
+                {{ 'managementServices.form.isActive' | transloco }}
+              </label>
+              <p class="form-hint" id="service-active-hint">
+                {{ 'managementServices.form.isActiveHint' | transloco }}
+              </p>
+            </div>
+          </div>
+        </section>
+      </form>
+    }
+  } @else if (service(); as viewed) {
+    <lib-service-view
+      [service]="viewed"
+      [categoryName]="categoryName()"
+      [assigned]="assigned()"
+      [notBookableReason]="notBookableReason()"
+      [money]="money()"
+    />
+  }
+</lib-drawer>
+
+<lib-service-category-dialog
+  [(visible)]="categoryDialogOpen"
+  [category]="categoryDialog()?.category ?? null"
+  [languages]="options()?.languages ?? []"
+  (changed)="onCategoryChange($event)"
+/>

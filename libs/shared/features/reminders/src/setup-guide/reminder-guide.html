@@ -1,0 +1,182 @@
+<lib-dialog
+  size="sm"
+  [position]="placement()"
+  [(visible)]="visible"
+  [header]="'reminders.guide.title' | transloco"
+>
+  @if (visible()) {
+    @if (topic() === 'in-app') {
+      <div class="guide-panel">
+        <p class="guide-text">{{ 'reminders.guide.inApp.intro' | transloco }}</p>
+        <ol class="guide-steps">
+          <li class="guide-step">
+            <span class="guide-icon" aria-hidden="true"><svg lucideEllipsis></svg></span>
+            <span>{{ 'reminders.guide.inApp.menu' | transloco }}</span>
+          </li>
+          <li class="guide-step">
+            <span class="guide-icon" aria-hidden="true"><svg lucideExternalLink></svg></span>
+            <span>{{ 'reminders.guide.inApp.open' | transloco }}</span>
+          </li>
+        </ol>
+        <p class="guide-text">{{ 'reminders.guide.inApp.copy' | transloco }}</p>
+        <lib-copy-button [value]="pageUrl()" [label]="'reminders.guide.copyLink' | transloco" />
+      </div>
+    } @else {
+      <lib-tabs>
+        <lib-tab-list
+          [(value)]="device"
+          [attr.aria-label]="'reminders.guide.platforms' | transloco"
+        >
+          <lib-tab value="ios">{{ 'reminders.guide.ios' | transloco }}</lib-tab>
+          <lib-tab value="android">{{ 'reminders.guide.android' | transloco }}</lib-tab>
+          <lib-tab value="desktop">{{ 'reminders.guide.desktop' | transloco }}</lib-tab>
+        </lib-tab-list>
+
+        <lib-tab-panel value="ios">
+          <div class="guide-panel">
+            @if (iosBlocked()) {
+              <ol class="guide-steps">
+                <li class="guide-step">
+                  <span class="guide-icon" aria-hidden="true"><svg lucideSettings></svg></span>
+                  <span>{{ 'reminders.guide.blocked.iosSettings' | transloco }}</span>
+                </li>
+                <li class="guide-step">
+                  <span class="guide-icon" aria-hidden="true"><svg lucideBell></svg></span>
+                  <span>{{ 'reminders.guide.blocked.iosApp' | transloco }}</span>
+                </li>
+                <li class="guide-step">
+                  <span class="guide-icon" aria-hidden="true"><svg lucideBell></svg></span>
+                  <span>{{ 'reminders.guide.blocked.iosAllow' | transloco }}</span>
+                </li>
+              </ol>
+            } @else {
+              @if (safariFirst()) {
+                <p class="guide-text guide-text--lead">
+                  {{ 'reminders.guide.safari' | transloco }}
+                </p>
+                <lib-copy-button
+                  [value]="pageUrl()"
+                  [label]="'reminders.guide.copyLink' | transloco"
+                />
+              }
+              <p class="guide-text">{{ 'reminders.guide.homeScreen.intro' | transloco }}</p>
+              <ol class="guide-steps">
+                <li class="guide-step">
+                  <span class="guide-icon" aria-hidden="true"><svg lucideShare></svg></span>
+                  <span>{{ 'reminders.guide.homeScreen.share' | transloco }}</span>
+                </li>
+                <li class="guide-step">
+                  <span class="guide-icon" aria-hidden="true"><svg lucideSquarePlus></svg></span>
+                  <span>{{ 'reminders.guide.homeScreen.add' | transloco }}</span>
+                </li>
+                <li class="guide-step">
+                  <span class="guide-icon" aria-hidden="true">
+                    <img class="guide-logo" [src]="logo" alt="" />
+                  </span>
+                  <!-- Names the brand, so the app owns it. See `RemindersBrandCopy`. -->
+                  <span>{{ 'brand.reminders.openFromHomeScreen' | transloco }}</span>
+                </li>
+                <li class="guide-step">
+                  <span class="guide-icon" aria-hidden="true"><svg lucideLogIn></svg></span>
+                  <span>{{ 'reminders.guide.homeScreen.signIn' | transloco }}</span>
+                </li>
+                <li class="guide-step">
+                  <span class="guide-icon" aria-hidden="true"><svg lucideBell></svg></span>
+                  <span>{{ 'reminders.guide.homeScreen.enable' | transloco }}</span>
+                </li>
+              </ol>
+            }
+          </div>
+        </lib-tab-panel>
+
+        <lib-tab-panel value="android">
+          <div class="guide-panel">
+            <p class="guide-text guide-text--lead">{{ 'reminders.guide.noInstall' | transloco }}</p>
+            <p class="guide-text">{{ 'reminders.guide.blocked.intro' | transloco }}</p>
+            <ng-container *ngTemplateOutlet="siteSettingsSteps" />
+          </div>
+        </lib-tab-panel>
+
+        <lib-tab-panel value="desktop">
+          <div class="guide-panel">
+            <p class="guide-text guide-text--lead">{{ 'reminders.guide.noInstall' | transloco }}</p>
+            <p class="guide-text">{{ 'reminders.guide.blocked.intro' | transloco }}</p>
+
+            <h3 class="guide-heading">{{ 'reminders.guide.blocked.chrome' | transloco }}</h3>
+            <ng-container *ngTemplateOutlet="siteSettingsSteps" />
+
+            <h3 class="guide-heading">{{ 'reminders.guide.blocked.firefox' | transloco }}</h3>
+            <ol class="guide-steps">
+              <li class="guide-step">
+                <span class="guide-icon" aria-hidden="true"
+                  ><svg lucideSlidersHorizontal></svg
+                ></span>
+                <span>{{ 'reminders.guide.blocked.siteIcon' | transloco }}</span>
+              </li>
+              <li class="guide-step">
+                <span class="guide-icon" aria-hidden="true"><svg lucideBell></svg></span>
+                <span>{{ 'reminders.guide.blocked.firefoxClear' | transloco }}</span>
+              </li>
+              <li class="guide-step">
+                <span class="guide-icon" aria-hidden="true"><svg lucideRotateCw></svg></span>
+                <span>{{ 'reminders.guide.blocked.firefoxEnable' | transloco }}</span>
+              </li>
+            </ol>
+
+            <h3 class="guide-heading">{{ 'reminders.guide.blocked.safari' | transloco }}</h3>
+            <ol class="guide-steps">
+              <li class="guide-step">
+                <span class="guide-icon" aria-hidden="true"><svg lucideSettings></svg></span>
+                <span>{{ 'reminders.guide.blocked.safariSettings' | transloco }}</span>
+              </li>
+              <li class="guide-step">
+                <span class="guide-icon" aria-hidden="true"><svg lucideBell></svg></span>
+                <span>{{ 'reminders.guide.blocked.safariAllow' | transloco }}</span>
+              </li>
+              <li class="guide-step">
+                <span class="guide-icon" aria-hidden="true"><svg lucideRotateCw></svg></span>
+                <span>{{ 'reminders.guide.blocked.reload' | transloco }}</span>
+              </li>
+            </ol>
+
+            <p class="guide-note">{{ 'reminders.guide.blocked.system' | transloco }}</p>
+          </div>
+        </lib-tab-panel>
+      </lib-tabs>
+    }
+  }
+
+  <ng-template libDialogFooter>
+    <button
+      libButton
+      type="button"
+      variant="outlined"
+      severity="secondary"
+      (click)="visible.set(false)"
+    >
+      {{ 'reminders.guide.close' | transloco }}
+    </button>
+  </ng-template>
+</lib-dialog>
+
+<!-- Chrome, Edge and Android browsers share the site settings route. -->
+<ng-template #siteSettingsSteps>
+  <ol class="guide-steps">
+    <li class="guide-step">
+      <span class="guide-icon" aria-hidden="true"><svg lucideSlidersHorizontal></svg></span>
+      <span>{{ 'reminders.guide.blocked.siteIcon' | transloco }}</span>
+    </li>
+    <li class="guide-step">
+      <span class="guide-icon" aria-hidden="true"><svg lucideSettings></svg></span>
+      <span>{{ 'reminders.guide.blocked.siteSettings' | transloco }}</span>
+    </li>
+    <li class="guide-step">
+      <span class="guide-icon" aria-hidden="true"><svg lucideBell></svg></span>
+      <span>{{ 'reminders.guide.blocked.allow' | transloco }}</span>
+    </li>
+    <li class="guide-step">
+      <span class="guide-icon" aria-hidden="true"><svg lucideRotateCw></svg></span>
+      <span>{{ 'reminders.guide.blocked.reload' | transloco }}</span>
+    </li>
+  </ol>
+</ng-template>

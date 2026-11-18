@@ -1,0 +1,328 @@
+@use 'abstracts' as a;
+
+:host {
+  --chart-legend-row: var(--space-6);
+  --chart-table-row: var(--space-8);
+  --chart-dim-opacity: 0.55;
+
+  display: grid;
+  grid-row: span 2;
+  grid-template-rows: subgrid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+}
+
+:host([data-wide]) {
+  grid-column: 1 / -1;
+}
+
+// The host, the card and the body pass the two row tracks of `lib-chart-grid` down to the header
+// and the frame. So the cards of a row share the header height and the chart height.
+.chart-card {
+  position: relative;
+  display: grid;
+  grid-row: span 2;
+  grid-template-rows: subgrid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+// A line on the card's top edge while a new response loads.
+.chart-card-progress {
+  position: absolute;
+  inset: 0 0 auto;
+}
+
+.chart-card-body {
+  --card-gap: var(--space-2);
+  --card-padding: var(--space-3) var(--space-4);
+
+  display: grid;
+  grid-row: span 2;
+  grid-template-rows: subgrid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+// The title, the note and the legend, each on its own line.
+.chart-card-head {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.chart-card-title {
+  @include a.t-title;
+  font-size: var(--text-base);
+}
+
+.chart-card-note {
+  margin: 0;
+  @include a.t-caption;
+}
+
+// The frame fills its row track, so a chart grows to the height of the tallest chart of its row.
+.chart-card-frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  transition: opacity var(--dur-base) var(--ease-standard);
+
+  &.is-dim {
+    opacity: var(--chart-dim-opacity);
+  }
+}
+
+// The `height` input is the flex basis. It is also the least height, because nothing shrinks.
+lib-chart,
+.chart-card-skeleton,
+.chart-card-message {
+  flex: 1 0 auto;
+}
+
+.chart-card-plot {
+  position: relative;
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+}
+
+// The chart's skeleton stays over it until the first draw, then fades.
+.chart-card-cover {
+  position: absolute;
+  inset: 0;
+  transition:
+    opacity var(--dur-fast) var(--ease-standard),
+    visibility 0s linear var(--dur-fast);
+}
+
+.chart-card-plot:has(lib-chart[data-ready]) .chart-card-cover {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.chart-card-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+
+.chart-card-empty {
+  margin: 0;
+  font-size: var(--text-sm);
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+// The banner takes the card's width, centered in the plot's height.
+.chart-card-failed {
+  align-self: stretch;
+}
+
+// One line that never wraps, so the skeleton and the loaded legend are one height. A legend wider
+// than its card scrolls inside its row. The inline margins line the names up with the title.
+.chart-legend {
+  display: flex;
+  height: var(--chart-legend-row);
+  margin-inline: calc(-1 * var(--space-1));
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  scroll-padding-inline: var(--space-6);
+  transition: opacity var(--dur-base) var(--ease-standard);
+
+  // A new read dims the legend with the chart it names.
+  &.is-dim {
+    opacity: var(--chart-dim-opacity);
+  }
+}
+
+// At least 24px tall, for the target size of WCAG 2.5.8.
+.chart-legend-item {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
+  box-sizing: border-box;
+  height: var(--chart-legend-row);
+  padding: 0 var(--space-1);
+  font: inherit;
+  font-size: var(--text-xs);
+  line-height: var(--leading-tight);
+  white-space: nowrap;
+  color: var(--text-primary);
+  background: none;
+  border: var(--border-width-hairline) solid transparent;
+  border-radius: a.radius(sm);
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard);
+
+  &:hover {
+    background: var(--surface-2);
+  }
+
+  // Inset, because the row clips a ring outside the item.
+  &:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--focus-ring);
+  }
+
+  // Off: the name stays, struck through and muted, so the state is not color alone.
+  &[aria-pressed='false'] {
+    color: var(--text-muted);
+    text-decoration: line-through;
+
+    .chart-legend-marker {
+      stroke: var(--border-strong);
+    }
+  }
+}
+
+// An SVG line, because a short dashed border draws as one solid dash.
+.chart-legend-marker {
+  flex: none;
+  width: var(--space-4);
+  height: var(--space-1);
+  stroke: var(--legend-color);
+}
+
+// The stubs of the loading state, in the tone and pulse of `lib-chart-skeleton`.
+.stub {
+  display: block;
+  height: var(--space-2);
+  background: var(--surface-sunken);
+  border-radius: a.radius(sm);
+}
+
+// Opacity only, so the base layer's reduced-motion rule stops it.
+.is-skeleton,
+.chart-card-table {
+  animation: chart-card-pulse var(--dur-indeterminate) var(--ease-standard) infinite;
+}
+
+.is-skeleton .chart-legend-item {
+  cursor: default;
+
+  &:hover {
+    background: none;
+  }
+}
+
+.is-skeleton .chart-legend-marker {
+  height: var(--space-1);
+}
+
+// A fixed pattern of name widths, never random, so the stubs do not change on a render.
+.chart-legend-name {
+  width: a.space(12);
+
+  .chart-legend-item:nth-child(3n + 2) & {
+    width: a.space(16);
+  }
+
+  .chart-legend-item:nth-child(3n) & {
+    width: a.space(10);
+  }
+}
+
+// The row height and borders of the loaded table (`.top-customers`), so nothing moves.
+.chart-card-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  tr {
+    height: var(--chart-table-row);
+  }
+
+  td {
+    padding: 0 var(--space-3);
+    vertical-align: middle;
+    border-bottom: var(--border-width-hairline) solid var(--border-subtle);
+
+    &:first-child {
+      padding-inline-start: 0;
+    }
+
+    &:last-child {
+      padding-inline-end: 0;
+    }
+  }
+
+  tr:last-child td {
+    border-bottom: 0;
+  }
+
+  // The number columns take their stubs' width, and the name column the rest.
+  td + td {
+    width: 1%;
+  }
+
+  .is-head {
+    width: a.space(16);
+  }
+
+  .is-name {
+    width: 40%;
+  }
+
+  .is-number {
+    width: a.space(12);
+    margin-inline-start: auto;
+  }
+
+  tr:nth-child(3n) .is-name {
+    width: 28%;
+  }
+
+  tr:nth-child(3n + 2) .is-name {
+    width: 34%;
+  }
+}
+
+// The live region is for screen readers only.
+.chart-card-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (forced-colors: active) {
+  .stub {
+    outline: var(--border-width-hairline) solid GrayText;
+  }
+
+  .chart-legend-item[aria-pressed='true'] {
+    border-color: CanvasText;
+  }
+
+  // One system color for every entry. The dash pattern keeps the entries apart.
+  .chart-legend-marker {
+    stroke: CanvasText;
+  }
+
+  .chart-legend-item[aria-pressed='false'] .chart-legend-marker {
+    stroke: GrayText;
+  }
+
+  // The global ring is a shadow, which the forced palette drops.
+  .chart-card:focus-visible {
+    outline: 2px solid Highlight;
+  }
+
+  .chart-legend-item:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}
+
+@keyframes chart-card-pulse {
+  50% {
+    opacity: 0.6;
+  }
+}

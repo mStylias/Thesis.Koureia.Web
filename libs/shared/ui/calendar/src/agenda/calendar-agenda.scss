@@ -1,0 +1,183 @@
+@use 'abstracts' as a;
+@use '../badge/calendar-badge' as badge;
+@use '../motion/calendar-motion' as motion;
+
+:host {
+  display: block;
+  min-height: 0;
+  height: 100%;
+  overflow: auto;
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(lg);
+  background: var(--surface);
+}
+
+.ag-empty {
+  margin: 0;
+  padding: a.space(8) a.space(4);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.ag-heading {
+  @include a.t-title;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  gap: a.space(2);
+  margin: 0;
+  padding: a.space(2) a.space(4);
+  border-block-end: var(--border-width-hairline) solid var(--border);
+  background: var(--surface);
+  font-size: var(--text-base);
+}
+
+.ag-day[data-today] .ag-heading {
+  color: var(--accent-text);
+}
+
+.ag-today {
+  color: var(--accent-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+}
+
+.ag-list {
+  margin: 0;
+  padding: a.space(1) a.space(2);
+  list-style: none;
+}
+
+.ag-row {
+  --ag-swatch: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: a.space(3);
+  width: 100%;
+  min-width: 0;
+  padding: a.space(2);
+  border: 0;
+  border-radius: a.radius(sm);
+  background: none;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-align: start;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-standard);
+
+  &:hover {
+    background: var(--surface-sunken);
+  }
+
+  &[aria-current] {
+    background: var(--accent-subtle);
+  }
+}
+
+@for $step from 1 through 6 {
+  .ag-row[data-swatch='#{$step}'] {
+    --ag-swatch: var(--swatch-#{$step});
+  }
+}
+
+.ag-time {
+  flex: none;
+  width: var(--calendar-agenda-time-width);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.ag-bar {
+  flex: none;
+  align-self: stretch;
+  width: calc(var(--border-width-strong) * 2);
+  border-radius: a.radius(pill);
+  background: var(--ag-swatch);
+}
+
+.ag-text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ag-title,
+.ag-subtitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ag-title {
+  font-weight: var(--weight-medium);
+}
+
+.ag-subtitle,
+.ag-resource {
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+}
+
+.ag-resource {
+  flex: none;
+}
+
+.ag-row[data-muted] {
+  color: var(--text-muted);
+
+  .ag-time {
+    text-decoration: line-through;
+  }
+
+  .ag-bar {
+    background: var(--border-strong);
+  }
+}
+
+.ag-badge {
+  @include badge.calendar-badge;
+  flex: none;
+}
+
+@include a.respond-down(sm) {
+  .ag-resource {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ag-row {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .ag-row[aria-current] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}
+
+.ag-row-enter {
+  @include motion.rise;
+}
+
+@include motion.rise-keyframes;
+
+// The title and its marks on one line. The title gives way first.
+.ag-title-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+
+  > .ag-title {
+    min-width: 0;
+  }
+}

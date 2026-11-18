@@ -1,0 +1,23 @@
+:host {
+  display: contents;
+}
+
+.photo-current {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  text-align: center;
+}
+
+.photo-hint {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  color: var(--text-secondary);
+}
+
+// The destructive action stands apart from the one that keeps the photo.
+.photo-remove {
+  margin-inline-end: auto;
+}

@@ -1,0 +1,18 @@
+@use 'abstracts' as a;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(6);
+}
+
+.cs-group {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(3);
+}
+
+.cs-heading {
+  @include a.t-label;
+  margin: 0;
+}

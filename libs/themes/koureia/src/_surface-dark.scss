@@ -1,0 +1,67 @@
+// The dark surface context: `data-surface="dark"` on any element.
+//
+// It re-points the ordinary semantic tokens inside a subtree, so the subtree declares once on
+// its root that it is a dark surface, and every descendant, including a nested `lib-*`
+// component, resolves the right values. No surface-specific token names exist.
+//
+//   <section class="cta" data-surface="dark">   the context
+//     <h2>…</h2>                                var(--text-primary)
+//     <a libButton severity="secondary">…</a>   correct with no overrides
+//   </section>
+//
+// It carries the landing page's editorial bands, which are the hero, "how it works", the CTA
+// and the footer, plus the fixed header while it sits over the hero.
+//
+// The context is theme-stable. These bands are dark in light mode and in dark mode, so this is
+// not a theme and `[data-theme='dark']` does not touch it. It nests, so an element inside the
+// subtree can declare its own context to opt back out.
+//
+// Do not confuse it with `--text-inverse`, which does flip with the theme. Inverse means the
+// opposite of the current theme. This means dark, always.
+//
+// CAUTION: Tailwind's `dark:` variant keys off `data-theme` and not this attribute, so a
+// utility does not follow a `data-surface` subtree. Write SCSS against the tokens.
+@use 'dark';
+
+[data-surface='dark'] {
+  // Start from the dark theme, so the accent, focus ring, semantic backgrounds and near-black
+  // shadows are the values already chosen for a dark ground.
+  @include dark.dark-tokens;
+
+  // Where an editorial band differs from the dark theme. The band sits inside an otherwise
+  // light page and competes with photography, so it runs brighter and warmer than app chrome
+  // does in dark mode. Its panels are translucent, so the band color reads through them
+  // instead of being restated as opaque espresso.
+  --bg: var(--neutral-900);
+
+  --surface: color-mix(in srgb, var(--paper) 6%, transparent);
+  --surface-2: color-mix(in srgb, var(--paper) 12%, transparent);
+
+  // A well, so it goes down from the band and not up like the two above, and for that reason
+  // it derives from `--bg` and not from `--paper`. Every recessed surface in the library reads
+  // this token: the secondary button's hover and active fills, the progress track, the switch
+  // off track and a tab hover. With the dark theme's opaque espresso here, the header sign-in
+  // button hovers to solid black over the hero.
+  --surface-sunken: color-mix(in srgb, var(--bg) 45%, transparent);
+
+  --border: color-mix(in srgb, var(--paper) 18%, transparent);
+  --border-strong: color-mix(in srgb, var(--paper) 56%, transparent);
+
+  --text-primary: var(--paper);
+  --text-secondary: var(--neutral-200);
+  --text-muted: var(--neutral-300);
+
+  // A semantic hue as text. The band's `--surface-2` is lighter than the dark theme's, so each
+  // step is lighter again until it is AA on that panel.
+  --success-text: #7ba87d;
+  --warning-text: #bc984f;
+  --error-text: #f5786e;
+  --info-text: #77a3c1;
+
+  // The photo overlays. They create this ground where an image sits behind it instead of a
+  // flat fill. They derive from `--bg`, so a brand sets the band color once. Use `-soft` on a
+  // wide viewport, where more of the photograph is worth seeing and less ink still holds
+  // contrast.
+  --media-scrim: color-mix(in srgb, var(--bg) 70%, transparent);
+  --media-scrim-soft: color-mix(in srgb, var(--bg) 62%, transparent);
+}

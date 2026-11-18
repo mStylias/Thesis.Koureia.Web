@@ -1,0 +1,49 @@
+<div class="management-shell">
+  <lib-sidebar
+    #nav
+    [groups]="groups()"
+    [(collapsed)]="collapsed"
+    [(mobileOpen)]="navOpen"
+    [routerLinkActiveOptions]="navMatch"
+    [ariaLabel]="'management.navLabel' | transloco"
+  >
+    <!-- A template, not projected content: the sidebar draws the brand twice, in the desktop
+         header and in the mobile drawer's header. -->
+    <a *libSidebarBrand class="management-brand" [routerLink]="home">
+      <img class="management-brand-logo" [src]="brand.logo" alt="" />
+      <span libSidebarBrandText class="management-brand-name">{{ brand.name }}</span>
+    </a>
+  </lib-sidebar>
+
+  <div class="management-main">
+    <!-- Both of the sidebar's triggers live here; `nav.navId` points the collapse toggle's
+         `aria-controls` at the navigation landmark it expands. -->
+    <lib-topbar
+      [(menuOpen)]="navOpen"
+      showSidebarToggle
+      [(sidebarCollapsed)]="collapsed"
+      [sidebarControls]="nav.navId"
+    >
+      <h1 libTopbarStart class="management-page-title">{{ pageTitle() }}</h1>
+
+      <!-- The slot marker stays outside the `@if`. A selector on `ng-content` is matched against
+           the static template, so an element inside a control-flow block falls through to the
+           top bar's unslotted content and lands on the LEFT of the bar. -->
+      <div libTopbarEnd>
+        @if (access.isPlatformAdmin()) {
+          <lib-workspace-shop-picker />
+        }
+        @if (showThemeToggle) {
+          <lib-theme-toggle size="sm" />
+        }
+        <lib-management-account-menu />
+      </div>
+    </lib-topbar>
+
+    <main class="management-content">
+      @for (shop of [shopKey()]; track shop) {
+        <router-outlet />
+      }
+    </main>
+  </div>
+</div>

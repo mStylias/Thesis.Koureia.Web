@@ -1,0 +1,108 @@
+<main class="verify-email">
+  <h1 class="verify-email__title">{{ 'verifyEmail.title' | transloco }}</h1>
+
+  <p class="verify-email__lead" id="verify-email-lead">
+    {{ 'verifyEmail.lead' | transloco: { email: email() } }}
+  </p>
+
+  <!--
+    Why the person is standing here, written by the flow that sent them. This screen renders
+    labelled rows and never learns what the flow was.
+  -->
+  @if (pendingAction; as action) {
+    <section class="verify-email__pending" aria-labelledby="verify-email-pending-title">
+      <p class="verify-email__pending-title" id="verify-email-pending-title">{{ action.title }}</p>
+      @if (action.rows.length > 0) {
+        <dl class="verify-email__pending-rows">
+          @for (row of action.rows; track row.label) {
+            <div class="verify-email__pending-row">
+              <dt>{{ row.label }}</dt>
+              <dd>{{ row.value }}</dd>
+            </div>
+          }
+        </dl>
+      }
+    </section>
+  }
+
+  <form class="verify-email__form" (submit)="$event.preventDefault(); submit()">
+    <lib-input-otp
+      class="verify-email__code"
+      size="lg"
+      autoFocus
+      [(value)]="code"
+      [length]="codeLength()"
+      [disabled]="locked()"
+      [invalid]="invalid()"
+      [ariaLabel]="'verifyEmail.codeLabel' | transloco"
+      ariaDescribedby="verify-email-lead verify-email-status"
+      (completed)="submit()"
+    />
+
+    <!--
+      One live region for every message the API produces. `polite` because the person is still
+      typing when most of them arrive, and `assertive` would cut their own character echo off.
+    -->
+    <p class="verify-email__status" id="verify-email-status" role="status" aria-live="polite">
+      @switch (notice()) {
+        @case ('codeIncorrect') {
+          @if (attemptsRemaining() !== null) {
+            {{ 'verifyEmail.errors.codeIncorrect' | transloco: { count: attemptsRemaining() } }}
+          } @else {
+            {{ 'verifyEmail.errors.codeIncorrectPlain' | transloco }}
+          }
+        }
+        @case ('attemptsExhausted') {
+          {{ 'verifyEmail.errors.attemptsExhausted' | transloco }}
+        }
+        @case ('noCodePending') {
+          {{ 'verifyEmail.errors.noCodePending' | transloco }}
+        }
+        @case ('emailMissing') {
+          {{ 'verifyEmail.errors.emailMissing' | transloco }}
+        }
+        @case ('dailyLimitReached') {
+          {{ 'verifyEmail.errors.dailyLimitReached' | transloco }}
+        }
+        @case ('sendFailed') {
+          {{ 'verifyEmail.errors.sendFailed' | transloco }}
+        }
+        @case ('verifyFailed') {
+          {{ 'verifyEmail.errors.verifyFailed' | transloco }}
+        }
+        @default {
+          @if (expiresInSeconds() > 0) {
+            {{ 'verifyEmail.expiresIn' | transloco: { time: expiresInLabel() } }}
+          }
+        }
+      }
+    </p>
+
+    <button
+      libButton
+      class="verify-email__submit"
+      type="submit"
+      size="lg"
+      [disabled]="!canSubmit()"
+    >
+      {{ (verifying() ? 'verifyEmail.verifying' : 'verifyEmail.verify') | transloco }}
+    </button>
+  </form>
+
+  <div class="verify-email__actions">
+    <button
+      libButton
+      type="button"
+      variant="text"
+      severity="secondary"
+      [disabled]="!canResend()"
+      (click)="resend()"
+    >
+      @if (resendInSeconds() > 0) {
+        {{ 'verifyEmail.resendIn' | transloco: { seconds: resendInSeconds() } }}
+      } @else {
+        {{ 'verifyEmail.resend' | transloco }}
+      }
+    </button>
+  </div>
+</main>

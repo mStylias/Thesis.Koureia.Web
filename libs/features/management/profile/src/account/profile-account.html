@@ -1,0 +1,125 @@
+<lib-page-section
+  sectionId="profile"
+  skeletonRows="5"
+  [heading]="'managementProfile.profile.title' | transloco"
+  [state]="state()"
+  (retry)="retry()"
+>
+  <!-- Static, so the section's slot matches it. The button inside comes and goes. -->
+  <div libPageSectionActions>
+    @if (editor.viewing()) {
+      <button
+        #editButton
+        libButton
+        type="button"
+        size="sm"
+        variant="outlined"
+        severity="secondary"
+        (click)="edit()"
+      >
+        <svg libButtonIcon lucidePencil aria-hidden="true"></svg>
+        {{ 'managementProfile.actions.edit' | transloco }}
+      </button>
+    }
+  </div>
+
+  @let fields = editor.form;
+  <form class="account-form" [libForm]="editor">
+    <lib-form-errors />
+
+    <div class="account-pair">
+      <lib-field [field]="fields.firstName">
+        <ng-template libFieldEditor>
+          <input
+            libInputText
+            libFieldControl
+            type="text"
+            autocomplete="given-name"
+            aria-describedby="profile-name-hint"
+            placeholder=" "
+            [formField]="fields.firstName"
+          />
+        </ng-template>
+      </lib-field>
+
+      <lib-field [field]="fields.lastName">
+        <ng-template libFieldEditor>
+          <input
+            libInputText
+            libFieldControl
+            type="text"
+            autocomplete="family-name"
+            aria-describedby="profile-name-hint"
+            placeholder=" "
+            [formField]="fields.lastName"
+          />
+        </ng-template>
+      </lib-field>
+    </div>
+    @if (editor.editing()) {
+      <!-- The name inputs point at it through a static `aria-describedby`. -->
+      <p class="account-hint" id="profile-name-hint">
+        {{ 'managementProfile.profile.nameHint' | transloco }}
+      </p>
+    }
+
+    @if (editor.editing() || hasPhone()) {
+      <lib-field labelStyle="plain" [field]="fields.phoneNumber">
+        <ng-template libFieldEditor let-id let-describedBy="describedBy">
+          <lib-phone-input
+            [inputId]="id"
+            [ariaDescribedby]="describedBy"
+            [formField]="fields.phoneNumber"
+          />
+        </ng-template>
+      </lib-field>
+    }
+
+    <div class="account-readonly">
+      <span class="account-caption">{{ 'managementProfile.profile.email' | transloco }}</span>
+      <span class="account-value">{{ email() }}</span>
+      <span class="account-hint">{{ 'managementProfile.profile.emailHint' | transloco }}</span>
+    </div>
+
+    @if (editor.editing()) {
+      <div class="account-actions">
+        <button
+          libButton
+          type="button"
+          variant="outlined"
+          severity="secondary"
+          [disabled]="editor.submitting()"
+          (click)="cancel()"
+        >
+          {{ 'managementProfile.actions.cancel' | transloco }}
+        </button>
+        <button libButton type="submit" [loading]="editor.submitting()">
+          {{ 'managementProfile.actions.save' | transloco }}
+        </button>
+      </div>
+    }
+  </form>
+
+  <div class="account-password">
+    <div class="account-readonly">
+      <span class="account-caption">{{
+        'managementProfile.profile.password.label' | transloco
+      }}</span>
+      <span class="account-hint" id="profile-password-hint">
+        {{ 'managementProfile.profile.password.hint' | transloco }}
+      </span>
+    </div>
+    <!-- A plain `href`: the BFF route is a document load that redirects to the sign-in pages. -->
+    <a
+      libButton
+      size="sm"
+      variant="outlined"
+      severity="secondary"
+      aria-describedby="profile-password-hint"
+      [href]="passwordHref"
+    >
+      <svg libButtonIcon lucideKeyRound aria-hidden="true"></svg>
+      {{ 'managementProfile.profile.password.action' | transloco }}
+    </a>
+  </div>
+</lib-page-section>

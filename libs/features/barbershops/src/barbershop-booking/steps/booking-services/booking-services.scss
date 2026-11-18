@@ -1,0 +1,154 @@
+@use 'abstracts' as a;
+@use '../step-header' as header;
+
+:host {
+  display: block;
+  // Every card is exactly this tall. It holds a name wrapped onto two lines plus a
+  // description, which is the most a card is allowed to carry.
+  --booking-service-card-height: 6.5rem;
+}
+
+@include header.step-header;
+
+// Two columns of groups from `sm` up, so a shop with several short groups does not run the
+// page down. `start`, not `stretch`: a group is as tall as its own services.
+.services__groups {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: start;
+  gap: a.space(6);
+
+  @include a.respond(sm) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.services__group {
+  min-inline-size: 0;
+}
+
+.services__heading {
+  @include a.t-label;
+  margin: 0 0 a.space(3);
+}
+
+.services__list {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.services__card {
+  display: flex;
+  align-items: center;
+  gap: a.space(3);
+  inline-size: 100%;
+  // One height for every card on the step, whatever its name runs to and whichever group it
+  // is in. Fixed, not a floor: two grids cannot equalise against each other, and a floor
+  // still lets a card that wrapped stand taller than the one beside it.
+  block-size: var(--booking-service-card-height);
+  min-inline-size: 0;
+  appearance: none;
+  text-align: start;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  padding: a.space(4);
+  background: var(--surface);
+  border: var(--border-width-hairline) solid var(--border);
+  border-radius: a.radius(lg);
+  transition:
+    border-color var(--dur-fast) var(--ease-standard),
+    background var(--dur-fast) var(--ease-standard);
+
+  &:hover {
+    border-color: var(--border-strong);
+  }
+
+  &[aria-pressed='true'] {
+    border-color: var(--accent);
+    background: var(--surface-2);
+  }
+}
+
+.services__mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  inline-size: var(--icon-size-lg);
+  block-size: var(--icon-size-lg);
+  border-radius: a.radius(sm);
+  border: var(--border-width-hairline) solid var(--border-strong);
+  color: var(--accent-fg);
+
+  svg {
+    inline-size: var(--icon-size-sm);
+    block-size: var(--icon-size-sm);
+    stroke-width: var(--icon-stroke);
+  }
+}
+
+[aria-pressed='true'] .services__mark {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.services__body {
+  display: flex;
+  flex-direction: column;
+  gap: a.space(1);
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+// Two lines for a name, one for a description. The card is a fixed height, so what it holds
+// has to be bounded — and a name long enough to need a third line is a name nobody reads to
+// the end of anyway.
+.services__name {
+  @include a.t-body;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  color: var(--text-primary);
+  // The column is half the width it was, so a long name wraps rather than pushing the price
+  // off the card.
+  overflow-wrap: break-word;
+}
+
+.services__description {
+  @include a.t-body-sm;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+  color: var(--text-secondary);
+}
+
+.services__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: a.space(1);
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+}
+
+.services__price {
+  @include a.t-body;
+  color: var(--text-primary);
+}
+
+.services__duration {
+  @include a.t-caption;
+  color: var(--text-muted);
+}
+
+@media (forced-colors: active) {
+  .services__card[aria-pressed='true'] {
+    border: 2px solid Highlight;
+  }
+}

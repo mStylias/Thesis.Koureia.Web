@@ -1,0 +1,45 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+.page-intro {
+  display: grid;
+  min-height: 18rem;
+  padding: calc(var(--space-16) + var(--space-10)) var(--container-gutter) var(--space-12);
+  color: var(--text-primary);
+  background: var(--bg);
+
+  > div {
+    width: 100%;
+    max-width: var(--container-max);
+    margin: auto;
+  }
+}
+
+.eyebrow {
+  @include a.t-label;
+  margin: 0;
+  color: var(--accent-text);
+}
+
+h1 {
+  margin: var(--space-3) 0 0;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-black);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}
+
+p:not(.eyebrow) {
+  max-width: 36rem;
+  margin: var(--space-4) 0 0;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+}

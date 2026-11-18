@@ -1,0 +1,42 @@
+@use 'abstracts' as a;
+@use '../step-header' as header;
+@use '../../booking-notices' as notices;
+
+:host {
+  display: block;
+}
+
+@include header.step-header;
+@include notices.booking-notices;
+
+.confirm__compare,
+.confirm__fields {
+  margin-block-end: a.space(6);
+}
+
+.confirm__policy {
+  @include a.t-body-sm;
+  margin: a.space(4) 0 0;
+  color: var(--text-muted);
+}
+
+// The action repeated at the end of what it commits to. Full width on a phone, where it is
+// the last thing on the page; sized to its words from `sm` up.
+.confirm__commit {
+  display: flex;
+  margin-block-start: a.space(6);
+
+  .confirm__commit-button {
+    inline-size: 100%;
+  }
+
+  @include a.respond(sm) {
+    .confirm__commit-button {
+      inline-size: auto;
+    }
+  }
+}
+
+.confirm__notice {
+  margin-block-start: a.space(4);
+}

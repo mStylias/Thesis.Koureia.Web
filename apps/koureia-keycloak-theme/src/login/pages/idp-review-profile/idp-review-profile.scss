@@ -1,0 +1,26 @@
+:host {
+  display: contents;
+}
+
+.auth-form {
+  display: grid;
+  gap: var(--space-3);
+}
+
+button[libButton] {
+  width: 100%;
+}
+
+.message {
+  margin-bottom: var(--space-3);
+}
+
+@media (min-width: 64rem) and (min-height: 48rem) {
+  .auth-form {
+    gap: var(--space-5);
+  }
+
+  .message {
+    margin-bottom: var(--space-5);
+  }
+}

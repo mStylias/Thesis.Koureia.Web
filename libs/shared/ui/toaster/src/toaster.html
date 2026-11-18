@@ -1,0 +1,51 @@
+@if (toasts().length) {
+  <ol
+    #list
+    class="toaster"
+    tabindex="-1"
+    role="list"
+    aria-live="polite"
+    aria-atomic="false"
+    [attr.aria-label]="ariaLabel() || ('toaster.notifications' | uiCopy | transloco)"
+    [attr.data-y-position]="yPosition()"
+    [attr.data-x-position]="xPosition()"
+    [style.--front-toast-height]="frontToastHeight() + 'px'"
+    [style.--width]="width + 'px'"
+    [style.--gap]="gap() + 'px'"
+    [style.--viewport-offset]="viewportOffset + 'px'"
+    [style.--mobile-offset]="mobileOffset + 'px'"
+    (mouseenter)="onMouseEnter()"
+    (mousemove)="onMouseMove()"
+    (mouseleave)="onMouseLeave()"
+    (focusin)="onFocusIn($event)"
+    (focusout)="onFocusOut($event)"
+    (pointerdown)="onPointerDown()"
+    (pointerup)="onPointerUp()"
+    (dragend)="onDragEnd()"
+  >
+    @for (toast of toasts(); track toast.id; let index = $index) {
+      <li
+        lib-toast
+        [toast]="toast"
+        [index]="index"
+        [expanded]="expanded()"
+        [paused]="hovered() || focused()"
+        [interacting]="interacting()"
+        [position]="position()"
+        [visibleToasts]="visibleToasts()"
+        [gap]="gap()"
+        [closeButton]="closeButton()"
+        [closeAriaLabel]="closeAriaLabel()"
+        [expandByDefault]="expand()"
+        [life]="life()"
+        [heights]="orderedHeights()"
+        [totalToasts]="toasts().length"
+        (heightRegistered)="registerHeight($event)"
+        (heightUpdated)="updateHeight($event)"
+        (heightRemoved)="removeHeight($event)"
+        (dismissed)="onToastDismissed()"
+        (removed)="removeToast($event)"
+      ></li>
+    }
+  </ol>
+}

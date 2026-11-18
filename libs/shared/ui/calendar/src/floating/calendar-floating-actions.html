@@ -1,0 +1,22 @@
+@let viewLabel = 'calendar.view' | uiCopy | transloco;
+@let createText = createLabel() || ('calendar.create' | uiCopy | transloco);
+
+<!-- No tooltips: the buttons show on phones only, where a tap opens one and leaves it up. -->
+<lib-fab-group position="absolute">
+  <button
+    libFab
+    type="button"
+    size="sm"
+    severity="secondary"
+    [libMenuTriggerFor]="viewMenu"
+    [attr.aria-label]="viewLabel"
+  >
+    <svg [lucideIcon]="viewIcon()" aria-hidden="true"></svg>
+  </button>
+  <button libFab type="button" size="sm" [attr.aria-label]="createText" (click)="create.emit()">
+    <svg lucidePlus aria-hidden="true"></svg>
+  </button>
+</lib-fab-group>
+
+<!-- Outside the group, so its empty host adds no gap to the stack. -->
+<lib-menu #viewMenu [items]="viewItems()" [ariaLabel]="viewLabel" />
